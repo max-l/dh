@@ -1,0 +1,50 @@
+@(helloForm: Form[(Boolean,String,String,Int,Option[String])])
+
+@import helper._
+
+@main(title = "The 'helloworld' application") {
+
+    <h1>Configure your 'Hello world':</h1>
+
+    @form(action = routes.Application.postHello, args = 'id -> "helloform") {
+
+        @checkbox(
+            field = helloForm("inOrNot"),
+            args = '_label -> "Are you in ?", 
+            'placeholder -> "World"
+            //'_error -> helloForm("inOrNot").error.map(_.withMessage("RU In or Not ???"))
+        )
+
+        @inputRadioGroup( 
+          field = helloForm("gender"), 
+          options = options("M"->"Male","F"->"Female"), 
+          '_label -> "Gender", 
+          '_error -> helloForm("gender").error.map(_.withMessage("select gender"))
+        )
+
+        @inputText(
+            field = helloForm("name"),
+            args = '_label -> "What's your name?", 'placeholder -> "World"
+        )
+
+        @inputText(
+            field = helloForm("repeat"),
+            args = '_label -> "How many times?", 'size -> 3, 'placeholder -> 10
+        )
+
+        @select(
+            field = helloForm("color"), 
+            options = options(
+                "" -> "Default",
+                "red" -> "Red",
+                "green" -> "Green",
+                "blue" -> "Blue"
+            ),
+            args = '_label -> "Choose a color"
+        )
+
+        <p class="buttons"><input type="submit" id="submit"></p>
+
+    }
+
+}

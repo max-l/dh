@@ -1,0 +1,18 @@
+@(inOrNot: Boolean, gender: String, name: String, repeat: Int, color: Option[String])
+
+@main("Here is the result:") {
+
+    G = @gender <br/>
+    IN = @(if(inOrNot) "In" else "not In") <br/>
+    
+    <ul style="color: @color.getOrElse("inherited")">
+        @for(_ <- 1 to repeat) {
+            <li>Hello @name!</li>
+        }
+    </ul>
+
+    <p class="buttons">
+        <a href="@routes.Application.index">Back to the form</a>
+    </p>
+
+}
