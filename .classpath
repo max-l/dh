@@ -94,5 +94,6 @@
 	<classpathentry kind="lib" path="C:/dev/play-2.0/repository/local/org.easytesting/fest-util/1.1.6/jars/fest-util.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="C:/dev/play-test/target/scala-2.9.1/classes_managed"/>
+	<classpathentry kind="lib" path="target/scala-2.9.1/classes_managed"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

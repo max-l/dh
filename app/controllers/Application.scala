@@ -23,6 +23,8 @@ object Application extends Controller with Secured {
   
   val c = routes.Application.helloResult(true, "F", "zaza", 3, Some("red"))
   
+  //routes.Decisions.
+  
   println("strongly typed URI -----> " + c.url)
   
   // -- Authentication

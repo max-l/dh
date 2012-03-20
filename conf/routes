@@ -16,6 +16,12 @@ GET     /showHello                         controllers.Application.showHelloForm
 GET    /hello                     controllers.Application.postHello
 GET     /hello                     controllers.Application.helloResult(inOrNot: Boolean, gender: String, name: String, repeat: Int, color: Option[String])
 
+#Decision
+
+GET     /decision/create                       controllers.Decisions.create
+GET     /decision/:id                          controllers.Decisions.show(id: Long)
+POST    /decision                              controllers.Decisions.submit
+
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

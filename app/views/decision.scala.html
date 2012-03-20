@@ -1,2 +1,37 @@
-@(decision: Decision)
+@(decisionForm: Form[Decision])
 
+@import helper._
+
+@main(title = "The Decision") {
+
+    <h1>What is the decision about ?</h1>
+
+    @form(action = routes.Decisions.submit) {
+
+        <input type='hidden' value='@decisionForm.data.getOrElse("id","")'/>
+
+        @inputText(
+            field = decisionForm("title"),
+            args = '_label -> "A title for the decision"
+        )
+
+        @inputText(
+            field = decisionForm("punchLine"),
+            args = '_label -> "A short phrase that best describes what the decision is about"
+        )
+
+        @inputText(
+            field = decisionForm("summary"),
+            args = '_label -> "A text describing the ins and outs"
+        )
+
+        @checkbox(
+            field = decisionForm("votesAreAnonymous"),
+            args = '_label -> "Are votes anonymous ?"
+        )
+
+        <p class="buttons"><input type="submit" id="submit"></p>
+
+    }
+
+}
