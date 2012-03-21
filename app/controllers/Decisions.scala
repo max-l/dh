@@ -8,10 +8,10 @@ import play.api.data.Forms._
 import play.api.data.format.Formats._
 import play.api.data.validation._
 import play.api.data.validation.Constraints._
-
 import views._
 
-object Decisions extends Controller with Secured {
+
+object Decisions extends BaseDecisionHubController with ConcreteSecured {
 
   import models._
 
@@ -33,11 +33,10 @@ object Decisions extends Controller with Secured {
     }
   )
 
-  def submit = Action { implicit request =>
+  def submit = IsAuthenticated { dhSession => implicit request =>
     decisionForm.bindFromRequest.fold(
       errors => {
-
-        BadRequest(html.decision(errors))},
+        BadRequest(html.decision(errors)(dhSession))},
       decision => transaction {
 
         val d = models.Schema.decisions.insert(decision)
@@ -46,17 +45,28 @@ object Decisions extends Controller with Secured {
       })
   }
 
-  //def decisionEdit(id: Long) = Ok(html.decision(decisionForm.fill(Decision.create)))
+  def create = IsAuthenticated { dhSession => implicit request =>
 
-  def create = Action {
-    Ok(html.decision(decisionForm.fill(Decision.create)))
+    Ok(html.decision(decisionForm.fill(Decision.create))(dhSession))
   }
 
-  def show(id: Long) = Action(transaction {
+  def show(id: Long) = IsAuthenticated { dhSession => implicit request => 
+    transaction {
 
-    val d = models.Schema.decisions.lookup(id).get
-    
-    Ok(html.decision(decisionForm.fill(d)))
-  })
+      models.Schema.decisions.lookup(id)  match {
+        case Some(d) => Ok(html.decision(decisionForm.fill(d))(dhSession)) 
+        case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
+      }
+    }
+  }
+
+  def myDecisions(ownerId: Long) = IsAuthenticated { dhSession => implicit request =>
+    val d = 
+      transaction { 
+        models.Schema.decisions.where(_.ownerId === ownerId).toSeq
+      }
+
+      Ok(html.decisionSet("", d)(dhSession))
+  }
 }
 

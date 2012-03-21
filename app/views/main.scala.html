@@ -1,15 +1,71 @@
-@(title: String)(content: Html)
+@(title: String, nav: String = "")(content: Html)(implicit mpo: MainPageObjects)
 
 <!DOCTYPE html>
 
 <html>
     <head>
-        <title>@title</title>
+        <title>Form samples</title>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.css")">
         <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
         <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
     </head>
     <body>
-        @content
+
+@mpo.debugDump.map { debugInfo =>
+<pre>
+@debugInfo
+</pre>
+}
+        <div class="topbar">
+            <div class="fill">
+                <div class="container">
+                    <a class="brand" href="@routes.Application.index()">Home</a>
+                    <ul class="nav">
+                        @if(mpo.dhSession.isEmpty) {
+                          <li class="@("active".when(nav == "signup"))">
+                            <a href="@routes.Application.login">Sign up</a>
+                          </li>
+                        }
+                        @mpo.dhSession.map { sess =>
+                          <li class="@("active".when(nav == "signup"))">
+                            <a>sess.displayName</a>
+                          </li>
+                          <li class="("active".when(nav == "contact"))">
+                            <a href="routes.Decisions.myDecisions(sess.userId)">Contacts</a>
+                          </li>
+                          <li class="("active".when(nav == "createDecision"))">
+                            <a href="routes.Decisions.create">Contacts</a>
+                          </li>                          
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+
+            <div class="content">
+                
+                <div class="page-header">
+                    <h1>@title</h1>
+                </div>
+
+                <div class="row">
+                    <div class="span14">
+                        @content
+                    </div>
+                </div>
+                
+            </div>
+
+            <footer>
+                <p>
+                    <a href="http://strong-links.com">strong-links.com</a>
+                </p>
+            </footer>
+
+        </div>
+        
     </body>
 </html>

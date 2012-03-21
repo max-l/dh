@@ -7,20 +7,17 @@ GET     /                           controllers.Application.index
 
 # Authentication
 GET     /login                              controllers.Application.login
-POST    /login                              controllers.Application.authenticate
+GET     /fbauth                             controllers.Application.fbauth
 GET     /logout                             controllers.Application.logout
 
-#GET     /zaza/:name                controllers.Application.zaza(name: String)
-
-GET     /showHello                         controllers.Application.showHelloForm
-GET    /hello                     controllers.Application.postHello
-GET     /hello                     controllers.Application.helloResult(inOrNot: Boolean, gender: String, name: String, repeat: Int, color: Option[String])
 
 #Decision
 
 GET     /decision/create                       controllers.Decisions.create
 GET     /decision/:id                          controllers.Decisions.show(id: Long)
+GET     /myDecisions/:ownerId                  controllers.Decisions.myDecisions(ownerId: Long)
 POST    /decision                              controllers.Decisions.submit
+
 
 
 # Map static resources from the /public folder to the /assets URL path

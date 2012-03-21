@@ -1,5 +1,6 @@
-@(decisionForm: Form[Decision])
+@(decisionForm: Form[Decision])(implicit mpo: MainPageObjects)
 
+@import helper.twitterBootstrap._
 @import helper._
 
 @main(title = "The Decision") {
@@ -12,22 +13,23 @@
 
         @inputText(
             field = decisionForm("title"),
-            args = '_label -> "A title for the decision"
+            '_label -> "A title"
         )
 
         @inputText(
             field = decisionForm("punchLine"),
-            args = '_label -> "A short phrase that best describes what the decision is about"
+            '_label -> "Described in one phrase"
         )
 
-        @inputText(
+        @textarea(
             field = decisionForm("summary"),
-            args = '_label -> "A text describing the ins and outs"
+            '_label -> "Described in one paragraph",
+            'cols -> 80
         )
 
         @checkbox(
             field = decisionForm("votesAreAnonymous"),
-            args = '_label -> "Are votes anonymous ?"
+            '_label -> "Are votes anonymous ?"
         )
 
         <p class="buttons"><input type="submit" id="submit"></p>

@@ -1,0 +1,14 @@
+@(pageTitle: String, decisions: Seq[Decision])(implicit mpo: MainPageObjects)
+
+@import helper._
+
+@main(title = "@pageTitle") {
+
+  <ul>
+    for(d <- decisions) {
+      <li>
+        <a href="routes.Decisions.show(d.id)">  
+      </li>
+    }
+  </ul>
+}

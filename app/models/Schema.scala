@@ -43,13 +43,38 @@ trait DecisionHubEntity extends KeyedEntity[Long] {
   val id = 0L
 }
 
-class User(
+case class User(
    firstName: Option[String],
    lastName: Option[String],
    nickName: Option[String],
    facebookId: Option[Long],
    email: Option[String],
-   passwordHash: Option[String]) extends DecisionHubEntity
+   passwordHash: Option[String]) extends DecisionHubEntity {
+
+  override def toString = 
+    Seq(firstName, lastName, nickName, facebookId).mkString("User(", ",", ")")
+   
+  def displayableName = 
+    nickName orElse 
+    Seq(firstName, lastName).flatten.headOption orElse
+    email
+
+  /**
+   * The main constraint is to have a displayable name
+   */
+  def validate = {
+
+    val accountIdentifier = 
+      facebookId orElse email
+
+
+    (displayableName, accountIdentifier) match {
+      case (None,    Some(_)) => Right("You must specify at least a first name, last name, nickname or email.")
+      case (Some(n), Some(_)) => Left(n)
+      case _ => Right("invalid user " + this + ".")
+    }
+  }
+}
 
 case class Decision(
   ownerId: Long,
@@ -78,9 +103,7 @@ case class Vote(
   participationId: Long, 
   score: Int) extends DecisionHubEntity
 
-  
-  
-  
+
 object HerokuUtils {
 
   def environementExtractor = new {
