@@ -12,5 +12,4 @@ trait BaseDecisionHubController extends Controller {
   
   implicit def requestToMainPageObjects(req: Request[_]) = new MainPageObjects(None, req)
 
-  
 }

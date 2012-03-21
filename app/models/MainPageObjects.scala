@@ -3,10 +3,13 @@ import controllers.DecisionHubSession
 import play.api.mvc.Request
 import play.api.mvc.Headers
 import play.api.mvc.RequestHeader
+import controllers.Secured
 
 class MainPageObjects(val dhSession: Option[DecisionHubSession], headers: RequestHeader) {
 
-  def isAuthenticated = dhSession.isDefined
+  def isAuthenticated = 
+    dhSession.isDefined
+    //headers.session.get(Secured.authenticatonTokenName).isDefined
 
   val DEBUG = true
 

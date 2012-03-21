@@ -20,7 +20,6 @@ object Global extends GlobalSettings {
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
-
     super.onRouteRequest(request)
   }
 }

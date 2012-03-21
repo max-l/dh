@@ -26,16 +26,20 @@
                           <li class="@("active".when(nav == "signup"))">
                             <a href="@routes.Application.login">Sign up</a>
                           </li>
+                        } else {
+                          <li class="@("active".when(nav == "signup"))">
+                            <a href="@routes.Application.logout">Log out</a>
+                          </li>
                         }
                         @mpo.dhSession.map { sess =>
                           <li class="@("active".when(nav == "signup"))">
-                            <a>sess.displayName</a>
+                            <a>@sess.displayName</a>
                           </li>
                           <li class="("active".when(nav == "contact"))">
-                            <a href="routes.Decisions.myDecisions(sess.userId)">Contacts</a>
+                            <a href="@routes.Decisions.myDecisions(sess.userId)">My Decisions</a>
                           </li>
                           <li class="("active".when(nav == "createDecision"))">
-                            <a href="routes.Decisions.create">Contacts</a>
+                            <a href="@routes.Decisions.create">Create Decision</a>
                           </li>                          
                         }
                     </ul>

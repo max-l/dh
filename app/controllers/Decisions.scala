@@ -39,7 +39,8 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
         BadRequest(html.decision(errors)(dhSession))},
       decision => transaction {
 
-        val d = models.Schema.decisions.insert(decision)
+        val d0 = decision.copy(ownerId = dhSession.userId)
+        val d = models.Schema.decisions.insert(d0)
 
         Redirect(routes.Decisions.show(d.id))
       })
@@ -51,22 +52,27 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
   }
 
   def show(id: Long) = IsAuthenticated { dhSession => implicit request => 
-    transaction {
+    transaction(models.Schema.decisions.lookup(id)) match {
+      case Some(d) => Ok(html.decisionDetailedView(d)(dhSession)) 
+      case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
+    }
+  }
+  
 
-      models.Schema.decisions.lookup(id)  match {
-        case Some(d) => Ok(html.decision(decisionForm.fill(d))(dhSession)) 
-        case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
-      }
+  def edit(id: Long) = IsAuthenticated { dhSession => implicit request => 
+    transaction(models.Schema.decisions.lookup(id)) match {
+      case Some(d) => Ok(html.decision(decisionForm.fill(d))(dhSession)) 
+      case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
     }
   }
 
   def myDecisions(ownerId: Long) = IsAuthenticated { dhSession => implicit request =>
     val d = 
       transaction { 
-        models.Schema.decisions.where(_.ownerId === ownerId).toSeq
+        models.Schema.decisions.where(_.ownerId === ownerId).toList
       }
 
-      Ok(html.decisionSet("", d)(dhSession))
+    Ok(html.decisionSet("", d)(dhSession))
   }
 }
 

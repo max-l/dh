@@ -2,12 +2,12 @@
 
 @import helper._
 
-@main(title = "@pageTitle") {
+@main(title = pageTitle) {
 
   <ul>
-    for(d <- decisions) {
+    @for(d <- decisions) {
       <li>
-        <a href="routes.Decisions.show(d.id)">  
+        <a href="@routes.Decisions.show(d.id)">@d.title</a>  
       </li>
     }
   </ul>

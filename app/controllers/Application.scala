@@ -13,6 +13,7 @@ import models._
 import org.squeryl.PrimitiveTypeMode._ 
 import org.h2.command.ddl.CreateUser
 
+
 object Application extends BaseDecisionHubController with ConcreteSecured {
 
   
@@ -36,31 +37,20 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
   )
 
 
-  def login = Action { implicit request =>
+  def login = MaybeAuthenticated { mpo => implicit request =>
     
-    Ok(html.login(facebookLoginManager.loginWithFacebookUrl)(request))
+    Ok(html.login(facebookLoginManager.loginWithFacebookUrl)(mpo))
   }
 
-/*
-  def authenticate = Action { implicit request =>
-    loginForm.bindFromRequest.fold(
-      formWithErrors => BadRequest(html.login(formWithErrors, facebookLoginManager.loginWithFacebookUrl)),
-      user => AuthenticationSuccess(Redirect(routes.Application.index), DecisionHubSession("daUserId"))
-    )
-  }
-*/
-  /**
-   * Logout and clean the session.
-   */
-  def logout = Action {
+  def logout = Action { req =>
     Redirect(routes.Application.login).withNewSession.flashing(
       "success" -> "You've been logged out"
     )
   }
 
-  def index = Action { r =>
+  def index = MaybeAuthenticated { mpo =>  r =>
 
-    Ok(html.index(r))
+    Ok(html.index(mpo))
   }
 
   def showHelloForm = IsAuthenticated { dhSession => implicit request =>
@@ -76,17 +66,31 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
       yield info
 
     res match {
-      case Left(info) =>
-        val u = createNewUser(info)
+      case Left(info) => transaction {
+        val facebookId = java.lang.Long.parseLong(info.id)
+        val (u, isNewUser) = 
+        Schema.users.where(_.facebookId === facebookId).headOption match {
+          case None =>
+            Logger.info("New User registered, facebookId :  " + facebookId)
+            (createNewUser(info, facebookId), true)
+          case Some(uz) => 
+            Logger.info("Successful Logon, userId: " + uz.id)
+            (uz, false)
+        }
+
         val ses = new DecisionHubSession(u, req)
+
         AuthenticationSuccess(Redirect(routes.Application.index), ses)
-      case Right(error) => Redirect(routes.Application.login)
+      }
+      case Right(error) => 
+        Logger.info("Failed Logon " + res)
+        Redirect(routes.Application.login)
     }
   }
   
-  def createNewUser(info: MinimalInfo) = transaction {
+  private def createNewUser(info: MinimalInfo, fbId: Long) = {
 
-    val u = User(info.firstName, info.lastName, info.name, Some(java.lang.Long.parseLong(info.id)), info.email, None)
+    val u = User(info.firstName, info.lastName, info.name, Some(fbId), info.email, None)
     
     Schema.users.insert(u)    
   }
