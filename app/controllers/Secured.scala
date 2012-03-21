@@ -24,7 +24,7 @@ object Secured {
 
 case class DecisionHubSession(userId: Long, dataInCookie: String, requestHeaders: RequestHeader) {
   def this(u: User, r: Request[_]) = this(u.id, u.displayableName.get, r)
-  
+
   def displayName = dataInCookie
 }
 
@@ -131,8 +131,9 @@ trait Secured[S,O] {
   def AuthenticationSuccess(r: Result, concreteSession: S)(implicit req: Request[AnyContent]) = {
 
     val userId = userIdFromSession(concreteSession)
+    val dataInCoookie = dataFromSession(concreteSession)
     
-    val t = authenticator.bake(userId, maxIdleTimeInSeconds, sslSessionId(req), "")
+    val t = authenticator.bake(userId, maxIdleTimeInSeconds, sslSessionId(req), dataInCoookie)
     r.asInstanceOf[PlainResult].withSession(req.session + (authenticatonTokenName -> t))
   }
 }

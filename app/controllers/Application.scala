@@ -10,13 +10,13 @@ import play.api.data.validation.Constraints._
 import com.strong_links.crypto.ToughCookieBakery
 import play.api.libs.ws.WS
 import models._
-import org.squeryl.PrimitiveTypeMode._ 
+import org.squeryl.PrimitiveTypeMode._
 import org.h2.command.ddl.CreateUser
+import play.api.templates.Html
 
 
 object Application extends BaseDecisionHubController with ConcreteSecured {
 
-  
   val facebookLoginManager = new FacebookOAuthManager(
     "300426153342097", 
     "7fd15f25798be11efb66e698f73b9aa6",
@@ -36,6 +36,15 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
     })
   )
 
+  def facebookChannelFile = Action {
+    val expire = 60*60*24*365
+
+     Ok("<script src='//connect.facebook.net/en_US/all.js'></script>").withHeaders(
+       "Pragma" -> "public", 
+       "Cache-Control" -> ("max-age="+ expire),
+       "Expires" -> ("max-age=" + expire)
+     )
+  }
 
   def login = MaybeAuthenticated { mpo => implicit request =>
     
@@ -50,6 +59,7 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
 
   def index = MaybeAuthenticated { mpo =>  r =>
 
+    
     Ok(html.index(mpo))
   }
 
@@ -110,6 +120,9 @@ case class MinimalInfo(id: String, firstName: Option[String], lastName: Option[S
 
 class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectFromFacebook: String, extraArgs: Map[String,String] = Map.empty) {
 
+//https://graph.facebook.com/APP_ID/accounts/test-users?installed=true&name=zaza1&locale=en_US&permissions=read_stream&method=post&access_token=APP_ACCESS_TOKEN
+
+  
   import OAuthErrorTypes._
 
   def loginWithFacebookUrl =

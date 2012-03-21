@@ -1,0 +1,56 @@
+@(decision: Decision, invitationMessage: String)(implicit mpo: MainPageObjects)
+
+@import helper._
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+    @headContent {
+      <script>
+        function sendRequestViaMultiFriendSelector() {
+          FB.ui({method: 'apprequests',
+            message: '@invitationMessage'
+          },
+          function requestCallback(response) {
+            Log.info('API Callback', response);
+          });
+        };
+      </script>
+    }
+    </head>
+    <body>
+    <div id="fb-root"></div>
+    <script>
+         window.fbAsyncInit = function() {
+          FB.init({
+            appId      : '300426153342097', // App ID
+            channelUrl : '/channel.html', // Channel File
+            status     : true, // check login status
+            cookie     : true, // enable cookies to allow the server to access the session
+            frictionlessRequests : true,
+            redirect_uri: 'http://decision-hub.com/decision/@decision.id',
+            xfbml      : true  // parse XFBML
+          });
+
+          // Additional initialization code here
+        };
+
+        // Load the SDK Asynchronously
+        (function(d){
+           var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+           if (d.getElementById(id)) {return;}
+           js = d.createElement('script'); js.id = id; js.async = true;
+           js.src = "//connect.facebook.net/en_US/all.js";
+           ref.parentNode.insertBefore(js, ref);
+         }(document));
+
+    </script>
+    
+    @mainInnerBody("Invite voters") {
+
+        <div onClick="sendRequestViaMultiFriendSelector()"><a>Invite friends</a></div>
+
+    }
+    </body>
+</html>

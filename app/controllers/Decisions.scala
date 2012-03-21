@@ -57,8 +57,18 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
       case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
     }
   }
-  
 
+  def invite(decisionId: Long) = IsAuthenticated { dhSession => implicit request => 
+    transaction(models.Schema.decisions.lookup(decisionId)) match {
+      case Some(d) => 
+        
+        val invitationMessage = "Hi, I have invited you as a voter for this decision : " + d.title
+
+        Ok(html.inviteVoters(d, invitationMessage)(dhSession)) 
+      case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
+    }
+  }
+  
   def edit(id: Long) = IsAuthenticated { dhSession => implicit request => 
     transaction(models.Schema.decisions.lookup(id)) match {
       case Some(d) => Ok(html.decision(decisionForm.fill(d))(dhSession)) 

@@ -3,13 +3,12 @@
 # ~~~~
 
 # Home page
-GET     /                           controllers.Application.index
+GET     /                                      controllers.Application.index
 
 # Authentication
-GET     /login                              controllers.Application.login
-GET     /fbauth                             controllers.Application.fbauth
-GET     /logout                             controllers.Application.logout
-
+GET     /login                                 controllers.Application.login
+GET     /fbauth                                controllers.Application.fbauth
+GET     /logout                                controllers.Application.logout
 
 #Decision
 
@@ -17,8 +16,10 @@ GET     /decision/create                       controllers.Decisions.create
 GET     /decision/:id                          controllers.Decisions.show(id: Long)
 GET     /myDecisions/:ownerId                  controllers.Decisions.myDecisions(ownerId: Long)
 POST    /decision                              controllers.Decisions.submit
+GET     /decision/invite/:decisionId           controllers.Decisions.invite(decisionId: Long)
 
+GET     /channel.html                          controllers.Application.facebookChannelFile
 
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /assets/*file                          controllers.Assets.at(path="/public", file)
