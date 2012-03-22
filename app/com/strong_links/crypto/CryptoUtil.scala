@@ -40,8 +40,20 @@ trait CryptoUtil {
       else
         res
     }
+    
+    def toUrlSafe =
+      convertToUrlSafe(value)
   }
 
+  def convertToUrlSafe(base64: String): String = 
+    base64.map { _ match {
+        case '+' => '-'
+        case '/' => '_'
+        case c => c
+      }
+    }.mkString("")
+
+  
   sealed class FullCryptoField(val rawValue: Array[Byte], val value: String) extends CryptoField
   
   sealed class RawCryptoField(val rawValue: Array[Byte]) extends CryptoField {
@@ -75,11 +87,26 @@ trait CryptoUtil {
     algo.doFinal : CryptoField
   }
   
+  def hmacSha256(args: CryptoField*)(secret: CryptoField) = {
+
+    val algo = createHmacSha256(secret)
+    
+    for(a <- args) {
+      algo.update(a.rawValue)
+    }
+    algo.doFinal : CryptoField
+  }
+  
   private def createHmacSha1(secret: CryptoField) = {
     val mac = Mac.getInstance("HmacSHA1")
     mac.init(new SecretKeySpec(secret.rawValue, "HmacSHA1"))
     mac
   }
+  private def createHmacSha256(secret: CryptoField) = {
+    val mac = Mac.getInstance("HmacSHA256")
+    mac.init(new SecretKeySpec(secret.rawValue, "HmacSHA256"))
+    mac
+  }  
 }
 
 

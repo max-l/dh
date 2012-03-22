@@ -8,8 +8,9 @@ import com.strong_links.crypto.ToughCookieBakery
 import play.api.libs.iteratee.Done
 import play.api.libs.iteratee.Input
 import com.strong_links.crypto.ToughCookieStatus
-import models.User
 import models.MainPageObjects
+import com.decision_hub._
+import models._
 
 
 object Secured {
@@ -20,6 +21,8 @@ object Secured {
     Play.current.configuration.getString("application.secret").
       map(new ToughCookieBakery(_)).getOrElse(sys.error("missing config 'application.secret'"))
 
+  val sslSessionIdHeaderName = 
+    Play.current.configuration.getString("application.sslSessionIdHeaderName")
 }
 
 case class DecisionHubSession(userId: Long, dataInCookie: String, requestHeaders: RequestHeader) {
@@ -70,15 +73,18 @@ trait Secured[S,O] {
     )
     yield userId
 
-  protected def sslSessionId(request: RequestHeader) = "fwe12342fewf343434"
-  
+  protected def sslSessionId(request: RequestHeader) =
+    (for(hn <- sslSessionIdHeaderName;
+         sid <- request.headers.get(hn))
+     yield sid).getOrElse("fwe12342fewf343434")
 
+     
   private def onUnauthorized(request: RequestHeader) = {
     Logger("application").debug("Autentication failed, will redirect.")
     Results.Redirect(routes.Application.login)
   }
     
-  val maxIdleTimeInSeconds = 60 * 7
+  val maxIdleTimeInSeconds = 60 * 45
   
   def MaybeAuthenticated(block: O => Request[AnyContent] => Result): Action[AnyContent] =
     Action(BodyParsers.parse.anyContent) { request =>

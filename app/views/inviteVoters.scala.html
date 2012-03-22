@@ -8,12 +8,45 @@
     <head>
     @headContent {
       <script>
+
+JSON.stringify = JSON.stringify || function (obj) {
+    var t = typeof (obj);
+    if (t != "object" || obj === null) {
+        // simple data type
+        if (t == "string") obj = '"'+obj+'"';
+        return String(obj);
+    }
+    else {
+        // recurse array or object
+        var n, v, json = [], arr = (obj && obj.constructor == Array);
+        for (n in obj) {
+            v = obj[n]; t = typeof(v);
+            if (t == "string") v = '"'+v+'"';
+            else if (t == "object" && v !== null) v = JSON.stringify(v);
+            json.push((arr ? "" : '"' + n + '":') + String(v));
+        }
+        return (arr ? "[" : "{") + String(json) + (arr ? "]" : "}");
+    }
+};
+
         function sendRequestViaMultiFriendSelector() {
           FB.ui({method: 'apprequests',
-            message: '@invitationMessage'
+            message: '@invitationMessage',
+            data: 'abc123'
           },
           function requestCallback(response) {
-            Log.info('API Callback', response);
+            if(response != null) {
+             var z = JSON.stringify(response)
+             $('#logDiv').append(z);
+             $.ajax({
+               type: 'POST',
+               url: "/recordInvitationList",
+               data: z,
+               success: function() {},
+               contentType: "application/json; charset=utf-8",
+               dataType: 'json'
+             });
+            }
           });
         };
       </script>
@@ -25,11 +58,11 @@
          window.fbAsyncInit = function() {
           FB.init({
             appId      : '300426153342097', // App ID
-            channelUrl : '/channel.html', // Channel File
             status     : true, // check login status
             cookie     : true, // enable cookies to allow the server to access the session
+            channelUrl : '/channel.html', // Channel File
             frictionlessRequests : true,
-            redirect_uri: 'http://decision-hub.com/decision/@decision.id',
+//            redirect_uri: 'http://localhost/decision/@decision.id',
             xfbml      : true  // parse XFBML
           });
 
@@ -46,11 +79,22 @@
          }(document));
 
     </script>
-    
+<!-- 
+            frictionlessRequests : true,
+            redirect_uri: 'http://decision-hub.com/decision/@decision.id',
+            channelUrl : '/channel.html', // Channel File
+            
+-->
     @mainInnerBody("Invite voters") {
-
         <div onClick="sendRequestViaMultiFriendSelector()"><a>Invite friends</a></div>
 
+      <br/>
+
+      <a href='http://www.facebook.com/dialog/apprequests?app_id=300426153342097&message=ZZZZZZZZZ&redirect_uri=http://strong-links.com/decision/@decision.id'>
+        ZZZZZZAZA
+      </a>
+
+      <div id='logDiv'>Zozo</div>
     }
     </body>
 </html>

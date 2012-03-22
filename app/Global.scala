@@ -20,6 +20,28 @@ object Global extends GlobalSettings {
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
-    super.onRouteRequest(request)
+
+
+    def dumpHeaders = {
+      println("-----------------------------------------------------------")
+      println(request.method + " " + request.path + request.rawQueryString)
+      println(request.headers.toMap.mkString("\n"))
+
+      println("-----------------------------------------------------------")
+    }
+
+    if(request.path.endsWith(".css") || 
+       request.path.endsWith(".png") ||
+       request.path.endsWith(".js"))
+      super.onRouteRequest(request)
+    else {
+      dumpHeaders
+      super.onRouteRequest(request)
+    }
+
+    
+    
+    
+    
   }
 }
