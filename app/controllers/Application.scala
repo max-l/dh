@@ -69,6 +69,15 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
     Ok("")
   }
   
+  
+  def fcpe = MaybeAuthenticated { mpo =>  r =>
+    Ok(html.fcpe())
+  }
+  
+  def boots = MaybeAuthenticated { mpo =>  r =>
+    Ok(html.boots())
+  }  
+
   def showHelloForm = IsAuthenticated { dhSession => implicit request =>
     Ok(html.index(dhSession))
   }
