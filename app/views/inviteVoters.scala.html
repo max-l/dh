@@ -36,17 +36,18 @@ JSON.stringify = JSON.stringify || function (obj) {
           },
           function requestCallback(response) {
             if(response != null) {
-             var z = JSON.stringify(response)
-             $('#logDiv').append(z);
-             $.ajax({
-               type: 'POST',
-               url: "/recordInvitationList",
-               data: z,
-               success: function() {},
-               contentType: "application/json; charset=utf-8",
-               dataType: 'json'
-             });
-            }
+              response.decisionId = '@decision.id'
+              var z = JSON.stringify(response)
+              $('#logDiv').append(z);
+              $.ajax({
+                type: 'POST',
+                url: "/recordInvitationList",
+                data: z,
+                success: function() {},
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json'
+              });
+             }
           });
         };
       </script>

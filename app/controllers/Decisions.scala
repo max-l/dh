@@ -11,7 +11,9 @@ import play.api.data.validation.Constraints._
 import views._
 import play.api.libs.json.Json
 import com.decision_hub._
+import com.decision_hub.Util._
 import org.jboss.netty.handler.codec.base64.Base64
+import java.sql.Timestamp
 
 
 object Decisions extends BaseDecisionHubController with ConcreteSecured {
@@ -36,15 +38,26 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
     }
   )
 
-  def recordInvitationList = Action(parse.json) { request =>
+  def recordInvitationList = IsAuthenticated { dhSession => implicit request =>
 
-    //println("JJJJJJJJSON + " +  request.body)
-    
-     //{"request":"169028456551622","to":["100003662792844"]}
-     
-    val reciptientFacebookIds = (request.body \ "to").as[Seq[String]]
-    
-    println("........... : " + reciptientFacebookIds)
+     //format is {"decisionId":"1234","request":"169028456551622","to":["100003662792844"]}
+
+    val js = request.body.asJson.get
+
+    val (requestId, decisionId, reciptientFacebookIds) = 
+      try {(
+        Util.parseLong((js \ "request").as[String]),
+        Util.parseLong((js \ "decisionId").as[String]),
+        (js \ "to").as[Seq[String]].map(Util.parseLong(_))
+      )}
+      catch {
+        case e:Exception => logger.error("Bad json format")
+        throw e
+      }
+
+    logger.info("Invited participants to decision " + decisionId)
+
+    DecisionManager.createParticipations(requestId, decisionId, reciptientFacebookIds)
     Ok
   }
 
@@ -114,6 +127,12 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
               case Some(u) => 
                 val ses = new DecisionHubSession(u, request)
                 logger.info("registered user" + userId + " authenticated.")
+
+                val requestIds =
+                   request.queryString.get("request_ids").
+                     flatten.map(parseLong(_))
+
+                DecisionManager.acceptInvitation(requestIds)
                 AuthenticationSuccess(Redirect(routes.Application.index), ses)
               case None =>
                 logger.info("User" + userId + " not registered.")

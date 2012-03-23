@@ -4,6 +4,7 @@ import org.squeryl.PrimitiveTypeMode._
 import org.squeryl._
 import java.sql.DriverManager
 import org.squeryl.adapters.PostgreSqlAdapter
+import java.sql.Timestamp
 
 
 object Schema extends org.squeryl.Schema {
@@ -13,6 +14,8 @@ object Schema extends org.squeryl.Schema {
   val decisions = table[Decision]
 
   val decisionAlternatives = table[DecisionAlternative]
+  
+  val decisionParticipations = table[DecisionParticipation]
 
   val votes = table[Vote]
 }
@@ -93,9 +96,20 @@ case class DecisionAlternative(
   title: String, 
   text: Option[String]) extends DecisionHubEntity
 
+object DecisionParticipationStatus extends Enumeration {
+  type DecisionParticipationStatus = Value 
+  
+  val Invited, Accepted, RefusedToAuthorizeApp = Value
+}
+
+
 case class DecisionParticipation(
-  decisionId: Long, 
-  voterId: Long) extends DecisionHubEntity
+  decisionId: Long,
+  requestId: Long, //facebook app request id
+  voterId: Long,
+  timeInvited: Timestamp,
+  accepted: Boolean,
+  timeAcceptedOrRefused: Option[Timestamp]) extends DecisionHubEntity
 
 case class Vote(
   decisionId: Long, 

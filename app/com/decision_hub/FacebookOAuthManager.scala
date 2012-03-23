@@ -111,7 +111,12 @@ class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectF
           
           //TOTAL HACK !!!!  TODO replace with base64url decode :
           var reqStr = new String(reqBin)
-          reqStr = if(!reqStr.endsWith("}")) reqStr + "}" else reqStr
+          reqStr = reqStr.last match {
+            case '}' => reqStr
+            case '"' => reqStr + "}"
+            case _ => reqStr + "\"}"
+          }
+
           
           println("r2:" + reqStr)
           val js = Json.parse(reqStr)
