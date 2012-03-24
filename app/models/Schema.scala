@@ -92,8 +92,9 @@ object Decision {
 }
   
 case class DecisionAlternative(
-  decisionId: Long, 
-  title: String, 
+  decisionId: Long,
+  title: String,
+  advocateId: Option[Long], //this is the candidate userId if the decision is an election.
   text: Option[String]) extends DecisionHubEntity
 
 object DecisionParticipationStatus extends Enumeration {

@@ -14,6 +14,7 @@ import com.decision_hub._
 import com.decision_hub.Util._
 import org.jboss.netty.handler.codec.base64.Base64
 import java.sql.Timestamp
+import play.api.libs.iteratee.Iteratee
 
 
 object Decisions extends BaseDecisionHubController with ConcreteSecured {
@@ -38,6 +39,15 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
     }
   )
 
+  def customParserLong: BodyParser[Long] = null // (RequestHeader) => Iteratee[Array[Byte], Either[Result, Long]] = null
+  
+  def jsr = Action(customParserLong) { r =>
+    
+    r.body
+    
+    Ok
+  }
+  
   def recordInvitationList = IsAuthenticated { dhSession => implicit request =>
 
      //format is {"decisionId":"1234","request":"169028456551622","to":["100003662792844"]}
@@ -147,6 +157,38 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
     }
     
     //fb_source=notification&request_ids=330354990346061%2C345752415476609%2C194291397351464%2C153667191422301%2C345240682188366%2C135736843222281&ref=notif&app_request_type=user_to_user&notif_t=app_request
+  }
+  
+  def decisionSummaries = MaybeAuthenticated { dhSession => implicit request =>
+    
+    val dss = Seq(
+      new DecisionSummary(
+          1, "Za big Decision", "this is about the most important decision ever", 
+          Seq(
+            "Za best alternative" ->  454,
+            "The most perfect alternatice" ->  142,
+            "The alternatice of the enlightened" ->  33
+          ),
+          67,
+          200, 163, 3
+          ),
+      new DecisionSummary(
+          2, "Pizza or Indian ?", "no comments...", 
+          Seq(
+            "Pizza" ->  5,
+            "Indian" ->  5
+          ),
+          89,
+          26, 10, 6),
+      new DecisionSummary(
+          3, "Elect the master of the universe", "this will have consequences until the end of times !", 
+          Nil,
+          40,
+          234234, 163, 334
+          )
+      )
+    
+    Ok(html.decisionSummaries(dss))
   }
   
   def myDecisions(ownerId: Long) = IsAuthenticated { dhSession => implicit request =>

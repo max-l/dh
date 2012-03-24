@@ -1,0 +1,38 @@
+@(summaries: Seq[DecisionSummary])
+
+
+@for(d <- summaries) {
+
+<div class='row'>
+
+    <div class="span2">
+      <a href="#" class="thumbnail">
+        <img src="http://placehold.it/100x100" alt="">
+      </a>
+    </div>
+
+   <div class="span6">
+      <div class="caption">
+        <h2>@d.title</h2>
+        <h3>@d.punchLine</h2>
+      </div>
+   </div>
+
+   <div class="span2" id="__dsum@d.id"></div>
+
+   <div class="span2" id="__dsum@d.id"></div>
+     <span class="badge badge-success">@d.numberOfVoters</span> Voters<br/>
+     <span class="badge badge-success">@d.numberOfVotesExercised</span> Voted so far<br/>
+     <span class="badge badge-success">@d.numberOfAbstentions</span> Abstensions<br/>
+     <span class="badge badge-success">1 day 45 minutes left</span><br/>
+     Admin: <a>Max L.</a>
+   </div>
+
+</div>
+}
+
+<script>
+@for(d <- summaries) {
+  drawChart(document.getElementById('__dsum@d.id'), @Html(d.pieChartData))
+}
+</script>

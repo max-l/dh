@@ -19,6 +19,7 @@ GET     /myDecisions/                          controllers.Decisions.myDecisionz
 POST    /myDecisions/                          controllers.Decisions.myDecisionz
 POST    /decision                              controllers.Decisions.submit
 GET     /decision/invite/:decisionId           controllers.Decisions.invite(decisionId: Long)
+GET     /decisionSummaries                     controllers.Decisions.decisionSummaries
 
 POST    /recordInvitationList                  controllers.Decisions.recordInvitationList
 

@@ -59,6 +59,41 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
     )
   }
 
+  def zazzzz = <section id="navbar">
+  <div class="navbar  navbar-fixed-top">
+      <div class="container" style="width: auto;">
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </a>
+        <a class="brand" href="#">Decision Hub</a>
+        <div class="nav-collapse">
+          <ul class="nav">
+            <li class="active"><a onClick='dddraw()'>My Decisions</a></li>
+            <li class="divider-vertical"></li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">@displayName <b class="caret"></b></a>
+              <ul class="dropdown-menu">
+                <li><a href="#">Account Settings</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Log Out</a></li>
+              </ul>
+            </li>
+          </ul>
+          <form class="navbar-search pull-left" action="">
+            <input type="text" class="search-query span2" placeholder="Search"/>
+          </form>
+          <ul class="nav pull-right">
+            <li><a href="#">About</a></li>
+          </ul>
+        </div>
+      </div>
+    
+  </div><!-- /navbar -->
+</section>
+
+  
   def index = MaybeAuthenticated { mpo =>  r =>
 
     
