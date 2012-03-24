@@ -1,13 +1,11 @@
-@(decisionForm: Form[Decision])(implicit mpo: MainPageObjects)
+@(decisionForm: Form[Decision])
 
-@import helper.twitterBootstrap._
 @import helper._
 
-@main(title = "The Decision") {
 
     <h1>What is the decision about ?</h1>
 
-    @form(action = routes.Decisions.submit) {
+    <form id='newDecisionForm'>
 
         <input type='hidden' value='@decisionForm.data.getOrElse("id","")'/>
 
@@ -34,6 +32,4 @@
 
         <p class="buttons"><input type="submit" id="submit"></p>
 
-    }
-
-}
+    </form>

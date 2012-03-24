@@ -1,10 +1,4 @@
 @()
-
-
-@displayName() = {
-  Max L.
-}
-
 <!DOCTYPE html>
 
 <html>
@@ -21,13 +15,28 @@
 
      <script type="text/javascript" src="https://www.google.com/jsapi"></script>
      <script type="text/javascript">
-         google.load("visualization", "1", {packages:["corechart"]});
+       google.load("visualization", "1", {packages:["corechart"]});
 
-         //google.setOnLoadCallback(function() {})
+       //google.setOnLoadCallback(function() {})
 
-         function dddraw() {
-           $('#centerPanel').load('/decisionSummaries', function() {})
-         }
+       function ajaxAction(url) {
+         $('#centerPanel').load(url, function() {})
+       }
+       
+       function myDecisions() {
+         ajaxAction('/decisionSummaries')
+       }
+       
+       function newDecisions() {
+         ajaxAction('/')
+         $.post(
+           "decisionSubmit", 
+           $("#newDecisionForm").serialize(),
+           function(result) {
+             $("#centerPanel").empty().append(result)
+           }
+         )
+       }
 
        function drawChart(targetDiv, data) {
 
@@ -50,10 +59,19 @@
 
          new google.visualization.PieChart(targetDiv).draw(t, options);
        }
+
      </script>
 
     </head>
     <body>
+    
+<!--
+    <div id="fb-root"></div>
+    <script>
+      @facebookClientSideAuth("300426153342097")
+    </script>
+-->
+
     <div class="container">
 
 <!-- Navbar ================================================== -->
@@ -68,16 +86,25 @@
         <a class="brand" href="#">Decision Hub</a>
         <div class="nav-collapse">
           <ul class="nav">
-            <li class="active"><a onClick='dddraw()'>My Decisions</a></li>
+
+            <li class="active"><a onClick='myDecisions()'>My Decisions</a></li>
+
             <li class="divider-vertical"></li>
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">@displayName <b class="caret"></b></a>
-              <ul class="dropdown-menu">
-                <li><a href="#">Account Settings</a></li>
-                <li class="divider"></li>
-                <li><a href="#">Log Out</a></li>
-              </ul>
+            
+            <li class="active"><a onClick='newDecisions()'>New Decision</a></li>
+            
+            <li class="divider-vertical"></li>
+
+            <li class="active">
+
+                <div id="auth-loggedout">
+                  <a href="#" id="auth-loginlink">Login</a>
+                </div>
+                <div id="auth-loggedin" style="display:none">
+                  <span id="auth-displayname"></span> [<a href="#" id="auth-logoutlink">logout</a>]
+                </div>
             </li>
+
           </ul>
           <form class="navbar-search pull-left" action="">
             <input type="text" class="search-query span2" placeholder="Search"/>

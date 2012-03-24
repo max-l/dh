@@ -59,8 +59,7 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
     )
   }
 
-  def index = MaybeAuthenticated { mpo =>  r =>
-
+  def indexO = MaybeAuthenticated { mpo =>  r =>
     Ok(html.index(mpo))
   }
 
@@ -69,7 +68,7 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
   }
   
   
-  def fcpe = MaybeAuthenticated { mpo =>  r =>
+  def index = MaybeAuthenticated { mpo =>  r =>
     Ok(html.fcpe())
   }
   

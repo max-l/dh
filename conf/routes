@@ -17,7 +17,7 @@ GET     /decision/:id                          controllers.Decisions.show(id: Lo
 GET     /myDecisions/:ownerId                  controllers.Decisions.myDecisions(ownerId: Long)
 GET     /myDecisions/                          controllers.Decisions.myDecisionz
 POST    /myDecisions/                          controllers.Decisions.myDecisionz
-POST    /decision                              controllers.Decisions.submit
+POST    /decisionSubmit                        controllers.Decisions.submit
 GET     /decision/invite/:decisionId           controllers.Decisions.invite(decisionId: Long)
 GET     /decisionSummaries                     controllers.Decisions.decisionSummaries
 
@@ -27,7 +27,7 @@ GET     /channel.html                          controllers.Application.facebookC
 
 GET     /emptyPage                             controllers.Application.emptyPage
 
-GET     /fcpe                                  controllers.Application.fcpe
+#GET     /fcpe                                  controllers.Application.fcpe
 GET     /boots                                 controllers.Application.boots
 
 # Map static resources from the /public folder to the /assets URL path

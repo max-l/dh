@@ -74,7 +74,7 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
   def submit = IsAuthenticated { dhSession => implicit request =>
     decisionForm.bindFromRequest.fold(
       errors => {
-        BadRequest(html.decision(errors)(dhSession))},
+        BadRequest(html.decision(errors))},
       decision => transaction {
 
         val d0 = decision.copy(ownerId = dhSession.userId)
@@ -86,7 +86,7 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
 
   def create = IsAuthenticated { dhSession => implicit request =>
 
-    Ok(html.decision(decisionForm.fill(Decision.create))(dhSession))
+    Ok(html.decision(decisionForm.fill(Decision.create)))
   }
 
   def show(id: Long) = IsAuthenticated { dhSession => implicit request => 
@@ -109,7 +109,7 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
   
   def edit(id: Long) = IsAuthenticated { dhSession => implicit request => 
     transaction(Schema.decisions.lookup(id)) match {
-      case Some(d) => Ok(html.decision(decisionForm.fill(d))(dhSession)) 
+      case Some(d) => Ok(html.decision(decisionForm.fill(d))) 
       case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
     }
   }
