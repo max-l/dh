@@ -114,49 +114,41 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
     }
   }
 
-  val facebookLoginManager = new FacebookOAuthManager(
+  implicit val facebookLoginManager = new FacebookOAuthManager(
     "300426153342097", 
     "7fd15f25798be11efb66e698f73b9aa6",
     "http://localhost:9000/fbauth")
-  
+
   def myDecisionz = MaybeAuthenticated { dhSession => implicit request =>
 
-    
-    //println(request.body.asText)
+    println("--::::::::::::::>")
     //println(request.body.asJson)
     //println(request.body.asFormUrlEncoded)
-    
-    dhSession.dhSession match {
-      case None =>
-        
-        val b = request.body.asFormUrlEncoded
+    val b = request.body.asFormUrlEncoded.get
 
-        facebookLoginManager.authenticateSignedRequest(b) match {
-          case Some(userId) =>
-            AuthenticationManager.lookupFacebookUser(userId) match {
-              case Some(u) => 
-                val ses = new DecisionHubSession(u, request)
-                logger.info("registered user" + userId + " authenticated.")
+    import FacebookProtocol._
 
-                val requestIds =
-                   request.queryString.get("request_ids").
-                     flatten.map(parseLong(_))
+    FacebookProtocol.authenticateSignedRequest(b).map(_ match {
+      case FBClickOnApplicationNonRegistered(_) => 
+        Redirect(facebookLoginManager.loginWithFacebookUrl)
+      case FBClickOnApplicationRegistered(fbUserId) =>
+        AuthenticationManager.lookupFacebookUser(fbUserId) match {
+          case Some(u) =>
+            val ses = new DecisionHubSession(u, request)
+            this.logger.debug("registered user " + fbUserId + " authenticated.")
 
-                DecisionManager.acceptInvitation(requestIds)
-                AuthenticationSuccess(Redirect(routes.Application.index), ses)
-              case None =>
-                logger.info("User" + userId + " not registered.")
-                Redirect(routes.Application.login)
-            }
-          case None => 
+            val requestIds =
+               request.queryString.get("request_ids").
+                 flatten.map(Util.parseLong(_))
+
+            DecisionManager.acceptInvitation(requestIds)
+            AuthenticationSuccess(Redirect(routes.Application.index), ses)
+          case None => // user clicked on 'my applications'
+            this.logger.error("non fatal error : fb user " + fbUserId + 
+                " registered with FB, but not present in the DB, only explanation : app crash on response from facebook oaut registration.")
             Redirect(routes.Application.login)
         }
-
-      case Some(sess) =>
-        showDecisionsOf(sess.userId, sess)
-    }
-    
-    //fb_source=notification&request_ids=330354990346061%2C345752415476609%2C194291397351464%2C153667191422301%2C345240682188366%2C135736843222281&ref=notif&app_request_type=user_to_user&notif_t=app_request
+    }).getOrElse(BadRequest)
   }
   
   def decisionSummaries = MaybeAuthenticated { dhSession => implicit request =>

@@ -4,6 +4,35 @@ import java.security._
 import javax.crypto._
 import javax.crypto.spec.SecretKeySpec
 
+sealed trait CryptoField {
+  
+  override def toString = value
+  
+  def value: String
+  
+  def rawValue: Array[Byte]
+
+  def mapValue[A](f: String => A) = f(value)
+
+  lazy val asLong = CryptoUtil.parseLong(value)
+
+  def matches(f: CryptoField) = {
+    val s1 = value
+    val s2 = f.value
+    val res = s1 == s2
+
+     // lets code defensively :
+    if(res && s1.equals(""))
+      false
+    else
+      res
+  }
+  
+  def toUrlSafe =
+    CryptoUtil.convertToUrlSafe(value)
+}
+object CryptoUtil extends CryptoUtil
+
 trait CryptoUtil {
 
   import javax.xml.bind.DatatypeConverter._
@@ -16,34 +45,6 @@ trait CryptoUtil {
 
   def cryptoFieldFromBase64(s: String) = 
     new FullCryptoField(parseBase64Binary(s), s)
-
-  sealed trait CryptoField {
-    
-    override def toString = value
-    
-    def value: String
-    
-    def rawValue: Array[Byte]
-
-    def mapValue[A](f: String => A) = f(value)
-
-    lazy val asLong = parseLong(value)
-
-    def matches(f: CryptoField) = {
-      val s1 = value
-      val s2 = f.value
-      val res = s1 == s2
-
-       // lets code defensively :
-      if(res && s1.equals(""))
-        false
-      else
-        res
-    }
-    
-    def toUrlSafe =
-      convertToUrlSafe(value)
-  }
 
   def convertToUrlSafe(base64: String): String = 
     base64.map { _ match {
@@ -73,7 +74,7 @@ trait CryptoUtil {
   implicit def byteArrayToCryptoField(a: Array[Byte]) = 
     new RawCryptoField(a)
   
-  protected def parseLong(s: String) =
+  def parseLong(s: String) =
     try {Some(java.lang.Long.parseLong(s))}
     catch {case e:NumberFormatException => None}
 
@@ -158,6 +159,7 @@ class ToughCookieBakery(_serverSecret: Array[Byte]) extends CryptoUtil {
         else if(expirationTimeInCookie.asLong.get < System.currentTimeMillis)
           (ToughCookieStatus.Expired, None)
         else {
+
 
           val k = 
             hmacSha1(userIdInCookie, |, expirationTimeInCookie)(serverSecret)

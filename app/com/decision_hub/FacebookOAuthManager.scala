@@ -2,7 +2,7 @@ package com.decision_hub
 import play.api.libs.ws.WS
 import play.api.Logger
 import play.api.libs.json.Json
-import com.strong_links.crypto.CryptoUtil
+import com.strong_links.crypto._
 
 object OAuthErrorTypes extends Enumeration {
   type OAuthErrorTypes = Value 
@@ -85,67 +85,6 @@ class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectF
         throw nfe
       }
     }
-  
-  def authenticateSignedRequest(r: Option[Map[String,Seq[String]]]) = {
-        
-    val jsonSignedRequest = 
-      for(body <- r;
-          signedReqSeq <- body.get("signed_request");
-          signedReq  <- signedReqSeq.map(_.split('.').toList).headOption;
-          sr <- signedReq match {
-            case List(sig, req) => Some((sig, req))
-            case _ => None
-          })
-      yield sr
-        
-      jsonSignedRequest match {
-        case None =>
-          logger.error("bad signed_request format :'" + r + "'")
-          None
-        case Some((_sig, __req)) =>
-
-          val _req = convertToUrlSafe(__req)
-          
-          println("r1:" + _req)
-          val reqBin = javax.xml.bind.DatatypeConverter.parseBase64Binary(_req)
-          
-          //TOTAL HACK !!!!  TODO replace with base64url decode :
-          var reqStr = new String(reqBin)
-          reqStr = reqStr.last match {
-            case '}' => reqStr
-            case '"' => reqStr + "}"
-            case _ => reqStr + "\"}"
-          }
-
-          
-          println("r2:" + reqStr)
-          val js = Json.parse(reqStr)
-
-          val algo = (js \ "algorithm").as[Option[String]]
-          val isValid = algo match {
-            case None => false
-            case Some("HMAC-SHA256") => 
-              val sig : CryptoField = _sig
-              val req : CryptoField = _req
-              
-              val computedSig = hmacSha256(req)(appSecretField)
-              val z1 = sig.value + "="
-              val z2 = computedSig.toUrlSafe
-              val res = z1 == z2
-              if(!res)
-                logger.warn("Invalid authentication from Facebook.")
-              res
-          }
-
-          logger.info("Authentication from Facebook status :" + isValid)
-          if(! isValid)
-            None
-          else {
-
-            Some(_parseLong((js \ "user_id").as[String]))
-          }
-      }
-  }
 
   def obtainMinimalInfo(accessToken: String): Either[MinimalInfo,OAuthErrorTypes.Value] = 
     try {
@@ -174,4 +113,82 @@ class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectF
         Logger.error("unexpected response from facebook graph api " + e.toString)
         Right(UnexpectedResponse)
     }
+}
+
+
+object FacebookProtocol extends CryptoUtil {
+  
+  def logger = Logger("application")
+
+  sealed trait FBClickOnApplication
+  sealed case class FBClickOnApplicationNonRegistered(jsonMsg: String) extends FBClickOnApplication
+  sealed case class FBClickOnApplicationRegistered(fbUserId: Long) extends FBClickOnApplication
+
+  def authenticateSignedRequest(r: Map[String,Seq[String]])(implicit m: FacebookOAuthManager): Option[FBClickOnApplication] = {
+
+    val jsonSignedRequest = 
+      for(signedReqSeq <- r.get("signed_request");
+          signedReq  <- signedReqSeq.map(_.split('.').toList).headOption;
+          sr <- signedReq match {
+            case List(sig, req) => Some((sig, req))
+            case _ => None
+          })
+      yield sr
+        
+      jsonSignedRequest match {
+        case None =>
+          logger.error("bad signed_request format :'" + r + "'")
+          None
+        case Some((_sig, __req)) =>
+
+          val _req = convertToUrlSafe(__req)
+          
+          println("r1:" + _req)
+          val reqBin = javax.xml.bind.DatatypeConverter.parseBase64Binary(_req)
+          
+          //TOTAL HACK !!!!  TODO replace with base64url decode :
+          var reqStr = new String(reqBin)
+            reqStr = reqStr.last match {
+              case '}' => reqStr
+              case '"' => reqStr + "}"
+              case _ => reqStr + "\"}"
+            }
+
+          
+          println("r2:" + reqStr)
+          val js = Json.parse(reqStr)
+
+          val algo = (js \ "algorithm").as[Option[String]]
+          val isValid = algo match {
+            case None => false
+            case Some("HMAC-SHA256") => 
+              val sig : CryptoField = _sig
+              val req : CryptoField = _req
+              
+              val computedSig = hmacSha256(req)(m.appSecretField)
+              val z1 = sig.value + "="
+              val z2 = computedSig.toUrlSafe
+              val res = z1 == z2
+              if(!res)
+                logger.warn("Invalid authentication from Facebook.")
+              res
+          }
+
+          logger.info("Authentication from Facebook status :" + isValid)
+          if(! isValid)
+            None
+          else
+            (js \ "user_id").asOpt[String] match {
+              case None => Some(FBClickOnApplicationNonRegistered(reqStr))
+              case Some(sUserId) => parseLong(sUserId) match {
+                case None =>
+                  logger.error("invalid facebook userId ")
+                  None
+                case Some(uId) => Some(FBClickOnApplicationRegistered(uId)) 
+              }
+            }
+          
+      }
+  }
+  
 }
