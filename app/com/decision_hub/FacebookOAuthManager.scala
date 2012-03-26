@@ -48,7 +48,7 @@ class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectF
             logUnexpectedResponse("getting access token", txt)
             Right(UnexpectedResponse)
           }
-      }.await.get
+      }.await(15 * 1000).get
     res
   }
 

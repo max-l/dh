@@ -90,12 +90,13 @@ object Decision {
   
   def create = Decision(0L,"","",None,true)
 }
-  
+
 case class DecisionAlternative(
   decisionId: Long,
   title: String,
   advocateId: Option[Long], //this is the candidate userId if the decision is an election.
   text: Option[String]) extends DecisionHubEntity
+
 
 object DecisionParticipationStatus extends Enumeration {
   type DecisionParticipationStatus = Value 
@@ -109,8 +110,10 @@ case class DecisionParticipation(
   requestId: Long, //facebook app request id
   voterId: Long,
   timeInvited: Timestamp,
-  accepted: Boolean,
-  timeAcceptedOrRefused: Option[Timestamp]) extends DecisionHubEntity
+  accepted: Boolean = false,
+  hasVoted: Int = 0,
+  abstained: Int = 0,
+  timeAcceptedOrRefused: Option[Timestamp] = None) extends DecisionHubEntity
 
 case class Vote(
   decisionId: Long, 

@@ -114,10 +114,6 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
     }
   }
 
-  implicit val facebookLoginManager = new FacebookOAuthManager(
-    "300426153342097", 
-    "7fd15f25798be11efb66e698f73b9aa6",
-    "http://localhost:9000/fbauth")
 
   def myDecisionz = MaybeAuthenticated { dhSession => implicit request =>
 
@@ -130,7 +126,7 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
 
     FacebookProtocol.authenticateSignedRequest(b).map(_ match {
       case FBClickOnApplicationNonRegistered(_) => 
-        Redirect(facebookLoginManager.loginWithFacebookUrl)
+        Redirect(facebookOAuthManager.loginWithFacebookUrl)
       case FBClickOnApplicationRegistered(fbUserId) =>
         AuthenticationManager.lookupFacebookUser(fbUserId) match {
           case Some(u) =>
@@ -153,34 +149,8 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
   
   def decisionSummaries = MaybeAuthenticated { dhSession => implicit request =>
     
-    val dss = Seq(
-      new DecisionSummary(
-          1, "Za big Decision", "this is about the most important decision ever", 
-          Seq(
-            "Za best alternative" ->  454,
-            "The most perfect alternatice" ->  142,
-            "The alternatice of the enlightened" ->  33
-          ),
-          67,
-          200, 163, 3
-          ),
-      new DecisionSummary(
-          2, "Pizza or Indian ?", "no comments...", 
-          Seq(
-            "Pizza" ->  5,
-            "Indian" ->  5
-          ),
-          89,
-          26, 10, 6),
-      new DecisionSummary(
-          3, "Elect the master of the universe", "this will have consequences until the end of times !", 
-          Nil,
-          40,
-          234234, 163, 334
-          )
-      )
     
-    Ok(html.decisionSummaries(dss))
+    Ok(html.decisionSummaries(TestData.fakeDecisionSummaries))
   }
   
   def myDecisions(ownerId: Long) = IsAuthenticated { dhSession => implicit request =>

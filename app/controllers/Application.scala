@@ -13,18 +13,11 @@ import models._
 import org.squeryl.PrimitiveTypeMode._
 import org.h2.command.ddl.CreateUser
 import play.api.templates.Html
-import com.decision_hub.FacebookOAuthManager
 import com.decision_hub.AuthenticationManager
 
 
 object Application extends BaseDecisionHubController with ConcreteSecured {
 
-  val facebookLoginManager = new FacebookOAuthManager(
-    "300426153342097", 
-    "7fd15f25798be11efb66e698f73b9aa6",
-    "http://localhost:9000/fbauth")
-
-  
   import views._
   import views.html.helper._
 
@@ -50,11 +43,11 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
 
   def login = MaybeAuthenticated { mpo => implicit request =>
     
-    Ok(html.login(facebookLoginManager.loginWithFacebookUrl)(mpo))
+    Ok(html.login(facebookOAuthManager.loginWithFacebookUrl)(mpo))
   }
 
   def logout = Action { req =>
-    Redirect(routes.Application.login).withNewSession.flashing(
+    Redirect("http://localhost:9000").withNewSession.flashing(
       "success" -> "You've been logged out"
     )
   }
@@ -69,8 +62,9 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
   
   
   def index = MaybeAuthenticated { mpo =>  r =>
-    Ok(html.fcpe())
+    Ok(html.fcpe(new MainPageObject(false, mpo.dhSession.map(s => s.userId.toString))))
   }
+  
   
   def boots = MaybeAuthenticated { mpo =>  r =>
     Ok(html.boots())
@@ -81,7 +75,7 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
   }
 
   def fbauth = Action { implicit req =>
-    import facebookLoginManager._
+    import facebookOAuthManager._
     val res = 
       for(acCode <- obtainAuthorizationCode(req.queryString).left;
           authToken <- obtainAccessToken(acCode).left;
