@@ -1,4 +1,4 @@
-@(summaries: Seq[DecisionSummary])
+@(summaries: Seq[DSummary])
 
 
 @for(d <- summaries) {
@@ -16,12 +16,12 @@
         <h2>@d.title</h2>
         <h3>@d.punchLine</h2>
       </div>
-      <a onClick='inviteVoters(@d.id)'>Invite voters</a>
+      <a onClick='inviteVoters(@d.decision.id)'>Invite voters</a>
    </div>
 
-   <div class="span2" id="__dsum@d.id"></div>
+   <div class="span2" id="__dsum@d.decision.id"></div>
 
-   <div class="span2" id="__dsum@d.id"></div>
+   <div class="span2" id="__dsum@d.decision.id"></div>
      <span class="badge badge-success">@d.numberOfVoters</span> Voters<br/>
      <span class="badge badge-success">@d.numberOfVotesExercised</span> Voted so far<br/>
      <span class="badge badge-success">@d.numberOfAbstentions</span> Abstensions<br/>
@@ -34,6 +34,6 @@
 
 <script>
 @for(d <- summaries) {
-  drawChart(document.getElementById('__dsum@d.id'), @Html(d.pieChartData))
+  drawChart(document.getElementById('__dsum@d.decision.id'), @Html(d.pieChartData))
 }
 </script>

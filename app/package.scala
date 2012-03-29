@@ -8,7 +8,7 @@ package object controllers {
   
   implicit object facebookOAuthManager extends FacebookOAuthManager(
     "300426153342097", 
-    "7fd15f25798be11efb66e698f73b9aa6",
+    "52242a46291a5c1d4e37b69a48be689f",
     "https://localhost/fbauth")
 
 }

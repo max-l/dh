@@ -21,9 +21,6 @@ object DecisionManager {
       select(d)
     )
 
-  case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstentions: Int, numberOfVotesExcercised: Int, alternativeSummaries: Seq[AlternativeSummary])
-  
-  case class AlternativeSummary(decisionId: Long, alternativeId: Long, alternativeTitle: String, points: Int)
  
   def participationSummaries(decisionIds: Seq[Long]) =
     from(decisionParticipations)(dp =>
@@ -42,16 +39,35 @@ object DecisionManager {
     }
 
   
-  def decisionSummariesOf(participantOrOwner: Long, returnOwnedOnly : Boolean) = transaction {
+  def decisionSummariesOf(participantOrOwner: Long, returnOwnedOnly : Boolean) = inTransaction {
 
     val ds = decisionsOf(participantOrOwner, returnOwnedOnly).toSeq
+    decisionSummaries(ds)
+  }
+  
+  
+  def decisionSummariesMostActive = inTransaction {
+
+    val ds = 
+      from(decisions)(d =>
+        where(d.published === true)
+        select(d)
+        orderBy(d.weekActivity desc, d.allTimeActivity desc)
+      ).page(0, 10).toSeq
+
+    
+    decisionSummaries(ds)
+  }
+
+  def decisionSummaries(ds: Seq[Decision]) = {
+
     val decisionIds = ds.map(_.id)
 
     val pSums = participationSummaries(decisionIds).map(t => (t.key: Long, t.measures)).toMap
 
     val aSums = alternativeSummary(decisionIds).groupBy(_.decisionId)
 
-    val dSums = ds map { d =>
+    ds map { d =>
 
       val pSum = pSums.get(d.id).getOrElse((0L,0,0))
 
@@ -59,14 +75,66 @@ object DecisionManager {
         decision = d,
         numberOfVoters = pSum._1,
         numberOfAbstentions = pSum._2,
-        numberOfVotesExcercised = pSum._3,
+        numberOfVotesExercised = pSum._3,
         alternativeSummaries = aSums.get(d.id).toSeq.flatten)
     }
   }
 
-  def acceptInvitation(requestIds: Iterable[Long]) = transaction {
+  /**
+   * scores: Seq[(alternativeId, score)]
+   */
+  def vote(voter: User, decision: Decision, scores: Seq[(Long,Int)]): Unit = 
+    vote(voter.id, decision.id, scores)
+  
+  
+  def vote(voterId: Long, decisionId: Long, scores: Seq[(Long,Int)]): Unit = inTransaction {
+
+    val numRows = 
+      update(decisionParticipations)(p => 
+        where(p.decisionId === decisionId and p.voterId === voterId)
+        set(p.hasVoted := 1)
+      )
+    
+    val isParticipant = numRows == 1
+    
+    if(! isParticipant)
+      sys.error("not participant !")
+      
+    val d = decisions.lookup(decisionId).get
+    
+    votes.deleteWhere(v => v.decisionId === decisionId and v.participationId === voterId)
+    
+    val toInsert = 
+      for( (alternativeId, score) <- scores)
+        yield Vote(decisionId, alternativeId, voterId, score)
+    
+    votes.insert(toInsert)
+  }
+  
+  def decisionDetails(decisionId: Long) = inTransaction {
+
+    val d = decisions.lookup(decisionId).get
+
+    val pSums = participationSummaries(Seq(decisionId)).map(t => (t.key: Long, t.measures)).toMap
+
+    val aSums = alternativeSummary(Seq(decisionId)).groupBy(_.decisionId)
+
+
+
+      val pSum = pSums.get(d.id).getOrElse((0L,0,0))
+
+      DSummary(
+        decision = d,
+        numberOfVoters = pSum._1,
+        numberOfAbstentions = pSum._2,
+        numberOfVotesExercised = pSum._3,
+        alternativeSummaries = aSums.get(d.id).toSeq.flatten)
+
+  }
+
+  def acceptFacebookInvitation(requestIds: Iterable[Long]) = transaction {
     update(decisionParticipations)(dp =>
-      where(dp.requestId in requestIds)
+      where(dp.facebookAppRequestId in requestIds)
       set(
         dp.accepted := true,
         dp.timeAcceptedOrRefused := Some(new Timestamp(System.currentTimeMillis))
@@ -74,7 +142,7 @@ object DecisionManager {
     )
   }
 
-  def createParticipations(requestId: Long, decisionId: Long, reciptientFacebookIds: Seq[Long]) = transaction {
+  def inviteVoterFromFacebook(facebookRequestId: Long, decisionId: Long, reciptientFacebookIds: Seq[Long]) = transaction {
 
     val voterIds =
       from(Schema.users)(u =>
@@ -86,7 +154,7 @@ object DecisionManager {
       for(inviteIdstr <- voterIds) 
         yield DecisionParticipation(
           decisionId,
-          requestId,
+          facebookRequestId,
           inviteIdstr, 
           new Timestamp(System.currentTimeMillis))
 

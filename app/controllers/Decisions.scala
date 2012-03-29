@@ -67,10 +67,10 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
 
     logger.info("Invited participants to decision " + decisionId)
 
-    DecisionManager.createParticipations(requestId, decisionId, reciptientFacebookIds)
+    DecisionManager.inviteVoterFromFacebook(requestId, decisionId, reciptientFacebookIds)
     Ok
   }
-
+/*
   def submit = IsAuthenticated { dhSession => implicit request =>
     decisionForm.bindFromRequest.fold(
       errors => {
@@ -83,18 +83,25 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
         Redirect(routes.Decisions.show(d.id))
       })
   }
+*/  
+  def decisionDetails(decisionId: Long) = MaybeAuthenticated { mpo => implicit request =>
+
+    Ok(html.decisionDetailedView())
+  }
 
   def create = IsAuthenticated { dhSession => implicit request =>
 
-    Ok(html.decision(decisionForm.fill(Decision.create)))
+    Ok(html.decision(decisionForm.fill(new Decision(0L,"","",None))))
   }
 
+  /*
   def show(id: Long) = IsAuthenticated { dhSession => implicit request => 
     transaction(Schema.decisions.lookup(id)) match {
       case Some(d) => Ok(html.decisionDetailedView(d)(dhSession)) 
       case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
     }
   }
+  */
 
   def invite(decisionId: Long) = IsAuthenticated { dhSession => implicit request => 
     transaction(Schema.decisions.lookup(decisionId)) match {
@@ -137,7 +144,7 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
                request.queryString.get("request_ids").
                  flatten.map(Util.parseLong(_))
 
-            DecisionManager.acceptInvitation(requestIds)
+            DecisionManager.acceptFacebookInvitation(requestIds)
             AuthenticationSuccess(Redirect(routes.Application.index), ses)
           case None => // user clicked on 'my applications'
             this.logger.error("non fatal error : fb user " + fbUserId + 
@@ -149,8 +156,13 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
   
   def decisionSummaries = MaybeAuthenticated { dhSession => implicit request =>
     
+    val ds = dhSession.dhSession match {
+      case None => DecisionManager.decisionSummariesMostActive
+      case Some(s) => DecisionManager.decisionSummariesOf(s.userId, true)
+    }
     
-    Ok(html.decisionSummaries(TestData.fakeDecisionSummaries))
+    
+    Ok(html.decisionSummaries(ds))
   }
   
   def myDecisions(ownerId: Long) = IsAuthenticated { dhSession => implicit request =>

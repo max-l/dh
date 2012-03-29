@@ -5,6 +5,8 @@ import org.squeryl._
 import java.sql.DriverManager
 import org.squeryl.adapters.PostgreSqlAdapter
 import java.sql.Timestamp
+import play.api.Play
+import play.api.Logger
 
 
 object Schema extends org.squeryl.Schema {
@@ -18,18 +20,30 @@ object Schema extends org.squeryl.Schema {
   val decisionParticipations = table[DecisionParticipation]
 
   val votes = table[Vote]
+  
+  def initDb = {
+    
+    val verboseSql = true //Play.current.configuration.getString("SQL_LOG_ON").map(_ == "true").getOrElse(false)
+    
+    val envInfo = HerokuUtils.environementExtractor
+
+    SessionFactory.concreteFactory = Some(() => {
+      val s = org.squeryl.Session.create(DriverManager.getConnection(envInfo.psqlUrl, envInfo.dbUsername, envInfo.dbPassword), new PostgreSqlAdapter)
+      
+      if(verboseSql) {
+        s.setLogger { msg =>
+          println(msg)
+        }
+      }
+      s
+    })
+  }
 }
 
 
 object ResetSchema {
   
-  def main(args: Array[String]): Unit = {
-    
-    val envInfo = HerokuUtils.environementExtractor
-
-    SessionFactory.concreteFactory = Some(() =>
-      Session.create(DriverManager.getConnection(envInfo.psqlUrl, envInfo.dbUsername, envInfo.dbPassword), new PostgreSqlAdapter))
-
+  def doIt {
     transaction {
       try { Schema.drop }
       catch {
@@ -37,7 +51,12 @@ object ResetSchema {
       }
       Schema.create
     }
-      
+  }
+  
+  def main(args: Array[String]): Unit = {
+    
+
+    Schema.initDb
   }
 }
 
@@ -81,21 +100,24 @@ case class User(
 
 case class Decision(
   ownerId: Long,
-  title: String, 
-  punchLine: String, 
-  summary: Option[String], 
-  votesAreAnonymous: Boolean) extends DecisionHubEntity 
+  title: String,
+  punchLine: String,
+  summary: Option[String],  
+  published: Boolean = false,
+  endsOn: Option[Timestamp] = None,
+  endedByCompletionOn: Option[Timestamp] = None,
+  endedByOwnerOn: Option[Timestamp] = None,
+  resultsPrivateUntilEnd: Boolean = true,
+  votesAreAnonymous: Boolean = true,
+  weekActivity: Int = 0,
+  allTimeActivity: Int = 0) extends DecisionHubEntity 
 
-object Decision {
-  
-  def create = Decision(0L,"","",None,true)
-}
 
 case class DecisionAlternative(
   decisionId: Long,
   title: String,
-  advocateId: Option[Long], //this is the candidate userId if the decision is an election.
-  text: Option[String]) extends DecisionHubEntity
+  advocateId: Option[Long] = None, //this is the candidate userId if the decision is an election.
+  text: Option[String] = None) extends DecisionHubEntity
 
 
 object DecisionParticipationStatus extends Enumeration {
@@ -107,7 +129,7 @@ object DecisionParticipationStatus extends Enumeration {
 
 case class DecisionParticipation(
   decisionId: Long,
-  requestId: Long, //facebook app request id
+  facebookAppRequestId: Long, //facebook app request id
   voterId: Long,
   timeInvited: Timestamp,
   accepted: Boolean = false,

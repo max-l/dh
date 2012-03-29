@@ -10,14 +10,45 @@ GET     /login                                 controllers.Application.login
 GET     /fbauth                                controllers.Application.fbauth
 GET     /logout                                controllers.Application.logout
 
+#Decisions NG
+
+#GET /:year/:month  controllers.Decisions
+#GET /:year/:month  controllers.Decisions
+
+#GET /global      controllers.continentIndex("global")
+#GET /americas    controllers.continentIndex("americas")
+#GET /europe
+#GET /asia
+#GET /africa
+#GET /oceania
+
+# mind source ? 
+
+GET /p/:decisionId                            controllers.Decisions.decisionDetails(decisionId: Long)
+
+# accountName is a userName, countryCode or organasationName
+# Country codes or continent names cannot be granted for accounts, but a decision can be indexed in it,
+# i.e. anyone can create a decision and publish it under a country or continent 
+
+#GET /:accountName                             controllers.account(accountName: String)
+#GET /:accountName/:decisionName               controllers.decision(accountName: String, decisionName: String)
+#GET /:accountName/:decisionName/:alternative  controllers.alternative(accountName: String, decisionName: String, alternative: String)
+
+#GET /ca/:decisionName/:alternative 
+
+
+
+
+#GET /:userId       controllers.Decisions
+
 #Decision
 
 GET     /decision/create                       controllers.Decisions.create
-GET     /decision/:id                          controllers.Decisions.show(id: Long)
+#GET     /decision/:id                          controllers.Decisions.show(id: Long)
 GET     /myDecisions/:ownerId                  controllers.Decisions.myDecisions(ownerId: Long)
 GET     /myDecisions/                          controllers.Decisions.myDecisionz
 POST    /myDecisions/                          controllers.Decisions.myDecisionz
-POST    /decisionSubmit                        controllers.Decisions.submit
+#POST    /decisionSubmit                        controllers.Decisions.submit
 GET     /decision/invite/:decisionId           controllers.Decisions.invite(decisionId: Long)
 GET     /decisionSummaries                     controllers.Decisions.decisionSummaries
 

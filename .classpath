@@ -95,5 +95,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="C:/dev/play-test/target/scala-2.9.1/classes_managed"/>
 	<classpathentry kind="lib" path="target/scala-2.9.1/classes_managed"/>
+	<classpathentry kind="lib" path="conf"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
