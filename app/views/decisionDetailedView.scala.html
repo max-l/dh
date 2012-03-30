@@ -1,85 +1,47 @@
-@()
+@(decisionSummary: DSummary, currentUserId: Option[Long]) <!-- //, voteIfParticipantAndLogged: Option[Seq[CastedVote]]) -->
 
-<div class='row'>
-     <div class="span4">
 
-        <ul class="nav nav-tabs">
-          <li class="active"><a href="#A" data-toggle="tab">Section 1</a></li>
-          <li><a href="#B" data-toggle="tab">Section 2</a></li>
-          <li><a href="#C" data-toggle="tab">Section 3</a></li>
-        </ul>
-        
-      <div class="tabbable tabs-left">
-        <div class="tab-content">
-          <div class="tab-pane active" id="A">
-            <p>I'm in Section A.</p>
-          </div>
-          <div class="tab-pane" id="B">
-            <p>Howdy, I'm in Section B.</p>
-          </div>
-          <div class="tab-pane" id="C">
-            <p>What up girl, this is Section C.</p>
-          </div>
-        </div>
-      </div> <!-- /tabbable -->
-    </div>
-</div>   
-   
-<h1>Who should be the master of the universe ?</h1> Results Hidden
-<div class="row">
-  <div class="span4">  
-    <ul>
-       <li>Conan the barbarian</li>
-       <li>Za gran antonio</li>
-       <li>Zaza Napoli</li>
-    </ul>
-  </div>
-</div>
+<h1>@decisionSummary.title</h1>
 
-<h1>Results shown</h1>
+<br/>
+
+@if(currentUserId.map(_ == decisionSummary.decision.ownerId).getOrElse(false)) {
+   <a onClick='inviteVoters(@decisionSummary.decision.id)'>Invite voters</a>
+}
 <div class="row">
 
-  <div class="span4">  
+  <div class="span8">  
   
-    <div class="row">
-      <div class="span3">
-        <p>zaza1</p>
-        <p>zaza2</p>
-        <p>zaza3</p>
-        <p>zaza4</p>
-        <p>zaza5</p>
-      </div>
-    </div>
+ 
+      
+        @for(a <- decisionSummary.alternativeSummaries) {
+      
+          <h4>@a.alternativeTitle</h4> <br/>
+          <div class="progress">
+            <div class="bar" style="width: @a.percentageOfMaximumPoints(decisionSummary)%">
+            </div>
+          </div>
+        }
+  
+ 
   </div>
   
-  <div class="span4">  
-  
-    <div class="row">
-      <div class="span3">
-        <div class="progress" style='color:green;'><div class="bar" style="width: 74%; text-align: left; color:black; background-color:red;">Allllo</div></div>
-        <div class="progress"><div class="bar" style="width: 60%; text-align: left;">Allllo</div></div>
-        <div class="progress"><div class="bar" style="width: 31%; text-align: left;">Allllo</div></div>
-        <div class="progress"><div class="bar" style="width: 10%; text-align: left;">Allllo</div></div>
-        <div class="progress"><div class="bar" style="width:  3%; text-align: left;">Allllo</div></div>
-      </div>
-    </div>
-  </div>
+ <div class="span4" id="__dsum@decisionSummary.decision.id"></div>  
 </div>
 
+<script>
 
-<h1>Results shown</h1>
-<div class="row">
+  drawChart(document.getElementById('__dsum@decisionSummary.decision.id'), 240, @Html(decisionSummary.pieChartData))
 
-  <div class="span4">  
-  
-    <div class="row">
-      <div class="span3">
-        <div class="progress"><div class="bar" style="width: 74%; text-align: left;">Allllo</div></div>
-        <div class="progress"><div class="bar" style="width: 60%; text-align: left;">Allllo</div></div>
-        <div class="progress"><div class="bar" style="width: 31%; text-align: left;">Allllo</div></div>
-        <div class="progress"><div class="bar" style="width: 10%; text-align: left;">Allllo</div></div>
-        <div class="progress"><div class="bar" style="width:  0%; text-align: left; color:black">Allllo</div></div>
-      </div>
-    </div>
-  </div>
-</div>
+  function popVote() {
+    $('#voteScreen').load('/vote/' + @decisionSummary.decision.id, function() {
+      $('#voteScreen').modal('show')
+    })
+  }
+
+</script>
+
+
+<div id="voteScreen" class="modal hide fade"></div>
+
+<a data-toggle="modal" onClick='popVote()' class="btn btn-primary btn-large">Vote</a>

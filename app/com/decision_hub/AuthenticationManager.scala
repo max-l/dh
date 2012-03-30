@@ -20,6 +20,10 @@ object AuthenticationManager {
   def lookupFacebookUser(fbId: Long) = inTransaction {
     Schema.users.where(_.facebookId === fbId).headOption
   }
+  
+  def lookupUser(userId: Long) = inTransaction {
+    Schema.users.lookup(userId).headOption
+  }  
 
   def authenticateOrCreateUser(info: MinimalInfo) = {
     val facebookId = java.lang.Long.parseLong(info.id)

@@ -26,7 +26,7 @@ object Secured {
 }
 
 case class DecisionHubSession(userId: Long, dataInCookie: String, requestHeaders: RequestHeader) {
-  def this(u: User, r: Request[_]) = this(u.id, u.displayableName.get, r)
+  def this(u: User, r: Request[_]) = this(u.id, u.displayableName, r)
 
   def displayName = dataInCookie
 }

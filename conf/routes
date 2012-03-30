@@ -10,6 +10,8 @@ GET     /login                                 controllers.Application.login
 GET     /fbauth                                controllers.Application.fbauth
 GET     /logout                                controllers.Application.logout
 
+GET     /test                                controllers.Application.test
+
 #Decisions NG
 
 #GET /:year/:month  controllers.Decisions
@@ -24,7 +26,9 @@ GET     /logout                                controllers.Application.logout
 
 # mind source ? 
 
-GET /p/:decisionId                            controllers.Decisions.decisionDetails(decisionId: Long)
+GET  /p/:decisionId                            controllers.Decisions.decisionDetails(decisionId: Long)
+GET  /vote/:decisionId                            controllers.Decisions.voteScreen(decisionId: Long)
+POST /vote/:decisionId                            controllers.Decisions.submitVote(decisionId: Long)
 
 # accountName is a userName, countryCode or organasationName
 # Country codes or continent names cannot be granted for accounts, but a decision can be indexed in it,

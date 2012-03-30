@@ -76,11 +76,13 @@ case class User(
   override def toString = 
     Seq(firstName, lastName, nickName, facebookId).mkString("User(", ",", ")")
    
-  def displayableName = 
+  private def validateDisplayableName = 
     nickName orElse 
     Seq(firstName, lastName).flatten.headOption orElse
     email
 
+  def displayableName = validateDisplayableName.get
+  
   /**
    * The main constraint is to have a displayable name
    */
@@ -90,7 +92,7 @@ case class User(
       facebookId orElse email
 
 
-    (displayableName, accountIdentifier) match {
+    (validateDisplayableName, accountIdentifier) match {
       case (None,    Some(_)) => Right("You must specify at least a first name, last name, nickname or email.")
       case (Some(n), Some(_)) => Left(n)
       case _ => Right("invalid user " + this + ".")
@@ -101,16 +103,32 @@ case class User(
 case class Decision(
   ownerId: Long,
   title: String,
-  punchLine: String,
+  punchLine: Option[String],
   summary: Option[String],  
   published: Boolean = false,
-  endsOn: Option[Timestamp] = None,
+  endsOn: Option[Timestamp] = None,// if None, ends when complete
   endedByCompletionOn: Option[Timestamp] = None,
   endedByOwnerOn: Option[Timestamp] = None,
   resultsPrivateUntilEnd: Boolean = true,
   votesAreAnonymous: Boolean = true,
   weekActivity: Int = 0,
-  allTimeActivity: Int = 0) extends DecisionHubEntity 
+  allTimeActivity: Int = 0) extends DecisionHubEntity {
+
+  def voteRange = 4
+
+  def middleOfRange = 2
+
+  def alternativeLabels = 
+    voteRange match {
+      case 4 => Map(
+        0 -> "Strongly Oppose",
+        1 -> "Oppose",
+        2 -> "Neutral",
+        3 -> "Approve",
+        4 -> "Strongly Approve"
+      )
+    }
+} 
 
 
 case class DecisionAlternative(
@@ -140,7 +158,7 @@ case class DecisionParticipation(
 case class Vote(
   decisionId: Long, 
   alternativeId: Long, 
-  participationId: Long, 
+  voterId: Long, 
   score: Int) extends DecisionHubEntity
 
 

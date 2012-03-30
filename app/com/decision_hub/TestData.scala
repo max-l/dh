@@ -10,10 +10,18 @@ import com.codahale.jerkson.Json._
 
 object TestData {
 
+  val random = new java.util.Random
+  
+  
+  
    def fakeDecision(user: User, title: String, anonymous: Boolean, f: Decision => Decision, alternatives : Seq[(Option[User], String)]) = {
 
+     val punchLine = 
+       if(random.nextBoolean) Some("This is about " + title)
+       else None
+     
      val d =
-      Schema.decisions.insert(f(Decision(user.id, title, title + "This is about " + title, Some("bla bla"), anonymous)))
+      Schema.decisions.insert(f(Decision(user.id, title, punchLine, Some("bla bla"), anonymous)))
 
      for(a <- alternatives) {
 
@@ -59,7 +67,8 @@ object TestData {
        Seq(
          None -> "1this is the one !",
          None -> "2the only absolutely correct coice !",
-         None-> "3choose this if you are a winner"
+         None-> "3choose this if you are a winner",
+         None-> "4everyone's favorite"
        ))
 
      val d2 = 
@@ -79,38 +88,45 @@ object TestData {
      DecisionManager.inviteVoterFromFacebook(-1L, d1.id, Seq(nancy.facebookId.get))
      DecisionManager.inviteVoterFromFacebook(-1L, d1.id, Seq(bob.facebookId.get))
        
-     val Seq(a1, a2, a3) = 
+     val Seq(a1, a2, a3, a4) = 
        Schema.decisionAlternatives.where(_.decisionId === d1.id).toSeq.sortBy(_.title)
      
-     DecisionManager.vote(nancy, d1, Seq(
-         a1.id -> 8,
-         a2.id -> 1,
-         a3.id -> 3
-     ))
+     val v1 = Map(
+         a1.id -> 3,
+         a2.id -> 0,
+         a3.id -> 1,
+         a4.id -> 4
+     )
      
-     DecisionManager.vote(bob, d1, Seq(
-         a1.id -> 1,
-         a2.id -> 7,
-         a3.id -> 5
-     ))     
+     DecisionManager.vote(nancy, d1, v1)
+     
+     val v2 = Map(
+         a1.id -> 0,
+         a2.id -> 2,
+         a3.id -> 2,
+         a4.id -> 4
+     )
+     
+     DecisionManager.vote(bob, d1, v2)     
      
      val d1ToValidate = DecisionManager.decisionSummaries(Seq(d1)).headOption.getOrElse(sys.error(d1+ " not found in db."))
      
      assert(d1ToValidate.numberOfVotesExercised == 2)
 
-     val Seq(a1v, a2v, a3v) = d1ToValidate.alternativeSummaries.sortBy(da => da.alternativeTitle)
+     val expectedScores = 
+       v1.map(_._2).zip(v2.map(_._2)).map(t => t._1 + t._2)
      
-     assertEquals(a1v.points, (8+1))
-     assertEquals(a2v.points, (1+7))
-     assertEquals(a3v.points, (5+3))
+     val badScores = 
+       expectedScores.zip(
+           d1ToValidate.alternativeSummaries.sortBy(da => da.alternativeTitle).map(_.points)
+       ).filter(t => t._1 != t._2)
      
-     
-     
+     assert(badScores.isEmpty, "bad scores exist : " + badScores)
+
      val allDecisions = decisions.where(s => 1 === 1).toList
-     assert(2 == allDecisions.size)
-     
-     
-     //println(" bobDecisions : " + bobDecisions)
+     assertEquals(2, allDecisions.size)
+
+     println("Success ! ")
    }
    
   def assertEquals(a1: Any, a2: Any) = {

@@ -5,10 +5,13 @@ import models._
 import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
 import org.squeryl.dsl.ast.LogicalBoolean
+import play.api.Logger
 
 
 object DecisionManager {
 
+  def logger = Logger("application")
+  
   def decisionsOf(userId: Long, returnOwnedOnly : Boolean) = 
     from(decisions)(d => 
       where {
@@ -30,10 +33,11 @@ object DecisionManager {
     )
 
   def alternativeSummary(decisionIds: Seq[Long]) = 
-    from(decisionAlternatives, votes.leftOuter)((a,v) => 
-      where(a.id === v.map(_.alternativeId) and a.decisionId.in(decisionIds))
+    join(decisionAlternatives, votes.leftOuter)((a,v) => 
+      where(a.decisionId.in(decisionIds))
       groupBy(a.decisionId, a.id, a.title)
       compute(sum(v.map(_.score)))
+      on(a.id === v.map(_.alternativeId))
     ) map {t =>
       AlternativeSummary(t.key._1, t.key._2, t.key._3, t.measures.getOrElse(0))
     }
@@ -59,35 +63,70 @@ object DecisionManager {
     decisionSummaries(ds)
   }
 
-  def decisionSummaries(ds: Seq[Decision]) = {
+  def decisionSummaries(ds: Seq[Decision]) =
+    if(ds == Nil)
+      Nil 
+    else {
 
-    val decisionIds = ds.map(_.id)
-
-    val pSums = participationSummaries(decisionIds).map(t => (t.key: Long, t.measures)).toMap
-
-    val aSums = alternativeSummary(decisionIds).groupBy(_.decisionId)
-
-    ds map { d =>
-
-      val pSum = pSums.get(d.id).getOrElse((0L,0,0))
-
-      DSummary(
-        decision = d,
-        numberOfVoters = pSum._1,
-        numberOfAbstentions = pSum._2,
-        numberOfVotesExercised = pSum._3,
-        alternativeSummaries = aSums.get(d.id).toSeq.flatten)
+      val decisionIds = ds.map(_.id)
+      val pSums = participationSummaries(decisionIds).map(t => (t.key: Long, t.measures)).toMap
+      val aSums = alternativeSummary(decisionIds).groupBy(_.decisionId)
+      ds map { d =>
+  
+        val pSum = pSums.get(d.id).getOrElse((0L,0,0))
+  
+        DSummary(
+          decision = d,
+          numberOfVoters = pSum._1,
+          numberOfAbstentions = pSum._2,
+          numberOfVotesExercised = pSum._3,
+          alternativeSummaries = aSums.get(d.id).toSeq.flatten)
+      }
     }
+  
+  def isParticipant(decisionId: Long, voterId: Long) =
+    from(decisionParticipations)(dp =>
+        where(dp.voterId === voterId and dp.decisionId === decisionId)
+        select(dp.id)
+    ).toList != Nil 
+  
+  
+  def voteScreenModel(decisionId: Long, voterId: Long) = inTransaction {
+
+    val d = decisions.lookup(decisionId).get
+    
+    logger.debug("----------------1")
+    
+    if(!isParticipant(decisionId, voterId))
+      sys.error(voterId + " not participant in " + decisionId)
+    
+    logger.debug("----------------2")
+      
+    val alts = decisionAlternatives.where(a => a.decisionId === decisionId).toList.toSeq
+
+    val scores =
+      votes.where(v => v.decisionId === decisionId and v.voterId === voterId).toSeq
+
+    logger.debug("----------------4")
+    val resAlts =
+      for(a <- alts)
+        yield scores.find(_.alternativeId == a.id) match {
+          case None    => CastedVote(a, d.middleOfRange)
+          case Some(s) => CastedVote(a, s.score)
+        }
+
+    logger.debug("----------------5")
+    (d, resAlts)
   }
 
   /**
    * scores: Seq[(alternativeId, score)]
    */
-  def vote(voter: User, decision: Decision, scores: Seq[(Long,Int)]): Unit = 
+  def vote(voter: User, decision: Decision, scores: Map[Long,Int]): Unit = 
     vote(voter.id, decision.id, scores)
   
   
-  def vote(voterId: Long, decisionId: Long, scores: Seq[(Long,Int)]): Unit = inTransaction {
+  def vote(voterId: Long, decisionId: Long, scores: Map[Long,Int]): Unit = inTransaction {
 
     val numRows = 
       update(decisionParticipations)(p => 
@@ -102,34 +141,34 @@ object DecisionManager {
       
     val d = decisions.lookup(decisionId).get
     
-    votes.deleteWhere(v => v.decisionId === decisionId and v.participationId === voterId)
+    if(scores.values.filter(_ > d.voteRange) != Nil)
+      sys.error("votes higher than allowable range submited: " + scores.mkString)
     
+    votes.deleteWhere(v => v.decisionId === decisionId and v.voterId === voterId)
+    
+    println("--:1 " + scores)
     val toInsert = 
       for( (alternativeId, score) <- scores)
         yield Vote(decisionId, alternativeId, voterId, score)
     
-    votes.insert(toInsert)
+    println("--:2 " + toInsert)
+    val i = votes.insert(toInsert.toList)
+    println("--:3 " + i)
   }
   
   def decisionDetails(decisionId: Long) = inTransaction {
 
     val d = decisions.lookup(decisionId).get
-
     val pSums = participationSummaries(Seq(decisionId)).map(t => (t.key: Long, t.measures)).toMap
-
     val aSums = alternativeSummary(Seq(decisionId)).groupBy(_.decisionId)
+    val pSum = pSums.get(d.id).getOrElse((0L,0,0))
 
-
-
-      val pSum = pSums.get(d.id).getOrElse((0L,0,0))
-
-      DSummary(
-        decision = d,
-        numberOfVoters = pSum._1,
-        numberOfAbstentions = pSum._2,
-        numberOfVotesExercised = pSum._3,
-        alternativeSummaries = aSums.get(d.id).toSeq.flatten)
-
+    DSummary(
+      decision = d,
+      numberOfVoters = pSum._1,
+      numberOfAbstentions = pSum._2,
+      numberOfVotesExercised = pSum._3,
+      alternativeSummaries = aSums.get(d.id).toSeq.flatten)
   }
 
   def acceptFacebookInvitation(requestIds: Iterable[Long]) = transaction {

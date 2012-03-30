@@ -1,4 +1,4 @@
-@(mpo: MainPageObject)
+@(mpo: MainPageObject, displayName: Option[String])
 <!DOCTYPE html>
 
 <html>
@@ -10,15 +10,21 @@
 
      <link rel="stylesheet" href="@routes.Assets.at("stylesheets/bootstrap.css")">
 
+     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+     <!--
      <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")"    type="text/javascript"></script>
+     -->
+     <script src="@routes.Assets.at("jquery-ui/development-bundle/jquery-1.7.1.js")"    type="text/javascript"></script>
+     <script src="@routes.Assets.at("jquery-ui/development-bundle/ui/jquery-ui-1.8.18.custom.js")"    type="text/javascript"></script>
 
      <script src='@routes.Assets.at("javascripts/bootstrap-dropdown.js")'  type="text/javascript"></script>
      <script src='@routes.Assets.at("javascripts/bootstrap-scrollspy.js")' type="text/javascript"></script>
      <script src='@routes.Assets.at("javascripts/bootstrap-collapse.js")'  type="text/javascript"></script>
      <script src='@routes.Assets.at("javascripts/bootstrap-tooltip.js")'   type="text/javascript"></script>
+     <script src='@routes.Assets.at("javascripts/bootstrap-button.js")'   type="text/javascript"></script>
      <script src='@routes.Assets.at("javascripts/bootstrap-tab.js")'   type="text/javascript"></script>
-
-     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+     <script src='@routes.Assets.at("javascripts/bootstrap-modal.js")'  type="text/javascript"></script>
+     
      <script type="text/javascript">
        google.load("visualization", "1", {packages:["corechart"]});
 
@@ -53,9 +59,18 @@
              }
           });
         };
-        
+
+       var centerPanelUrl = null
+       
+       function refreshCenterPanel() {
+         ajaxAction(centerPanelUrl)
+       }
+       
        function ajaxAction(url) {
-         $('#centerPanel').load(url, function() {})
+         if(url != null) {
+           $('#centerPanel').load(url, function() {})
+           centerPanelUrl = url
+         }
        }
 
        function myDecisions() {
@@ -63,27 +78,24 @@
        }
 
        function decisionDetails(id) {
-         ajaxAction('/p/' + 123)
+         ajaxAction('/p/' + id)
        }
+       
+       function vote(decisionId) {
+         ajaxAction('/vote/' + decisionId)
+       }       
        
        function newDecisions() {
          ajaxAction('/decision/create')
-         $.post(
-           "decisionSubmit", 
-           $("#newDecisionForm").serialize(),
-           function(result) {
-             $("#centerPanel").empty().append(result)
-           }
-         )
        }
 
-       function drawChart(targetDiv, data) {
+       function drawChart(targetDiv, chartWidth, data) {
 
          var options = {
-           width: 110,
-           height: 110,
+           width: chartWidth,
+           height: chartWidth,
            legend: {position : 'none'},
-           chartArea : {top: 0, left: 0, width: 110, height: 110}
+           chartArea : {top: 0, left: 0, width: chartWidth, height: chartWidth}
          }
 
          var t = new google.visualization.DataTable();
@@ -126,7 +138,7 @@
         <div class="nav-collapse">
           <ul class="nav">
 
-            <li class="active"><a onClick='decisionDetails(123)'>Decision 123</a></li>
+            <li class="active"><a onClick='refreshCenterPanel()'>refresh center panel</a></li>
             
             <li class="active"><a onClick='myDecisions()'>My Decisions</a></li>
 
@@ -136,14 +148,12 @@
             
             <li class="divider-vertical"></li>
 
-            <li class="active">
-               @mpo.displayName.map { dn =>
-                   @dn <a onClick='logout()'>Logout</a>
-               }.getOrElse {
-                    <a onClick='login()'>Login</a>
-               }
-            </li>
-
+            @mpo.displayName.map { dn =>
+               <li class="active"><a>@dn</a></li>
+               <li class="active"><a onClick='logout()'>Logout</a></li> 
+             }.getOrElse {
+               <li class="active"><a onClick='login()'>Login</a></li>
+             }
           </ul>
           <form class="navbar-search pull-left" action="">
             <input type="text" class="search-query span2" placeholder="Search"/>

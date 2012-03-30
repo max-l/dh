@@ -60,4 +60,14 @@ case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstention
   }  
 }
   
-case class AlternativeSummary(decisionId: Long, alternativeId: Long, alternativeTitle: String, points: Int)
+case class AlternativeSummary(decisionId: Long, alternativeId: Long, alternativeTitle: String, points: Int) {
+  
+  def percentageOfMaximumPoints(d: DSummary) =
+    if(d.numberOfVoters == 0)
+      0
+    else
+      math.floor((100 * points / (d.numberOfVoters * d.decision.voteRange))).toInt
+}
+
+
+case class CastedVote(alternative: DecisionAlternative, score: Int)

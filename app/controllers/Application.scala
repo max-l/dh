@@ -56,13 +56,23 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
     Ok(html.index(mpo))
   }
 
+  def test = MaybeAuthenticated { mpo =>  r =>
+    Ok(html.test())
+  }
+  
   def emptyPage = MaybeAuthenticated { mpo =>  r =>
     Ok("")
   }
   
   
   def index = MaybeAuthenticated { mpo =>  r =>
-    Ok(html.fcpe(new MainPageObject(false, mpo.dhSession.map(s => s.userId.toString))))
+
+    val displayName = 
+      for(sess <- mpo.dhSession;
+          u <- AuthenticationManager.lookupUser(sess.userId))
+        yield u.displayableName
+
+    Ok(html.fcpe(new MainPageObject(false, displayName), displayName))
   }
   
   

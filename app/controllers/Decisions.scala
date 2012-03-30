@@ -24,7 +24,7 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
   val decisionForm = Form(
     mapping(
       "title" -> nonEmptyText, 
-      "punchLine"  -> nonEmptyText,
+      "punchLine"  -> optional(text),
       "summary" -> optional(text),
       "votesAreAnonymous" -> boolean
     )
@@ -86,12 +86,13 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
 */  
   def decisionDetails(decisionId: Long) = MaybeAuthenticated { mpo => implicit request =>
 
-    Ok(html.decisionDetailedView())
+    val d = DecisionManager.decisionDetails(decisionId)
+    Ok(html.decisionDetailedView(d, mpo.dhSession.map(_.userId)))
   }
 
   def create = IsAuthenticated { dhSession => implicit request =>
 
-    Ok(html.decision(decisionForm.fill(new Decision(0L,"","",None))))
+    Ok(html.decisionForm())
   }
 
   /*
@@ -154,15 +155,15 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
     }).getOrElse(BadRequest)
   }
   
-  def decisionSummaries = MaybeAuthenticated { dhSession => implicit request =>
+  def decisionSummaries = IsAuthenticated { dhSession => implicit request =>
     
     val ds = dhSession.dhSession match {
       case None => DecisionManager.decisionSummariesMostActive
-      case Some(s) => DecisionManager.decisionSummariesOf(s.userId, true)
+      case Some(s) => DecisionManager.decisionSummariesOf(s.userId, false)
     }
     
     
-    Ok(html.decisionSummaries(ds))
+    Ok(html.decisionSummaries(ds, dhSession.dhSession.map(_.userId)))
   }
   
   def myDecisions(ownerId: Long) = IsAuthenticated { dhSession => implicit request =>
@@ -177,5 +178,33 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
 
     Ok(html.decisionSet("", d)(sess))
   }
+
+  def voteScreen(decisionId: Long) = IsAuthenticated { dhSession => implicit request =>
+    
+    
+    val (decision, alts) = DecisionManager.voteScreenModel(decisionId, dhSession.userId)
+    
+    logger.debug("zzzzzzzzz 1" + alts)
+    
+    Ok(html.voteScreen(decision, alts))
+  }
+  
+
+  def submitVote(decisionId: Long) = IsAuthenticated { dhSession => implicit request =>
+    
+    new ValidationBlock[Map[Long,Int]] {
+      def value = 
+        request.body.asFormUrlEncoded.flatten.
+          map(e => (keepRight(e._1,'-'): Long, e._2.head :Int)).toMap
+    }.extract match {
+      case Left(vote) =>
+        DecisionManager.vote(dhSession.userId, decisionId, vote)
+        Ok("Vote recorded !")
+      case Right(ex) =>
+        logger.error("invalid vote : " + request.body.asFormUrlEncoded + "\n" + ex)
+        BadRequest
+    }
+
+  }  
 }
 

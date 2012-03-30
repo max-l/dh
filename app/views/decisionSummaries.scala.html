@@ -1,27 +1,29 @@
-@(summaries: Seq[DSummary])
+@(summaries: Seq[DSummary], currentUserId: Option[Long])
 
 
 @for(d <- summaries) {
 
+<a href='#' onClick='ajaxAction("/p/@d.decision.id")'>
 <div class='row'>
 
-    <div class="span2">
-      <a href="#" class="thumbnail">
-        <img src="http://placehold.it/100x100" alt="">
-      </a>
-    </div>
+   <div class="span8">
 
-   <div class="span6">
-      <div class="caption">
-        <h2>@d.title</h2>
-        <h3>@d.punchLine</h2>
-      </div>
-      <a onClick='inviteVoters(@d.decision.id)'>Invite voters</a>
+      <h2>@d.title</h2>
+      <h4>@d.punchLine</h4>
+
+     <h4>Choices are : </h4>
+      @d.alternativeSummaries.headOption.map { ho =>
+        <ul>
+        @for(a <- d.alternativeSummaries) {
+          <li>@a.alternativeTitle</li>
+        }
+        </ul>
+      }
    </div>
 
    <div class="span2" id="__dsum@d.decision.id"></div>
 
-   <div class="span2" id="__dsum@d.decision.id"></div>
+   <div class="span2"></div>
      <span class="badge badge-success">@d.numberOfVoters</span> Voters<br/>
      <span class="badge badge-success">@d.numberOfVotesExercised</span> Voted so far<br/>
      <span class="badge badge-success">@d.numberOfAbstentions</span> Abstensions<br/>
@@ -30,10 +32,11 @@
    </div>
 
 </div>
+</a>
 }
 
 <script>
 @for(d <- summaries) {
-  drawChart(document.getElementById('__dsum@d.decision.id'), @Html(d.pieChartData))
+  drawChart(document.getElementById('__dsum@d.decision.id'), 120, @Html(d.pieChartData))
 }
 </script>
