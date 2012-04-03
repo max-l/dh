@@ -13,5 +13,5 @@ trait BaseDecisionHubController extends Controller {
   
   implicit def requestToMainPageObjects(req: Request[_]) = new MainPageObjects(None, req)
 
-  def logger = Logger("application")
+  implicit def logger = Logger("application")
 }

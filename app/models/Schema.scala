@@ -23,7 +23,7 @@ object Schema extends org.squeryl.Schema {
   
   def initDb = {
     
-    val verboseSql = true //Play.current.configuration.getString("SQL_LOG_ON").map(_ == "true").getOrElse(false)
+    val verboseSql = false //Play.current.configuration.getString("SQL_LOG_ON").map(_ == "true").getOrElse(false)
     
     val envInfo = HerokuUtils.environementExtractor
 
@@ -103,8 +103,8 @@ case class User(
 case class Decision(
   ownerId: Long,
   title: String,
-  punchLine: Option[String],
-  summary: Option[String],  
+  punchLine: Option[String] = None,
+  summary: Option[String] = None,
   published: Boolean = false,
   endsOn: Option[Timestamp] = None,// if None, ends when complete
   endedByCompletionOn: Option[Timestamp] = None,

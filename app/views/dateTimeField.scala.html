@@ -1,0 +1,23 @@
+@(dateTime: Option[Long], dateInputName: String, hourInputName: String, minutesInputName: String)
+
+  <input class='span2' type="text" name='@dateInputName' id="@dateInputName"/> at 
+
+  <select class="span1" name='@hourInputName'>
+    @for(i<- 0 to 23) {
+      <option @(if(i == 12) "selected='true'" else "")>@i h</option>
+    }
+  </select>
+  <select class="span1" name='@minutesInputName'>
+    @for(i<- 0 to 11) {
+      <option>@(i*5)</option>
+    }
+  </select>
+
+<script>
+  $(function() {
+    $( "#@dateInputName" ).datepicker();
+    $( "#format" ).change(function() {
+      $( "#@dateInputName" ).datepicker( "option", "dateFormat", $( this ).val() );
+    });
+  });
+ </script>

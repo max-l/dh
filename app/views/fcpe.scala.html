@@ -1,14 +1,13 @@
-@(mpo: MainPageObject, displayName: Option[String])
+@(centerPanelUri: String, displayName: Option[String])
 <!DOCTYPE html>
 
 <html>
     <head>
 
-     <style type="text/css">
-     
-     </style>
+     <style type="text/css"></style>
 
      <link rel="stylesheet" href="@routes.Assets.at("stylesheets/bootstrap.css")">
+     <link rel="stylesheet" href="@routes.Assets.at("jquery-ui/jquery-ui-1.8.18.custom.css")">
 
      <script type="text/javascript" src="https://www.google.com/jsapi"></script>
      <!--
@@ -30,46 +29,60 @@
 
        //google.setOnLoadCallback(function() {})
 
+       function readCookie(name) {
+         var nameEQ = name + "=";
+         var ca = document.cookie.split(';');
+         for(var i=0;i < ca.length;i++) {
+           var c = ca[i];
+           while (c.charAt(0)==' ') c = c.substring(1,c.length);
+           if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+         }
+         return null;
+       }
+
+       var dn = "@displayName.getOrElse("")"
+
+       function isLoggedIn() {
+         var z = readCookie("DISPLAY_AS_LOGGED_IN")
+         return (z != null) && (z === "true")
+       }
+
+       function refreshAuthenticatedStatus() {
+         var h = null
+         if(isLoggedIn())
+           h = "<li class='active'>" + dn + "<a onClick='logout()'>[Logout]</a></li>"
+         else
+           h = "<li class='active'><a onClick='login()'>Login</a></li>"
+         $('#loginStatus').html(h)
+       }
+
+       var centerPanelUrl = null
+
+       function setCenterPanelUri(u) {
+         if(u.lastIndexOf('/', 0) === 0)
+           centerPanelUrl = u
+         else 
+           centerPanelUrl = '/' + u
+       }
+
+       setCenterPanelUri("@centerPanelUri")
+
        function login() {
-         window.location.href = '@Html(mpo.facebookLogginPage)'
+         window.location.href = "/externalLogin/facebook" + centerPanelUrl
        }
 
        function logout() {
-         window.location.href = '/logout'
+         window.location.href = "http://" + window.location.hostname + '/logout'
        }
 
-        function inviteVoters(decisionId) {
-          FB.ui({method: 'apprequests',
-            message: 'Invitation to vote on ...',
-            data: 'abc123'
-          },
-          function requestCallback(response) {
-            if(response != null) {
-              response.decisionId = decisionId
-              var z = JSON.stringify(response)
-              //$('#logDiv').append(z);
-              $.ajax({
-                type: 'POST',
-                url: "/recordInvitationList",
-                data: z,
-                success: function() {},
-                contentType: "application/json; charset=utf-8",
-                dataType: 'json'
-              });
-             }
-          });
-        };
-
-       var centerPanelUrl = null
-       
        function refreshCenterPanel() {
          ajaxAction(centerPanelUrl)
        }
-       
+
        function ajaxAction(url) {
          if(url != null) {
            $('#centerPanel').load(url, function() {})
-           centerPanelUrl = url
+           setCenterPanelUri(url)
          }
        }
 
@@ -80,11 +93,7 @@
        function decisionDetails(id) {
          ajaxAction('/p/' + id)
        }
-       
-       function vote(decisionId) {
-         ajaxAction('/vote/' + decisionId)
-       }       
-       
+
        function newDecisions() {
          ajaxAction('/decision/create')
        }
@@ -126,56 +135,56 @@
     <div class="container">
 
 <!-- Navbar ================================================== -->
-<section id="navbar">
-  <div class="navbar">
-      <div class="container" style="width: auto;">
-        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </a>
-        <a class="brand" href="#">Decision Hub</a>
-        <div class="nav-collapse">
-          <ul class="nav">
+  <section id="navbar">
+    <div class="navbar">
+        <div class="container" style="width: auto;">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Decision Hub</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+  
+              <li class="active"><a onClick='refreshCenterPanel()'>refresh center panel</a></li>
+              
+              <li class="active"><a onClick='myDecisions()'>My Decisions</a></li>
+  
+              <li class="divider-vertical"></li>
+              
+              <li class="active"><a onClick='newDecisions()'>New Decision</a></li>
+              
+              <li class="divider-vertical"></li>
 
-            <li class="active"><a onClick='refreshCenterPanel()'>refresh center panel</a></li>
-            
-            <li class="active"><a onClick='myDecisions()'>My Decisions</a></li>
-
-            <li class="divider-vertical"></li>
-            
-            <li class="active"><a onClick='newDecisions()'>New Decision</a></li>
-            
-            <li class="divider-vertical"></li>
-
-            @mpo.displayName.map { dn =>
-               <li class="active"><a>@dn</a></li>
-               <li class="active"><a onClick='logout()'>Logout</a></li> 
-             }.getOrElse {
-               <li class="active"><a onClick='login()'>Login</a></li>
-             }
-          </ul>
-          <form class="navbar-search pull-left" action="">
-            <input type="text" class="search-query span2" placeholder="Search"/>
-          </form>
-          <ul class="nav pull-right">
-            <li><a href="#">About</a></li>
-          </ul>
+              <li id='loginStatus' class="active"></li>
+            </ul>
+            <form class="navbar-search pull-left" action="">
+              <input type="text" class="search-query span2" placeholder="Search"/>
+            </form>
+            <ul class="nav pull-right">
+              <li><a href="#">About</a></li>
+            </ul>
+          </div>
         </div>
-      </div>
-    
-  </div><!-- /navbar -->
-</section>
+      
+    </div><!-- /navbar -->
+  </section>
 
-<section>
-  <div class="container">
-
-    <div id="centerPanel"></div>
+  <section>
+    <div class="container">
+  
+      <div id="centerPanel"></div>
+  
+    </div>
+  
+  </section>
 
   </div>
-
-</section>
-
-  </div>
+  <script>
+    refreshAuthenticatedStatus()
+    window.setInterval(refreshAuthenticatedStatus, 10000)
+    refreshCenterPanel()
+  </script>
   </body>
 </html>

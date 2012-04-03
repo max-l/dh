@@ -10,7 +10,9 @@ GET     /login                                 controllers.Application.login
 GET     /fbauth                                controllers.Application.fbauth
 GET     /logout                                controllers.Application.logout
 
-GET     /test                                controllers.Application.test
+GET     /test                                  controllers.Application.test
+
+GET     /externalLogin/:provider/*path         controllers.Application.externalLogin(provider: String, path: String)
 
 #Decisions NG
 
@@ -64,6 +66,8 @@ GET     /emptyPage                             controllers.Application.emptyPage
 
 #GET     /fcpe                                  controllers.Application.fcpe
 GET     /boots                                 controllers.Application.boots
+
+GET     /compareVotingMethods                  controllers.Application.compareVotingMethods
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                          controllers.Assets.at(path="/public", file)

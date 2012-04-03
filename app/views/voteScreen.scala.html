@@ -34,7 +34,7 @@
           <tr>
             <td><h4>@v.alternative.title</h4></td>
             <td>
-              <input name='__scoreOf-@v.alternative.id' id='__scoreOf-@v.alternative.id' type='hidden' value='@v.score'/>
+              <input name='@v.alternative.id' id='__scoreOf-@v.alternative.id' type='hidden' value='@v.score'/>
               <div id='voting-form' class="btn-group" data-toggle="buttons-radio">
               @for((i,label) <- d.alternativeLabels) {
                   <a href='#' class='btn @(if(i == v.score) "active" else "")' onClick='setVoteValue("__scoreOf-@v.alternative.id",@i)'>@i</a>

@@ -1,54 +1,34 @@
-@()
+@(d: Decision)
 
 <form class="form-horizontal">
   <fieldset>
-     <div class="control-group">
-       <label class="control-label">What is the decision about</label>
-       <div class="controls">
-         <input type="text" value="">
-       </div>
-     </div>
 
-     <div class="control-group">
-       <label class="control-label">Results are shown only at the end.</label>
-       <div class="controls">
-         <input type="checkbox" value='true'/>
-       </div>
-     </div>
+     @bootstrapField("Title") {
+       <input type="text" value="@d.title"/>
+     }
 
-     <div class="control-group">
-       <label class="control-label">Election ends</label>
-       <div class="controls">
-         <label class="radio">
-           <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
-           when every one has voted
-         </label>
-         <label class="radio">
-           <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked>
-           on <input class='span2' type="text" name='decisionEndTime' id="decisionEndTime"/> at 
+     @bootstrapField("In one phrase") { 
+       <input type="text" value="@d.punchLine.getOrElse("")"/>
+     }
 
-           <select class="span1">
-             @for(i<- 0 to 23) {
-               <option @(if(i == 12) "selected='true'" else ""))>@i h</option>
-             }
-           </select>
-           <select class="span1">
-             @for(i<- 0 to 11) {
-               <option>@(i*5)</option>
-             }
-           </select>
-         </label>
-       </div>
-     </div>
+     @bootstrapField("Description") {
+       <textarea class='input-xlarge' type="textarea" value="@d.summary.getOrElse("")"/>
+     }
+
+     @bootstrapField("Election ends") {
+       <label class="radio">
+         <input type="radio" name="endNode" value="complete" checked>
+         when every one has voted
+       </label>
+       <label class="radio">
+         <input type="radio" name="endMode" value="time">
+         on @dateTimeField(None, "endDate", "endHour", "endMinute")
+       </label>
+     }
+
+     @bootstrapField("Results are shown only at the end") {
+       <input type="checkbox" value='resultsPrivateUntilEnd' @(if(d.resultsPrivateUntilEnd) "checked" else "")/>
+     }
 
   </fieldset>
 </form>
-
-<script>
-  $(function() {
-    $( "#decisionEndTime" ).datepicker();
-    $( "#format" ).change(function() {
-      $( "#decisionEndTime" ).datepicker( "option", "dateFormat", $( this ).val() );
-    });
-  });
- </script>

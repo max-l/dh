@@ -15,6 +15,7 @@ import com.decision_hub.Util._
 import org.jboss.netty.handler.codec.base64.Base64
 import java.sql.Timestamp
 import play.api.libs.iteratee.Iteratee
+import play.api.templates.Html
 
 
 object Decisions extends BaseDecisionHubController with ConcreteSecured {
@@ -86,13 +87,14 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
 */  
   def decisionDetails(decisionId: Long) = MaybeAuthenticated { mpo => implicit request =>
 
-    val d = DecisionManager.decisionDetails(decisionId)
-    Ok(html.decisionDetailedView(d, mpo.dhSession.map(_.userId)))
+    val currentUserId = mpo.dhSession.map(_.userId)
+    val (isCurrentUserParticipant, d) = DecisionManager.decisionDetails(decisionId, currentUserId)
+    Ok(html.decisionDetailedView(d, currentUserId, isCurrentUserParticipant))
   }
 
   def create = IsAuthenticated { dhSession => implicit request =>
 
-    Ok(html.decisionForm())
+    Ok(html.decisionForm(Decision(0L,"")))
   }
 
   /*
@@ -155,15 +157,19 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
     }).getOrElse(BadRequest)
   }
   
-  def decisionSummaries = IsAuthenticated { dhSession => implicit request =>
+  def decisionSummaries = MaybeAuthenticated { dhSession => implicit request =>
     
     val ds = dhSession.dhSession match {
-      case None => DecisionManager.decisionSummariesMostActive
-      case Some(s) => DecisionManager.decisionSummariesOf(s.userId, false)
+      case None =>
+        println("!!!!!!!!========1")
+        DecisionManager.decisionSummariesMostActive
+      case Some(s) =>
+        println("!!!!!!!!========2")
+        DecisionManager.decisionSummariesOf(s.userId, false)
     }
     
     
-    Ok(html.decisionSummaries(ds, dhSession.dhSession.map(_.userId)))
+    Ok(html.decisionSummaries(ds))
   }
   
   def myDecisions(ownerId: Long) = IsAuthenticated { dhSession => implicit request =>
@@ -191,20 +197,17 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
   
 
   def submitVote(decisionId: Long) = IsAuthenticated { dhSession => implicit request =>
-    
+
     new ValidationBlock[Map[Long,Int]] {
       def value = 
-        request.body.asFormUrlEncoded.flatten.
-          map(e => (keepRight(e._1,'-'): Long, e._2.head :Int)).toMap
-    }.extract match {
-      case Left(vote) =>
-        DecisionManager.vote(dhSession.userId, decisionId, vote)
-        Ok("Vote recorded !")
-      case Right(ex) =>
-        logger.error("invalid vote : " + request.body.asFormUrlEncoded + "\n" + ex)
-        BadRequest
-    }
+        get(request.body.asFormUrlEncoded.get,"request body is not FormUrlEncoded").
+          map(e => (e._1: Long, e._2.head :Int)).toMap
+    }.
+    extractValid { voteMap =>
 
-  }  
+      DecisionManager.vote(dhSession.userId, decisionId, voteMap)
+      Ok("Vote recorded !")
+    }
+  }
 }
 

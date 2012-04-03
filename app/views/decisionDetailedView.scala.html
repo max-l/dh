@@ -1,5 +1,4 @@
-@(decisionSummary: DSummary, currentUserId: Option[Long]) <!-- //, voteIfParticipantAndLogged: Option[Seq[CastedVote]]) -->
-
+@(decisionSummary: DSummary, currentUserId: Option[Long], currentUserIsParticipant: Option[Boolean]) <!-- //, voteIfParticipantAndLogged: Option[Seq[CastedVote]]) -->
 
 <h1>@decisionSummary.title</h1>
 
@@ -11,37 +10,53 @@
 <div class="row">
 
   <div class="span8">  
-  
- 
-      
-        @for(a <- decisionSummary.alternativeSummaries) {
-      
-          <h4>@a.alternativeTitle</h4> <br/>
-          <div class="progress">
-            <div class="bar" style="width: @a.percentageOfMaximumPoints(decisionSummary)%">
-            </div>
-          </div>
-        }
-  
- 
+    @for(a <- decisionSummary.alternativeSummaries.sortBy(x => - x.points)) {
+      <h4>@a.alternativeTitle</h4> <br/>
+      <div id='progr@a.alternativeId' class="progress">
+        <div class="bar" style="width: @a.percentageOfMaximumPoints(decisionSummary)%"></div>
+      </div>
+    }
   </div>
-  
  <div class="span4" id="__dsum@decisionSummary.decision.id"></div>  
 </div>
 
-<script>
+@for(b <- currentUserIsParticipant if b) {
 
-  drawChart(document.getElementById('__dsum@decisionSummary.decision.id'), 240, @Html(decisionSummary.pieChartData))
+  <div id="voteScreen" class="modal hide fade"></div>
 
-  function popVote() {
-    $('#voteScreen').load('/vote/' + @decisionSummary.decision.id, function() {
-      $('#voteScreen').modal('show')
-    })
-  }
+  <a data-toggle="modal" onClick='popVote()' class="btn btn-primary btn-large">Vote</a>
 
-</script>
+  <a data-toggle="modal" onClick='inviteVoters(@decisionSummary.decision.id)' class="btn btn-primary btn-large">Invite Facebook friends</a>
 
+  <script>
 
-<div id="voteScreen" class="modal hide fade"></div>
+    function popVote() {
+      $('#voteScreen').load('/vote/' + @decisionSummary.decision.id, function() {
+        alert($('#voteScreen'))
+        $('#voteScreen').modal('show')
+      })
+    }
 
-<a data-toggle="modal" onClick='popVote()' class="btn btn-primary btn-large">Vote</a>
+    function inviteVoters(decisionId) {
+      FB.ui({method: 'apprequests',
+        message: 'Invitation to vote on ...',
+        data: 'abc123'
+      },
+      function requestCallback(response) {
+        if(response != null) {
+          response.decisionId = decisionId
+          var z = JSON.stringify(response)
+          $.ajax({
+            type: 'POST',
+            url: "/recordInvitationList",
+            data: z,
+            success: function() {},
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json'
+          })
+         }
+      })
+    }
+
+  </script>
+}

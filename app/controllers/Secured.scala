@@ -84,13 +84,14 @@ trait Secured[S,O] {
     Results.Redirect(routes.Application.login)
   }
     
-  val maxIdleTimeInSeconds = 60 * 45
+  val maxIdleTimeInSeconds = 7
   
   def MaybeAuthenticated(block: O => Request[AnyContent] => Result): Action[AnyContent] =
     Action(BodyParsers.parse.anyContent) { request =>
       validateToken(request) match {
-        case Some(sess) => 
-          block(mainPageObject(Some(sess), request))(request).asInstanceOf[PlainResult].withSession(authenticatonTokenName -> bake(sess, request))
+        case Some(session) => 
+          val result = block(mainPageObject(Some(session), request))(request)
+          createOrExtendAuthenticator(request, bake(session, request), result, false)
         case None =>
           block(mainPageObject(None, request))(request)
       }
@@ -101,10 +102,25 @@ trait Secured[S,O] {
     authenticated(validateToken, onUnauthorized) { session =>
       Action { request => 
         Logger("application").debug("Autentication success.")
-        f(session)(request).asInstanceOf[PlainResult].withSession(authenticatonTokenName -> bake(session, request))
+        val x = f(session)(request)
+        val result = f(session)(request)
+        createOrExtendAuthenticator(request, bake(session, request), result, false)
       }
     }
   }
+  
+  private def createOrExtendAuthenticator(request: Request[AnyContent], encodedAuthenticator: String, r: Result, isCreate: Boolean) = {
+    
+    val plainResult = r.asInstanceOf[PlainResult]
+    
+    val r2 =
+      if(isCreate)
+        plainResult.withSession(request.session + (authenticatonTokenName -> encodedAuthenticator))
+      else // Extend
+        plainResult.withSession(authenticatonTokenName -> encodedAuthenticator)
+
+     r2.withCookies(Cookie("DISPLAY_AS_LOGGED_IN","true", maxAge = maxIdleTimeInSeconds, httpOnly = false)) 
+  } 
   
   private def bake(s: S, req: Request[AnyContent]) = {
     val userId = userIdFromSession(s)
@@ -131,15 +147,13 @@ trait Secured[S,O] {
       val (innerAction, innerBody) = request.body
       innerAction(request.map(_ => innerBody))
     }
-
   }
 
-  def AuthenticationSuccess(r: Result, concreteSession: S)(implicit req: Request[AnyContent]) = {
+  def AuthenticationSuccess(result: Result, concreteSession: S)(implicit request: Request[AnyContent]) = {
 
     val userId = userIdFromSession(concreteSession)
     val dataInCoookie = dataFromSession(concreteSession)
-    
-    val t = authenticator.bake(userId, maxIdleTimeInSeconds, sslSessionId(req), dataInCoookie)
-    r.asInstanceOf[PlainResult].withSession(req.session + (authenticatonTokenName -> t))
+    val encodedAuthenticator = authenticator.bake(userId, maxIdleTimeInSeconds, sslSessionId(request), dataInCoookie)
+    createOrExtendAuthenticator(request, encodedAuthenticator, result, true)
   }
 }

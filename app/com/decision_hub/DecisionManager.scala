@@ -128,6 +128,9 @@ object DecisionManager {
   
   def vote(voterId: Long, decisionId: Long, scores: Map[Long,Int]): Unit = inTransaction {
 
+    if(scores.isEmpty)
+      sys.error("empty vote.")
+    
     val numRows = 
       update(decisionParticipations)(p => 
         where(p.decisionId === decisionId and p.voterId === voterId)
@@ -145,30 +148,38 @@ object DecisionManager {
       sys.error("votes higher than allowable range submited: " + scores.mkString)
     
     votes.deleteWhere(v => v.decisionId === decisionId and v.voterId === voterId)
-    
-    println("--:1 " + scores)
+
     val toInsert = 
       for( (alternativeId, score) <- scores)
         yield Vote(decisionId, alternativeId, voterId, score)
-    
-    println("--:2 " + toInsert)
-    val i = votes.insert(toInsert.toList)
-    println("--:3 " + i)
+
+    votes.insert(toInsert.toList)
   }
   
-  def decisionDetails(decisionId: Long) = inTransaction {
+  def decisionDetails(decisionId: Long, currentUser: Option[Long]) = inTransaction {
 
     val d = decisions.lookup(decisionId).get
     val pSums = participationSummaries(Seq(decisionId)).map(t => (t.key: Long, t.measures)).toMap
     val aSums = alternativeSummary(Seq(decisionId)).groupBy(_.decisionId)
     val pSum = pSums.get(d.id).getOrElse((0L,0,0))
 
-    DSummary(
-      decision = d,
-      numberOfVoters = pSum._1,
-      numberOfAbstentions = pSum._2,
-      numberOfVotesExercised = pSum._3,
-      alternativeSummaries = aSums.get(d.id).toSeq.flatten)
+
+    val isCurrentUserParticipant =
+      currentUser.map { userId =>
+        from(decisionParticipations)(dp =>
+          where(dp.voterId === userId and dp.decisionId === decisionId)
+          select(dp.id)
+        ).toList != Nil
+      }
+
+    (isCurrentUserParticipant,
+     DSummary(
+        decision = d,
+        numberOfVoters = pSum._1,
+        numberOfAbstentions = pSum._2,
+        numberOfVotesExercised = pSum._3,
+        alternativeSummaries = aSums.get(d.id).toSeq.flatten)
+     )
   }
 
   def acceptFacebookInvitation(requestIds: Iterable[Long]) = transaction {

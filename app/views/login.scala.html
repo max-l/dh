@@ -1,7 +1,26 @@
-@(facebookLoginUri: String)(implicit mpo: MainPageObjects)
+@()
 
-@main(title = "Login") {
+<div class="modal-header">
+  <a class="close" data-dismiss="modal" >&times;</a>
+  <h2>Login</h2>
+</div>
 
-      <a href='@facebookLoginUri'>Login with Facebook</a>
 
-}
+<script>
+/*
+  function fbLogin() {  
+    $('#modalLogin').load(
+      @controllers.facebookOAuthManager.loginWithFacebookUrl
+      function() {}
+    )
+  }
+*/
+</script>
+
+<div id='modalLogin' class="modal-body">
+  <a href='@controllers.facebookOAuthManager.loginWithFacebookUrl'>Login with Facebook</a>
+</div>
+
+<div class="modal-footer">
+  <a class='btn' data-dismiss="modal" >Cancel</a>
+</div>

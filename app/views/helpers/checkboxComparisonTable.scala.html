@@ -1,0 +1,28 @@
+@(headers: Seq[String], rows: Seq[(String,Seq[Boolean])])
+
+<table class="table table-condensed">
+    <thead>
+      <tr>
+        <th></th>
+        @for(h <- headers) {
+          <th>@Html(h)</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+    @for((rowTitle, rowValues) <- rows) {
+     <tr>
+       <td>@Html(rowTitle)</td>
+       @for(b <- rowValues) {
+         <td>
+           @if(b) {
+             <i class='icon-ok'></i>
+           } else {
+             <i class='icon-remove'></i>
+           }
+         </td>
+       }
+     </tr>
+    }
+  </tbody>
+</table>

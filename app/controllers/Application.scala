@@ -42,10 +42,24 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
   }
 
   def login = MaybeAuthenticated { mpo => implicit request =>
-    
-    Ok(html.login(facebookOAuthManager.loginWithFacebookUrl)(mpo))
+    Ok(html.login())
+  }
+  
+  val LANDING_PAGE_COOKIE_NAME = "landingPathAfterLogin"
+  
+  def externalLogin(provider: String, currentPageUri: String) = MaybeAuthenticated { mpo => implicit req =>
+    provider match {
+      case "facebook" =>
+        Redirect(facebookOAuthManager.loginWithFacebookUrl).withCookies(
+          Cookie(LANDING_PAGE_COOKIE_NAME, currentPageUri, maxAge = 5 * 60)
+        )
+    }
   }
 
+  def compareVotingMethods = Action {
+    Ok(html.compareVotingMethods())
+  }
+  
   def logout = Action { req =>
     Redirect("http://localhost:9000").withNewSession.flashing(
       "success" -> "You've been logged out"
@@ -72,13 +86,21 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
           u <- AuthenticationManager.lookupUser(sess.userId))
         yield u.displayableName
 
-    Ok(html.fcpe(new MainPageObject(false, displayName), displayName))
+    val uri = r.cookies.get(LANDING_PAGE_COOKIE_NAME).map(_.value)
+
+    uri match {
+      case None =>
+        Ok(html.fcpe(defaultLandingPage, displayName))
+      case Some(u) =>
+        Ok(html.fcpe(u, displayName))
+    }
   }
-  
-  
+
+  val defaultLandingPage = routes.Decisions.decisionSummaries.url
+
   def boots = MaybeAuthenticated { mpo =>  r =>
     Ok(html.boots())
-  }  
+  }
 
   def showHelloForm = IsAuthenticated { dhSession => implicit request =>
     Ok(html.index(dhSession))
@@ -96,13 +118,12 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
       case Left(info) => transaction {
         val u = AuthenticationManager.authenticateOrCreateUser(info)
         val ses = new DecisionHubSession(u, req)
-        AuthenticationSuccess(Redirect(routes.Application.index), ses)
+
+        AuthenticationSuccess(Redirect("/"), ses)
       }
       case Right(error) => 
         Logger.info("Failed Logon " + res)
         Redirect(routes.Application.login)
     }
   }
-
 }
-
