@@ -1,18 +1,41 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
 
-# Home page
+
 GET     /                                      controllers.Application.index
-
-# Authentication
 GET     /login                                 controllers.Application.login
 GET     /fbauth                                controllers.Application.fbauth
 GET     /logout                                controllers.Application.logout
-
 GET     /test                                  controllers.Application.test
 
 GET     /externalLogin/:provider/*path         controllers.Application.externalLogin(provider: String, path: String)
+
+GET     /p/:decisionId                         controllers.Decisions.decisionDetails(decisionId: Long)
+GET     /vote/:decisionId                      controllers.Decisions.voteScreen(decisionId: Long)
+POST    /vote/:decisionId                      controllers.Decisions.submitVote(decisionId: Long)
+
+GET     /decision/create                       controllers.Decisions.create
+GET     /decisionSummaries                     controllers.Decisions.decisionSummaries
+
+GET     /participants/:decisionId/:page/:size  controllers.Decisions.participants(decisionId: Long, page: Int, size: Int)
+
+POST    /recordInvitationList                  controllers.Decisions.recordInvitationList
+
+POST    /facebookCanvasUrl/                    controllers.Decisions.facebookCanvasUrl
+POST    /acceptOrDeclineInvitations            controllers.Decisions.acceptOrDeclineInvitations
+GET     /viewInvitationAndAuthorizeApp/:fbAppReqId  controllers.Decisions.viewInvitationAndAuthorizeApp(fbAppReqId: Long)
+
+GET     /channel.html                          controllers.Application.facebookChannelFile
+GET     /emptyPage                             controllers.Application.emptyPage
+GET     /compareVotingMethods                  controllers.Application.compareVotingMethods
+
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file                          controllers.Assets.at(path="/public", file)
+
+
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+# GET     /assets/stylesheets/*file              controllers.Assets.at(path="/target/resource_managed/main/public/stylesheets/", file)
 
 #Decisions NG
 
@@ -28,9 +51,13 @@ GET     /externalLogin/:provider/*path         controllers.Application.externalL
 
 # mind source ? 
 
-GET  /p/:decisionId                            controllers.Decisions.decisionDetails(decisionId: Long)
-GET  /vote/:decisionId                            controllers.Decisions.voteScreen(decisionId: Long)
-POST /vote/:decisionId                            controllers.Decisions.submitVote(decisionId: Long)
+#GET     /decision/:id                          controllers.Decisions.show(id: Long)
+#GET     /myDecisions/:ownerId                  controllers.Decisions.myDecisions(ownerId: Long)
+#GET     /myDecisions/                          controllers.Decisions.myDecisionz
+#POST    /myDecisions/                          controllers.Decisions.myDecisionz
+#POST    /decisionSubmit                        controllers.Decisions.submit
+#GET     /decision/invite/:decisionId           controllers.Decisions.invite(decisionId: Long)
+
 
 # accountName is a userName, countryCode or organasationName
 # Country codes or continent names cannot be granted for accounts, but a decision can be indexed in it,
@@ -41,35 +68,4 @@ POST /vote/:decisionId                            controllers.Decisions.submitVo
 #GET /:accountName/:decisionName/:alternative  controllers.alternative(accountName: String, decisionName: String, alternative: String)
 
 #GET /ca/:decisionName/:alternative 
-
-
-
-
-#GET /:userId       controllers.Decisions
-
-#Decision
-
-GET     /decision/create                       controllers.Decisions.create
-#GET     /decision/:id                          controllers.Decisions.show(id: Long)
-GET     /myDecisions/:ownerId                  controllers.Decisions.myDecisions(ownerId: Long)
-GET     /myDecisions/                          controllers.Decisions.myDecisionz
-POST    /myDecisions/                          controllers.Decisions.myDecisionz
-#POST    /decisionSubmit                        controllers.Decisions.submit
-GET     /decision/invite/:decisionId           controllers.Decisions.invite(decisionId: Long)
-GET     /decisionSummaries                     controllers.Decisions.decisionSummaries
-
-POST    /recordInvitationList                  controllers.Decisions.recordInvitationList
-
-GET     /channel.html                          controllers.Application.facebookChannelFile
-
-GET     /emptyPage                             controllers.Application.emptyPage
-
-#GET     /fcpe                                  controllers.Application.fcpe
-GET     /boots                                 controllers.Application.boots
-
-GET     /compareVotingMethods                  controllers.Application.compareVotingMethods
-
-# Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file                          controllers.Assets.at(path="/public", file)
-# GET     /assets/stylesheets/*file              controllers.Assets.at(path="/target/resource_managed/main/public/stylesheets/", file)
 

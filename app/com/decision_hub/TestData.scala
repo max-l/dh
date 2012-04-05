@@ -41,7 +41,7 @@ object TestData {
 
           val pi = parse[FBPublicUserInfo](jsonResponse.body)
           transaction {
-            users.insert(User(Some(pi.first_name), Some(pi.last_name), None, Some(i), None, None))
+            users.insert(User(Some(pi.first_name), Some(pi.last_name), None, Some(i), true))
           }
         }
       }
@@ -84,10 +84,20 @@ object TestData {
 
      //val bobDecisions = DecisionManager.decisionSummariesOf(bob.id, true)
 
-       
-     DecisionManager.inviteVoterFromFacebook(-1L, d1.id, Seq(nancy.facebookId.get))
-     DecisionManager.inviteVoterFromFacebook(-1L, d1.id, Seq(bob.facebookId.get))
-       
+
+     DecisionManager.inviteVotersFromFacebook(
+         bob.id, 
+         FBInvitationRequest(d1.id,-1L, Seq(FBFriendInfo(nancy.facebookId.get, nancy.displayableName))))
+         
+     DecisionManager.inviteVotersFromFacebook(
+         bob.id,
+         FBInvitationRequest(d1.id,-1L, Seq(FBFriendInfo(bob.facebookId.get, bob.displayableName))))
+     
+     Session.currentSession.connection.commit()
+     
+     DecisionManager.acceptFacebookInvitation(-1L, nancy.id)
+     DecisionManager.acceptFacebookInvitation(-1L, bob.id)
+     
      val Seq(a1, a2, a3, a4) = 
        Schema.decisionAlternatives.where(_.decisionId === d1.id).toSeq.sortBy(_.title)
      
@@ -163,19 +173,24 @@ object TestData {
     Schema.initDb
     ResetSchema.doIt
     
-    
+    val usersToExclude = Set(100003718310868L)
     transaction {
       Session.currentSession.setLogger(println(_))
-      fakeData(testUserIds)
+      fakeData(testUserIds.filterNot(uid => usersToExclude.contains(uid)))
     }
 
     //akka.actor.ActorSystem.shutdown
     
   }
   
+  
   def main(args: Array[String]): Unit = {
-    doIt
-    
+        
+   //println(FBInvitationRequest.parseString(js))
+   //println(parse[FBInvitationRequest](js))
+     
+   doIt
+     
     try { 1}
     catch {
       case e:Throwable => throw e

@@ -1,0 +1,12 @@
+@(decision: Decision, invitingUser: ParticipantDisplay, authorizeAppUrl: String)
+
+<script>
+
+ </script>
+
+ <h3>
+   Hi, you have been invited by <img src='@invitingUser.iconSrc'/><a>@invitingUser.displayName</a>
+   to vote on @decision.title
+ </h3>
+ 
+ <a href='@authorizeAppUrl'>Accept</a>

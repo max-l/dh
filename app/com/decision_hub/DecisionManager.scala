@@ -94,20 +94,15 @@ object DecisionManager {
   def voteScreenModel(decisionId: Long, voterId: Long) = inTransaction {
 
     val d = decisions.lookup(decisionId).get
-    
-    logger.debug("----------------1")
-    
+
     if(!isParticipant(decisionId, voterId))
       sys.error(voterId + " not participant in " + decisionId)
-    
-    logger.debug("----------------2")
-      
+
     val alts = decisionAlternatives.where(a => a.decisionId === decisionId).toList.toSeq
 
     val scores =
       votes.where(v => v.decisionId === decisionId and v.voterId === voterId).toSeq
 
-    logger.debug("----------------4")
     val resAlts =
       for(a <- alts)
         yield scores.find(_.alternativeId == a.id) match {
@@ -115,7 +110,6 @@ object DecisionManager {
           case Some(s) => CastedVote(a, s.score)
         }
 
-    logger.debug("----------------5")
     (d, resAlts)
   }
 
@@ -156,14 +150,43 @@ object DecisionManager {
     votes.insert(toInsert.toList)
   }
   
+  private implicit def tuple2Dp(t: (DecisionParticipation, User)) = 
+    t._1.display(t._2)
+
+  private implicit def tuplePi(t: (ParticipationInvitation, User)) = 
+    t._1.display(t._2)
+    
+  def participants(decisionId: Long, page: Int, size: Int) = inTransaction {
+
+    from(decisionParticipations, users)((dp, u) =>
+      where(dp.decisionId === decisionId and dp.voterId === u.id)
+      select((dp, u))
+    ).page(page, size).map(t => t : ParticipantDisplay).toSeq
+  }
+  
+  def invitations(decisionId: Long, page: Int, size: Int) = inTransaction {
+
+    from(participationInvitations, users)((i, u) =>
+      where(i.decisionId === decisionId and i.invitedUserId === u.id)
+      select((i, u))
+    ).page(page, size).map(t => t : ParticipantDisplay).toSeq
+  }
+  
   def decisionDetails(decisionId: Long, currentUser: Option[Long]) = inTransaction {
 
     val d = decisions.lookup(decisionId).get
+
     val pSums = participationSummaries(Seq(decisionId)).map(t => (t.key: Long, t.measures)).toMap
-    val aSums = alternativeSummary(Seq(decisionId)).groupBy(_.decisionId)
+
+    val aSums: Map[Long,Iterable[AlternativeSummary]] =
+      if(d.resultsCanBeDisplayed) 
+        alternativeSummary(Seq(decisionId)).groupBy(_.decisionId)
+      else 
+        Map.empty
+
     val pSum = pSums.get(d.id).getOrElse((0L,0,0))
-
-
+      
+    
     val isCurrentUserParticipant =
       currentUser.map { userId =>
         from(decisionParticipations)(dp =>
@@ -173,6 +196,8 @@ object DecisionManager {
       }
 
     (isCurrentUserParticipant,
+     participants(decisionId, 0, 16),
+     invitations(decisionId, 0, 16),
      DSummary(
         decision = d,
         numberOfVoters = pSum._1,
@@ -182,32 +207,126 @@ object DecisionManager {
      )
   }
 
-  def acceptFacebookInvitation(requestIds: Iterable[Long]) = transaction {
-    update(decisionParticipations)(dp =>
-      where(dp.facebookAppRequestId in requestIds)
-      set(
-        dp.accepted := true,
-        dp.timeAcceptedOrRefused := Some(new Timestamp(System.currentTimeMillis))
-      )
+  def acceptOrDeclineFacebookInvitations(invitedUserId: Long, acceptOrDecline: Map[Long,Boolean]) = transaction {
+    
+    val acceptedIds = acceptOrDecline.filter(_._2).map(_._1)
+    val refusedIds  = acceptOrDecline.filterNot(_._2).map(_._1)
+    
+    update(participationInvitations)( pi => 
+      where(pi.invitedUserId === invitedUserId and pi.decisionId.in(refusedIds))
+      set(pi.declined := true)
     )
+    
+    val pis = 
+      participationInvitations.deleteWhere(i => i.decisionId.in(acceptedIds) and i.invitedUserId === invitedUserId)
+
+    val toInsert = 
+      for(dId <- acceptedIds)
+        yield DecisionParticipation(dId, invitedUserId)
+    
+    decisionParticipations.insert(toInsert)
+  }
+  
+  def acceptFacebookInvitation(requestId: Long, invitedUserId: Long): DecisionParticipation = transaction {
+
+    val inv = 
+      participationInvitations.where((i => 
+        i.facebookAppRequestId === requestId and
+        i.invitedUserId === invitedUserId)
+      ).head
+
+    val n = 
+      participationInvitations.deleteWhere((i => 
+        i.invitedUserId === invitedUserId and 
+        i.decisionId === inv.decisionId))
+
+    decisionParticipations.insert(DecisionParticipation(inv.decisionId, inv.invitedUserId))
   }
 
-  def inviteVoterFromFacebook(facebookRequestId: Long, decisionId: Long, reciptientFacebookIds: Seq[Long]) = transaction {
+  def pendingInvitations(userId: Long) = inTransaction {
 
-    val voterIds =
-      from(Schema.users)(u =>
-        where(u.facebookId in reciptientFacebookIds)
-        select(&(u.id))
-      )
+    val pi =
+      from(users, participationInvitations, decisions)((u,i,d) =>
+        where(i.invitedUserId === userId and i.decisionId === d.id and i.invitingUserId === u.id)
+        select(u,i,d)
+      ).toList.toSeq
 
-    val participations = 
-      for(inviteIdstr <- voterIds) 
-        yield DecisionParticipation(
-          decisionId,
-          facebookRequestId,
-          inviteIdstr, 
-          new Timestamp(System.currentTimeMillis))
+    pi map { t =>
+      val (u,i,d) = t
+      
+      (u.display, d)
+    }
+  }
+  
+  def lookupInvitation(facebookRequestId: Long) = inTransaction {
+    
+   val dp = participationInvitations.where(_.facebookAppRequestId === facebookRequestId).head
+   val d = decisions.lookup(dp.decisionId).get
+   val u = users.lookup(dp.invitingUserId).get
 
-    Schema.decisionParticipations.insert(participations.toSeq)
+   (d, u.display)
+  }
+  
+  def usersByFbId(fbIds: Traversable[Long]) =
+    from(Schema.users)(u =>
+      where(u.facebookId.in(fbIds))
+      select(&(u.id), &(u.facebookId))
+    )
+
+  /**
+   * Idempotent for DecisionParticipation (will not add duplicates), but will add duplicates in ParticipationInvitation table,
+   * duplicates from this table will be removed at invitaion acceptation time  
+   */
+  def inviteVotersFromFacebook(invitingUserId: Long, r: FBInvitationRequest) = inTransaction {
+
+    val recipientsFacebookIds = r.to.map(_.uid).toSet
+
+    val usersAlreadyInSystem = 
+      usersByFbId(recipientsFacebookIds).toMap
+
+    val fbUserIdsToInsert =
+      recipientsFacebookIds.diff(usersAlreadyInSystem.map(_._2.get).toSet)
+
+    val usersToInsert = 
+      for(fbInfo <- r.to if fbUserIdsToInsert.contains(fbInfo.uid))
+        yield User(nickName = Some(fbInfo.name), facebookId = Some(fbInfo.uid))
+
+    logger.debug("Will insert new FB users : " + usersToInsert)
+    
+    users.insert(usersToInsert)
+
+    val alreadyParticipantUserIds = 
+      from(decisionParticipations)(dp =>
+        where(dp.decisionId === r.decisionId and dp.voterId.in(usersAlreadyInSystem.map(_._1).toSeq))
+        select(&(dp.voterId))
+      ).toSet
+    
+    logger.debug("alreadyParticipantUserIds : " + alreadyParticipantUserIds)
+    
+    val z = 
+      if(fbUserIdsToInsert.isEmpty)
+        Map.empty
+      else
+        usersByFbId(fbUserIdsToInsert).toMap
+    
+    val invitationsToInsert =
+      for(u <- (z ++ usersAlreadyInSystem) if ! alreadyParticipantUserIds.contains(u._1))
+        yield ParticipationInvitation(
+          decisionId = r.decisionId,
+          facebookAppRequestId = r.request,
+          invitedUserId = u._1,
+          invitingUserId = invitingUserId)    
+
+    logger.debug("invitationsToInsert : " + invitationsToInsert)
+
+    participationInvitations.insert(invitationsToInsert)
+/*    
+    from(participationInvitations, users)((pi, u) =>
+      where(pi.decisionId === r.decisionId and pi.invitedUserId === u.id)
+      select(&(u.f))
+    )
+    //exclude_ids
+
+*/
   }
 }

@@ -14,9 +14,9 @@ import models._
 
 
 object Secured {
-  
+
   val authenticatonTokenName = "authenticatonToken"
-  
+
   val authenticator = 
     Play.current.configuration.getString("application.secret").
       map(new ToughCookieBakery(_)).getOrElse(sys.error("missing config 'application.secret'"))
@@ -40,11 +40,11 @@ trait ConcreteSecured extends Secured[DecisionHubSession, MainPageObjects] {
     catch {
       case _ => sys.error("UserId is not a long '" + s + "'.")
     }
-  
+
   def loadSession(userId: String, dataInCookie: String, h: RequestHeader) = DecisionHubSession(parseUserId(userId), dataInCookie, h)
   def userIdFromSession(s: DecisionHubSession) = s.userId.toString
   def dataFromSession(s: DecisionHubSession) = s.dataInCookie
-  
+
   def mainPageObject(s: Option[DecisionHubSession], h: RequestHeader) = new MainPageObjects(s, h)
 }
 
@@ -84,7 +84,7 @@ trait Secured[S,O] {
     Results.Redirect(routes.Application.login)
   }
     
-  val maxIdleTimeInSeconds = 7
+  val maxIdleTimeInSeconds = 45 * 60
   
   def MaybeAuthenticated(block: O => Request[AnyContent] => Result): Action[AnyContent] =
     Action(BodyParsers.parse.anyContent) { request =>
@@ -97,19 +97,21 @@ trait Secured[S,O] {
       }
     }
 
-  def IsAuthenticated(f: => S => Request[AnyContent] => Result) = {
+  def IsAuthenticated(f: => S => Request[AnyContent] => Result):play.api.mvc.Action[(play.api.mvc.Action[AnyContent], AnyContent)] =
+    IsAuthenticated(BodyParsers.parse.anyContent)(f)
+
+  def IsAuthenticated[A](bp: BodyParser[A])(f: => S => Request[A] => Result) = {
     Logger("application").debug("B4 auth ")
     authenticated(validateToken, onUnauthorized) { session =>
-      Action { request => 
+      Action(bp) { request => 
         Logger("application").debug("Autentication success.")
-        val x = f(session)(request)
         val result = f(session)(request)
         createOrExtendAuthenticator(request, bake(session, request), result, false)
       }
     }
-  }
+  }  
   
-  private def createOrExtendAuthenticator(request: Request[AnyContent], encodedAuthenticator: String, r: Result, isCreate: Boolean) = {
+  private def createOrExtendAuthenticator[A](request: Request[A], encodedAuthenticator: String, r: Result, isCreate: Boolean) = {
     
     val plainResult = r.asInstanceOf[PlainResult]
     
@@ -122,7 +124,7 @@ trait Secured[S,O] {
      r2.withCookies(Cookie("DISPLAY_AS_LOGGED_IN","true", maxAge = maxIdleTimeInSeconds, httpOnly = false)) 
   } 
   
-  private def bake(s: S, req: Request[AnyContent]) = {
+  private def bake[A](s: S, req: Request[A]) = {
     val userId = userIdFromSession(s)
     val data = dataFromSession(s)
     authenticator.bake(userId, maxIdleTimeInSeconds, sslSessionId(req), data)

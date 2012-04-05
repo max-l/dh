@@ -10,7 +10,7 @@ object AuthenticationManager {
   
   def createNewUser(info: MinimalInfo, fbId: Long) = {
 
-    val u = User(info.firstName, info.lastName, info.name, Some(fbId), info.email, None)
+    val u = User(info.firstName, info.lastName, info.name, Some(fbId), true, info.email)
     
     Schema.users.insert(u)    
   }

@@ -1,4 +1,45 @@
-@(summaries: Seq[DSummary])
+@(summaries: Seq[DSummary], pendingInvitations: Seq[(ParticipantDisplay,Decision)])
+
+
+@if(pendingInvitations != Nil) {
+
+  <div id="acceptOrDeclineInvitationsDialog" class="modal hide fade">
+    <div class="modal-header"><a class="close" data-dismiss="modal" >&times;</a>
+      <h2>You have pending invitations</h2>
+    </div>
+
+    <div class="modal-body">
+      <form id='acceptOrDeclineInvitationsForm' action=''>
+        @for((participant,d) <- pendingInvitations) {
+          <h3>
+            <img src='@participant.iconSrc'/><a>@participant.displayName</a> invited you to vote on @d.title
+          </h3>
+          <label class="radio">
+             Accept
+            <input type="radio" name="@d.id" value="true" checked>
+          </label>
+          <label class="radio">
+             Decline
+            <input type="radio" name="@d.id" value="false">
+          </label>
+        }
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <a class='btn  btn-primary' onClick='saveOrDecline()'>Save</a>
+      <a class='btn' data-dismiss="modal" >Later</a>
+    </div>
+  </div>
+  
+  <script>
+    function saveOrDecline() {
+      $.post("/acceptOrDeclineInvitations", $("#acceptOrDeclineInvitationsForm").serialize())
+      $('#acceptOrDeclineInvitationsDialog').modal('hide')
+    }
+    $('#acceptOrDeclineInvitationsDialog').modal('show')
+  </script>  
+}
 
 
 @for(d <- summaries) {
@@ -8,8 +49,8 @@
 
    <div class="span8">
 
-      <h2>@d.title</h2>
-      <h4>@d.punchLine</h4>
+     <h2>@d.title</h2>
+     <h4>@d.punchLine</h4>
 
      <h4>Choices are : </h4>
       @d.alternativeSummaries.headOption.map { ho =>

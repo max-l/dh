@@ -51,8 +51,10 @@
          var h = null
          if(isLoggedIn())
            h = "<li class='active'>" + dn + "<a onClick='logout()'>[Logout]</a></li>"
-         else
+         else {
            h = "<li class='active'><a onClick='login()'>Login</a></li>"
+           refreshCenterPanel()
+         }
          $('#loginStatus').html(h)
        }
 
@@ -72,7 +74,7 @@
        }
 
        function logout() {
-         window.location.href = "http://" + window.location.hostname + '/logout'
+         window.location.href = "http://" + window.location.hostname + ':9000/logout'
        }
 
        function refreshCenterPanel() {
@@ -183,7 +185,7 @@
   </div>
   <script>
     refreshAuthenticatedStatus()
-    window.setInterval(refreshAuthenticatedStatus, 10000)
+    //window.setInterval(refreshAuthenticatedStatus, 10000)
     refreshCenterPanel()
   </script>
   </body>

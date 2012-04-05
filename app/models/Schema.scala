@@ -18,6 +18,8 @@ object Schema extends org.squeryl.Schema {
   val decisionAlternatives = table[DecisionAlternative]
   
   val decisionParticipations = table[DecisionParticipation]
+  
+  val participationInvitations = table[ParticipationInvitation]
 
   val votes = table[Vote]
   
@@ -66,12 +68,13 @@ trait DecisionHubEntity extends KeyedEntity[Long] {
 }
 
 case class User(
-   firstName: Option[String],
-   lastName: Option[String],
-   nickName: Option[String],
-   facebookId: Option[Long],
-   email: Option[String],
-   passwordHash: Option[String]) extends DecisionHubEntity {
+   firstName: Option[String] = None,
+   lastName: Option[String] = None,
+   nickName: Option[String] = None,
+   facebookId: Option[Long] = None,
+   facebookAuthorized: Boolean = false,
+   email: Option[String] = None,
+   passwordHash: Option[String] = None) extends DecisionHubEntity {
 
   override def toString = 
     Seq(firstName, lastName, nickName, facebookId).mkString("User(", ",", ")")
@@ -98,6 +101,14 @@ case class User(
       case _ => Right("invalid user " + this + ".")
     }
   }
+  
+  //TODO: display(externalPlatformIEnum#Value)
+  def display =
+    new ParticipantDisplay(
+        displayableName, {
+          // twitterId.map.getOrElse(u.facebookId.. etc)
+          facebookId.map(x => "https://graph.facebook.com/"+x+"/picture")
+        }, true)
 }
 
 case class Decision(
@@ -114,6 +125,14 @@ case class Decision(
   weekActivity: Int = 0,
   allTimeActivity: Int = 0) extends DecisionHubEntity {
 
+  def resultsCanBeDisplayed = 
+    if(! resultsPrivateUntilEnd)
+      true 
+    else {
+      endedByCompletionOn.orElse(endedByOwnerOn).isDefined ||
+      endsOn.map(_.getTime > System.currentTimeMillis).getOrElse(false)
+    }
+  
   def voteRange = 4
 
   def middleOfRange = 2
@@ -144,17 +163,37 @@ object DecisionParticipationStatus extends Enumeration {
   val Invited, Accepted, RefusedToAuthorizeApp = Value
 }
 
+trait DisplayableUser {
+  def display(u: User): ParticipantDisplay
+}
 
 case class DecisionParticipation(
   decisionId: Long,
-  facebookAppRequestId: Long, //facebook app request id
   voterId: Long,
-  timeInvited: Timestamp,
-  accepted: Boolean = false,
   hasVoted: Int = 0,
-  abstained: Int = 0,
-  timeAcceptedOrRefused: Option[Timestamp] = None) extends DecisionHubEntity
+  abstained: Int = 0) extends DecisionHubEntity with DisplayableUser {
+  
+  def display(u: User) = 
+    new ParticipantDisplay(
+        u.displayableName, {
+          // twitterId.map.getOrElse(u.facebookId.. etc)
+          u.facebookId.map(x => "https://graph.facebook.com/"+x+"/picture")
+        }, true)
+}
 
+case class ParticipationInvitation(
+  decisionId: Long,
+  facebookAppRequestId: Long, //facebook app request id
+  invitedUserId: Long,
+  invitingUserId: Long,
+  declined: Boolean = false,
+  creationTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends DecisionHubEntity with DisplayableUser {
+
+  def display(u: User) = 
+    new ParticipantDisplay(u.displayableName, Some("https://graph.facebook.com/"+u.facebookId.get+"/picture"), false) 
+}
+
+  
 case class Vote(
   decisionId: Long, 
   alternativeId: Long, 

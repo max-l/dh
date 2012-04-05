@@ -47,11 +47,12 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
   
   val LANDING_PAGE_COOKIE_NAME = "landingPathAfterLogin"
   
+  
   def externalLogin(provider: String, currentPageUri: String) = MaybeAuthenticated { mpo => implicit req =>
     provider match {
       case "facebook" =>
         Redirect(facebookOAuthManager.loginWithFacebookUrl).withCookies(
-          Cookie(LANDING_PAGE_COOKIE_NAME, currentPageUri, maxAge = 5 * 60)
+          Cookie(LANDING_PAGE_COOKIE_NAME, currentPageUri, maxAge = 2 * 60)
         )
     }
   }
@@ -63,12 +64,9 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
   def logout = Action { req =>
     Redirect("http://localhost:9000").withNewSession.flashing(
       "success" -> "You've been logged out"
-    )
+    ).withCookies(Cookie("DISPLAY_AS_LOGGED_IN","false", maxAge = 0, httpOnly = false))
   }
 
-  def indexO = MaybeAuthenticated { mpo =>  r =>
-    Ok(html.index(mpo))
-  }
 
   def test = MaybeAuthenticated { mpo =>  r =>
     Ok(html.test())
@@ -98,13 +96,6 @@ object Application extends BaseDecisionHubController with ConcreteSecured {
 
   val defaultLandingPage = routes.Decisions.decisionSummaries.url
 
-  def boots = MaybeAuthenticated { mpo =>  r =>
-    Ok(html.boots())
-  }
-
-  def showHelloForm = IsAuthenticated { dhSession => implicit request =>
-    Ok(html.index(dhSession))
-  }
 
   def fbauth = Action { implicit req =>
     import facebookOAuthManager._

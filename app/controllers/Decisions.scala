@@ -9,12 +9,13 @@ import play.api.data.format.Formats._
 import play.api.data.validation._
 import play.api.data.validation.Constraints._
 import views._
-import play.api.libs.json.Json
+import play.api.libs.json.Json 
 import com.decision_hub._
 import com.decision_hub.Util._
 import org.jboss.netty.handler.codec.base64.Base64
 import java.sql.Timestamp
 import play.api.libs.iteratee.Iteratee
+
 import play.api.templates.Html
 
 
@@ -40,92 +41,50 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
     }
   )
 
-  def customParserLong: BodyParser[Long] = null // (RequestHeader) => Iteratee[Array[Byte], Either[Result, Long]] = null
-  
-  def jsr = Action(customParserLong) { r =>
-    
-    r.body
-    
+  def recordInvitationList = IsAuthenticated(expectJson[FBInvitationRequest]) { mpo => implicit request =>
+
+    val invitationRequest = request.body
+
+    DecisionManager.inviteVotersFromFacebook(mpo.userId, invitationRequest)
+
+    logger.info("Invited participants to decision " + invitationRequest.decisionId)
     Ok
   }
-  
-  def recordInvitationList = IsAuthenticated { dhSession => implicit request =>
 
-     //format is {"decisionId":"1234","request":"169028456551622","to":["100003662792844"]}
-
-    val js = request.body.asJson.get
-
-    val (requestId, decisionId, reciptientFacebookIds) = 
-      try {(
-        Util.parseLong((js \ "request").as[String]),
-        Util.parseLong((js \ "decisionId").as[String]),
-        (js \ "to").as[Seq[String]].map(Util.parseLong(_))
-      )}
-      catch {
-        case e:Exception => logger.error("Bad json format")
-        throw e
-      }
-
-    logger.info("Invited participants to decision " + decisionId)
-
-    DecisionManager.inviteVoterFromFacebook(requestId, decisionId, reciptientFacebookIds)
-    Ok
-  }
-/*
-  def submit = IsAuthenticated { dhSession => implicit request =>
-    decisionForm.bindFromRequest.fold(
-      errors => {
-        BadRequest(html.decision(errors))},
-      decision => transaction {
-
-        val d0 = decision.copy(ownerId = dhSession.userId)
-        val d = models.Schema.decisions.insert(d0)
-
-        Redirect(routes.Decisions.show(d.id))
-      })
-  }
-*/  
   def decisionDetails(decisionId: Long) = MaybeAuthenticated { mpo => implicit request =>
 
     val currentUserId = mpo.dhSession.map(_.userId)
-    val (isCurrentUserParticipant, d) = DecisionManager.decisionDetails(decisionId, currentUserId)
-    Ok(html.decisionDetailedView(d, currentUserId, isCurrentUserParticipant))
+    val (isCurrentUserParticipant, participantLinks, invitationLinks, d) = DecisionManager.decisionDetails(decisionId, currentUserId)
+    Ok(html.decisionDetailedView(d, participantLinks, invitationLinks, isCurrentUserParticipant))
   }
 
   def create = IsAuthenticated { dhSession => implicit request =>
 
     Ok(html.decisionForm(Decision(0L,"")))
   }
+  
+  def participants(decisionId: Long, page: Int, size: Int) = MaybeAuthenticated { mpo => implicit request =>
 
-  /*
-  def show(id: Long) = IsAuthenticated { dhSession => implicit request => 
-    transaction(Schema.decisions.lookup(id)) match {
-      case Some(d) => Ok(html.decisionDetailedView(d)(dhSession)) 
-      case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
-    }
-  }
-  */
-
-  def invite(decisionId: Long) = IsAuthenticated { dhSession => implicit request => 
-    transaction(Schema.decisions.lookup(decisionId)) match {
-      case Some(d) => 
-        
-        val invitationMessage = "Hi, I have invited you as a voter for this decision : " + d.title
-
-        Ok(html.inviteVoters(d, invitationMessage)(dhSession)) 
-      case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
-    }
+    Ok(html.participantList(
+        DecisionManager.participants(decisionId, page, size), 
+        DecisionManager.invitations(decisionId, page, size)))
   }
   
-  def edit(id: Long) = IsAuthenticated { dhSession => implicit request => 
-    transaction(Schema.decisions.lookup(id)) match {
-      case Some(d) => Ok(html.decision(decisionForm.fill(d))) 
-      case None    => Redirect(routes.Decisions.myDecisions(dhSession.userId)) 
-    }
+  def viewInvitationAndAuthorizeApp(fbAppReqId: Long) = MaybeAuthenticated { mpo => implicit request =>
+    
+    val (d, u) = DecisionManager.lookupInvitation(fbAppReqId)
+    Ok(html.viewInvitationAndAuthorizeApp(d, u, facebookOAuthManager.loginWithFacebookUrl))
+  }
+  
+  def acceptOrDeclineInvitations = IsAuthenticated(expect[Map[Long,Boolean]]) { session => implicit request =>
+    
+    println("======>" + request.body)
+    
+    DecisionManager.acceptOrDeclineFacebookInvitations(session.userId, request.body)
+    Ok
   }
 
-
-  def myDecisionz = MaybeAuthenticated { dhSession => implicit request =>
+  def facebookCanvasUrl = MaybeAuthenticated { dhSession => implicit request =>
 
     println("--::::::::::::::>")
     //println(request.body.asJson)
@@ -135,79 +94,59 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
     import FacebookProtocol._
 
     FacebookProtocol.authenticateSignedRequest(b).map(_ match {
-      case FBClickOnApplicationNonRegistered(_) => 
-        Redirect(facebookOAuthManager.loginWithFacebookUrl)
+      case FBClickOnApplicationNonRegistered(js) =>
+        val requestIds = request.queryString.get("request_ids").flatten.map(Util.parseLong(_)).head
+
+        Ok(html.fcpe(routes.Decisions.viewInvitationAndAuthorizeApp(requestIds).url, None))
       case FBClickOnApplicationRegistered(fbUserId) =>
         AuthenticationManager.lookupFacebookUser(fbUserId) match {
           case Some(u) =>
             val ses = new DecisionHubSession(u, request)
             this.logger.debug("registered user " + fbUserId + " authenticated.")
 
-            val requestIds =
-               request.queryString.get("request_ids").
-                 flatten.map(Util.parseLong(_))
+            //val requestIds =
+            //   request.queryString.get("request_ids").
+            //     flatten.map(Util.parseLong(_))
 
-            DecisionManager.acceptFacebookInvitation(requestIds)
+            //DecisionManager.acceptFacebookInvitation(u.id, requestIds)
             AuthenticationSuccess(Redirect(routes.Application.index), ses)
           case None => // user clicked on 'my applications'
+            println(";>>>>>>5>")
             this.logger.error("non fatal error : fb user " + fbUserId + 
                 " registered with FB, but not present in the DB, only explanation : app crash on response from facebook oaut registration.")
+            // the login redirect will re import user info... 
             Redirect(routes.Application.login)
         }
-    }).getOrElse(BadRequest)
+    }).getOrElse{ BadRequest}
   }
   
-  def decisionSummaries = MaybeAuthenticated { dhSession => implicit request =>
+  def decisionSummaries = MaybeAuthenticated { mpo => implicit request =>
     
-    val ds = dhSession.dhSession match {
+    mpo.dhSession match {
       case None =>
-        println("!!!!!!!!========1")
-        DecisionManager.decisionSummariesMostActive
-      case Some(s) =>
-        println("!!!!!!!!========2")
-        DecisionManager.decisionSummariesOf(s.userId, false)
-    }
-    
-    
-    Ok(html.decisionSummaries(ds))
-  }
-  
-  def myDecisions(ownerId: Long) = IsAuthenticated { dhSession => implicit request =>
-     showDecisionsOf(ownerId, dhSession)
-  }
-  
-  private def showDecisionsOf(ownerId: Long, sess: DecisionHubSession) = {
-    val d = 
-      transaction { 
-        Schema.decisions.where(_.ownerId === ownerId).toList
-      }
 
-    Ok(html.decisionSet("", d)(sess))
+        Ok(html.decisionSummaries(DecisionManager.decisionSummariesMostActive, Nil))
+      case Some(s) =>
+
+        val pis = DecisionManager.pendingInvitations(s.userId)
+        println("pis" + pis)
+        val ds = DecisionManager.decisionSummariesOf(s.userId, false)
+        Ok(html.decisionSummaries(DecisionManager.decisionSummariesMostActive, pis))
+    }
   }
 
   def voteScreen(decisionId: Long) = IsAuthenticated { dhSession => implicit request =>
-    
-    
+
     val (decision, alts) = DecisionManager.voteScreenModel(decisionId, dhSession.userId)
-    
-    logger.debug("zzzzzzzzz 1" + alts)
-    
+
     Ok(html.voteScreen(decision, alts))
   }
   
 
-  def submitVote(decisionId: Long) = IsAuthenticated { dhSession => implicit request =>
+  def submitVote(decisionId: Long) = IsAuthenticated(expect[Map[Long,Int]]) { dhSession => implicit request =>
 
-    new ValidationBlock[Map[Long,Int]] {
-      def value = 
-        get(request.body.asFormUrlEncoded.get,"request body is not FormUrlEncoded").
-          map(e => (e._1: Long, e._2.head :Int)).toMap
-    }.
-    extractValid { voteMap =>
-
-      DecisionManager.vote(dhSession.userId, decisionId, voteMap)
-      Ok("Vote recorded !")
-    }
+    DecisionManager.vote(dhSession.userId, decisionId, request.body)
+    Ok("Vote recorded !")
   }
 }
 

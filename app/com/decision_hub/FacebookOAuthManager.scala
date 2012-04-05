@@ -28,6 +28,11 @@ class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectF
       "&redirect_uri=" + loginRedirectFromFacebook
 
 
+  def loginWithFacebookUrl(path: String) =
+    "https://www.facebook.com/dialog/oauth?" +
+      "&client_id=" + appKey +
+      "&redirect_uri=" + path
+      
   def obtainAccessToken(code: String) = {
 
     val u =

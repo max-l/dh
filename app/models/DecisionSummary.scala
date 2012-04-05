@@ -1,40 +1,9 @@
 package models
 
 import play.libs.Json
+import play.api.mvc.BodyParsers
+import com.codahale.jerkson.{Json => Jerkson}
 
-import com.codahale.jerkson.Json._
-/*
-class DecisionSummary(
-  val id: Long, 
-  val title: String, 
-  val punchLine: String, 
-  val stats: Seq[(String,Int)], 
-  val percentTimeSpent: Int,
-  val numberOfVoters: Int,
-  val numberOfVotesExercised: Int,
-  val numberOfAbstentions: Int) {
-
-  def numberOfVotesRemaining =
-    numberOfVoters - (numberOfAbstentions + numberOfVotesExercised)
-  
-  def hasEnded =
-    numberOfVotesRemaining == 0
-  
-  def votePieChart = Seq(
-    "Has voted" -> numberOfVotesExercised,
-    "Abstensions" -> numberOfAbstentions,
-    "Votes remaining" -> numberOfVotesRemaining
-  )
-
-  def pieChartData = generate {
-    (stats match {
-      case Nil => Seq(("Results not yet public",1))
-      case _ => stats
-    }).map(t => Seq(t._1, t._2))
-  }
-
-}
-*/
 
 case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstentions: Int, numberOfVotesExercised: Int, alternativeSummaries: Seq[AlternativeSummary]) {
   
@@ -55,7 +24,7 @@ case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstention
     }
   }
   
-  def pieChartData = generate { 
+  def pieChartData = Jerkson.generate { 
     publishableStats.map(t => Seq(t._1, t._2))
   }  
 }
@@ -71,3 +40,26 @@ case class AlternativeSummary(decisionId: Long, alternativeId: Long, alternative
 
 
 case class CastedVote(alternative: DecisionAlternative, score: Int)
+
+
+case class ParticipantDisplay(displayName: String, iconSrc: Option[String], accepted: Boolean)
+
+case class FBFriendInfo(uid: Long, name: String)
+
+case class FBInvitationRequest(decisionId: Long, request: Long, to: Seq[FBFriendInfo])
+
+object FBInvitationRequest {
+  
+  def testJs = 
+    """
+    {"request":"223983297709036",
+        "to":[{"uid":"100003680681486","name":"Barbara Amcfhjfhadhf Fallerescu"},{"uid":"100003700232195","name":"Nancy Amcgkbcbaie Sharpestein"}],
+        "decisionId":1}    
+    """    
+
+  def parseString(s: String) = 
+    Jerkson.parse[FBInvitationRequest](s)
+  
+  def parse = 
+    BodyParsers.parse.tolerantText.map(parseString(_))
+}

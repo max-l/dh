@@ -1,0 +1,21 @@
+@(participantDisplays: Seq[ParticipantDisplay], invitations: Seq[ParticipantDisplay])
+
+@for(pdSlice <- participantDisplays.sliding(8)) {
+  <div class='row'>
+    @for(pd <- pdSlice) {
+      <div class='span1'>
+        <img src='@pd.iconSrc'><h4>@pd.displayName</h4>
+      </div>
+    }
+  </div>
+}
+
+@for(pdSlice <- invitations.sliding(8)) {
+  <div class='row'>
+    @for(pd <- pdSlice) {
+      <div class='span1'>
+        <img src='@pd.iconSrc'><h4>@pd.displayName</h4><i>(Unconfirmed)</i>
+      </div>
+    }
+  </div>
+}

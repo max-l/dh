@@ -1,26 +1,26 @@
-@(decisionSummary: DSummary, currentUserId: Option[Long], currentUserIsParticipant: Option[Boolean]) <!-- //, voteIfParticipantAndLogged: Option[Seq[CastedVote]]) -->
+@(decisionSummary: DSummary, participantDisplays: Seq[ParticipantDisplay], invitationDisplays: Seq[ParticipantDisplay], currentUserIsParticipant: Option[Boolean]) <!-- //, voteIfParticipantAndLogged: Option[Seq[CastedVote]]) -->
 
 <h1>@decisionSummary.title</h1>
 
 <br/>
 
-@if(currentUserId.map(_ == decisionSummary.decision.ownerId).getOrElse(false)) {
-   <a onClick='inviteVoters(@decisionSummary.decision.id)'>Invite voters</a>
-}
-<div class="row">
-
-  <div class="span8">  
-    @for(a <- decisionSummary.alternativeSummaries.sortBy(x => - x.points)) {
-      <h4>@a.alternativeTitle</h4> <br/>
-      <div id='progr@a.alternativeId' class="progress">
-        <div class="bar" style="width: @a.percentageOfMaximumPoints(decisionSummary)%"></div>
-      </div>
-    }
+@if(decisionSummary.decision.resultsCanBeDisplayed) {
+  <div class="row">
+    <div class="span8">  
+      @for(a <- decisionSummary.alternativeSummaries.sortBy(x => - x.points)) {
+        <h4>@a.alternativeTitle</h4> <br/>
+        <div id='progr@a.alternativeId' class="progress">
+          <div class="bar" style="width: @a.percentageOfMaximumPoints(decisionSummary)%"></div>
+        </div>
+      }
+    </div>
+   <div class="span4" id="__dsum@decisionSummary.decision.id"></div>  
   </div>
- <div class="span4" id="__dsum@decisionSummary.decision.id"></div>  
-</div>
+}
 
-@for(b <- currentUserIsParticipant if b) {
+<div id=__participantList'>@participantList(participantDisplays, invitationDisplays)</div>
+
+for(b <- currentUserIsParticipant if b) {
 
   <div id="voteScreen" class="modal hide fade"></div>
 
@@ -30,11 +30,47 @@
 
   <script>
 
+    function refreshParticipationList(pageIdx) {
+     alert('/participants/@decisionSummary.decision.id/' + pageIdx + '/16')
+      var dd = $('#__participantList')
+      alert(dd)
+      dd.live('load', '/test', function() {alert('343434')})
+      alert('a2')
+    }
+    
+    //http://www.webgeekly.com/tutorials/jquery/use-jquery-event-handling-with-dynamically-loaded-elements/
+    //refreshParticipationList(0)
+
     function popVote() {
       $('#voteScreen').load('/vote/' + @decisionSummary.decision.id, function() {
-        alert($('#voteScreen'))
         $('#voteScreen').modal('show')
       })
+    }
+
+
+    function augmentAndPostInfo(response) {
+
+      var fbIds = JSON.stringify(response.to).replace('[','(').replace(']',')')
+
+      FB.api({
+        method: 'fql.query',
+          query: 'SELECT uid,name FROM user WHERE uid in ' + fbIds
+        },
+        function(queryResponse) {
+          response.to = queryResponse
+          var msgToPost = JSON.stringify(response)
+          $.ajax({
+            type: 'POST',
+            url: "/recordInvitationList",
+            data: msgToPost,
+            success: function() {
+              refreshCenterPanel()
+            },
+            contentType: "application/json; charset=utf-8",
+            dataType: 'json'
+          })
+        }
+      )
     }
 
     function inviteVoters(decisionId) {
@@ -45,15 +81,7 @@
       function requestCallback(response) {
         if(response != null) {
           response.decisionId = decisionId
-          var z = JSON.stringify(response)
-          $.ajax({
-            type: 'POST',
-            url: "/recordInvitationList",
-            data: z,
-            success: function() {},
-            contentType: "application/json; charset=utf-8",
-            dataType: 'json'
-          })
+          augmentAndPostInfo(response)
          }
       })
     }
