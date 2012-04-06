@@ -9,9 +9,5 @@ import play.api.Logger
 
 trait BaseDecisionHubController extends Controller {
 
-  implicit def dhSessionToMainPageObjects(dhs: DecisionHubSession) = new MainPageObjects(Some(dhs), dhs.requestHeaders)
-  
-  implicit def requestToMainPageObjects(req: Request[_]) = new MainPageObjects(None, req)
-
   implicit def logger = Logger("application")
 }

@@ -87,7 +87,10 @@ trait Secured[S,O] {
   val maxIdleTimeInSeconds = 45 * 60
   
   def MaybeAuthenticated(block: O => Request[AnyContent] => Result): Action[AnyContent] =
-    Action(BodyParsers.parse.anyContent) { request =>
+    MaybeAuthenticated(BodyParsers.parse.anyContent)(block)
+    
+  def MaybeAuthenticated[A](bp: BodyParser[A])(block: O => Request[A] => Result): Action[A] =
+    Action(bp) { request =>
       validateToken(request) match {
         case Some(session) => 
           val result = block(mainPageObject(Some(session), request))(request)
@@ -151,7 +154,7 @@ trait Secured[S,O] {
     }
   }
 
-  def AuthenticationSuccess(result: Result, concreteSession: S)(implicit request: Request[AnyContent]) = {
+  def AuthenticationSuccess[A](result: Result, concreteSession: S)(implicit request: Request[A]) = {
 
     val userId = userIdFromSession(concreteSession)
     val dataInCoookie = dataFromSession(concreteSession)

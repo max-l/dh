@@ -245,17 +245,21 @@ object DecisionManager {
 
   def pendingInvitations(userId: Long) = inTransaction {
 
+    println("----++++++++++++++++++++++++++++++")
     val pi =
       from(users, participationInvitations, decisions)((u,i,d) =>
         where(i.invitedUserId === userId and i.decisionId === d.id and i.invitingUserId === u.id)
         select(u,i,d)
-      ).toList.toSeq
-
-    pi map { t =>
-      val (u,i,d) = t
+      ).//remove duplicates :
+      groupBy(_._2.decisionId).map { t => 
+    
+      println("----)"+t)
+      val (u,i,d) = t._2.head
       
       (u.display, d)
     }
+    
+    pi.toSeq
   }
   
   def lookupInvitation(facebookRequestId: Long) = inTransaction {

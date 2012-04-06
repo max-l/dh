@@ -42,18 +42,25 @@
 
        var dn = "@displayName.getOrElse("")"
 
+       var loggedInStatusTimer = null
+       var wasLoggedIn = null
+       
        function isLoggedIn() {
          var z = readCookie("DISPLAY_AS_LOGGED_IN")
-         return (z != null) && (z === "true")
+         wasLoggedIn = (z != null) && (z === "true")
+         return wasLoggedIn
        }
 
        function refreshAuthenticatedStatus() {
          var h = null
+         var b4 = wasLoggedIn
          if(isLoggedIn())
            h = "<li class='active'>" + dn + "<a onClick='logout()'>[Logout]</a></li>"
          else {
            h = "<li class='active'><a onClick='login()'>Login</a></li>"
-           refreshCenterPanel()
+           if(b4) {
+             refreshCenterPanel()
+           }
          }
          $('#loginStatus').html(h)
        }
@@ -185,7 +192,7 @@
   </div>
   <script>
     refreshAuthenticatedStatus()
-    //window.setInterval(refreshAuthenticatedStatus, 10000)
+    loggedInStatusTimer = window.setInterval(refreshAuthenticatedStatus, 10000)
     refreshCenterPanel()
   </script>
   </body>

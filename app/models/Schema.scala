@@ -23,6 +23,11 @@ object Schema extends org.squeryl.Schema {
 
   val votes = table[Vote]
   
+  
+  on(decisionParticipations)(dp => declare(
+    columns(dp.decisionId, dp.voterId) are(unique)
+  ))
+  
   def initDb = {
     
     val verboseSql = false //Play.current.configuration.getString("SQL_LOG_ON").map(_ == "true").getOrElse(false)

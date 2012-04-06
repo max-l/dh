@@ -4,6 +4,7 @@ import play.api.mvc.Results._
 import play.api.Logger
 import play.api.mvc._
 import com.codahale.jerkson.{Json => Jerkson}
+import com.decision_hub.FacebookProtocol.FBClickOnApplication
 
 object Util {
 
@@ -41,7 +42,13 @@ object Util {
       })
     )
   }
-  
+
+  implicit object fbClickOnApplicationBodyParser extends CustomBodyParser[FBClickOnApplication] {
+    def parser = BodyParsers.parse.urlFormEncoded.map { m =>
+      FacebookProtocol.authenticateSignedRequest(m)(controllers.facebookOAuthManager).
+        getOrElse(sys.error("invalid signed request " + m))
+    }
+  }
 }
 
 trait CustomBodyParser[A] {

@@ -9,14 +9,14 @@ import play.api.data.format.Formats._
 import play.api.data.validation._
 import play.api.data.validation.Constraints._
 import views._
-import play.api.libs.json.Json 
+import play.api.libs.json.Json
 import com.decision_hub._
 import com.decision_hub.Util._
 import org.jboss.netty.handler.codec.base64.Base64
 import java.sql.Timestamp
 import play.api.libs.iteratee.Iteratee
-
 import play.api.templates.Html
+import com.decision_hub.FacebookProtocol.FBClickOnApplication
 
 
 object Decisions extends BaseDecisionHubController with ConcreteSecured {
@@ -84,20 +84,18 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
     Ok
   }
 
-  def facebookCanvasUrl = MaybeAuthenticated { dhSession => implicit request =>
-
-    println("--::::::::::::::>")
-    //println(request.body.asJson)
-    //println(request.body.asFormUrlEncoded)
-    val b = request.body.asFormUrlEncoded.get
+  def facebookCanvasUrl = MaybeAuthenticated(expect[FBClickOnApplication]) { dhSession => implicit request =>
 
     import FacebookProtocol._
-
-    FacebookProtocol.authenticateSignedRequest(b).map(_ match {
+    request.body match {
       case FBClickOnApplicationNonRegistered(js) =>
-        val requestIds = request.queryString.get("request_ids").flatten.map(Util.parseLong(_)).head
+        val requestIds = request.queryString.get("request_ids").flatten
+        
+        val reqId = requestIds.headOption.map(Util.parseLong(_)).get
+        
+        //map(s => s.map(Util.parseLong(_))).flatten.head
 
-        Ok(html.fcpe(routes.Decisions.viewInvitationAndAuthorizeApp(requestIds).url, None))
+        Ok(html.fcpe(routes.Decisions.viewInvitationAndAuthorizeApp(reqId).url, None))
       case FBClickOnApplicationRegistered(fbUserId) =>
         AuthenticationManager.lookupFacebookUser(fbUserId) match {
           case Some(u) =>
@@ -111,13 +109,13 @@ object Decisions extends BaseDecisionHubController with ConcreteSecured {
             //DecisionManager.acceptFacebookInvitation(u.id, requestIds)
             AuthenticationSuccess(Redirect(routes.Application.index), ses)
           case None => // user clicked on 'my applications'
-            println(";>>>>>>5>")
+
             this.logger.error("non fatal error : fb user " + fbUserId + 
                 " registered with FB, but not present in the DB, only explanation : app crash on response from facebook oaut registration.")
             // the login redirect will re import user info... 
             Redirect(routes.Application.login)
         }
-    }).getOrElse{ BadRequest}
+    }
   }
   
   def decisionSummaries = MaybeAuthenticated { mpo => implicit request =>
