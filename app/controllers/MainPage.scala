@@ -28,7 +28,7 @@ object MainPage extends BaseDecisionHubController {
   def externalLogin(provider: String, currentPageUri: String) = MaybeAuthenticated { mpo => implicit req =>
     provider match {
       case "facebook" =>
-        Redirect(facebookOAuthManager.loginWithFacebookUrl).withCookies(
+        Redirect(loginRedirectUrl).withCookies(
           Cookie(LANDING_PAGE_COOKIE_NAME, currentPageUri, maxAge = 2 * 60)
         )
     }
@@ -104,7 +104,7 @@ object MainPage extends BaseDecisionHubController {
   }
 
   def fbauth = Action { implicit req =>
-    import facebookOAuthManager._
+    import FacebookProtocol.facebookOAuthManager._
     val res = 
       for(acCode <- obtainAuthorizationCode(req.queryString).left;
           authToken <- obtainAccessToken(acCode).left;

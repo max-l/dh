@@ -4,6 +4,7 @@ import play.api.Logger
 import play.api.libs.json.Json
 import com.strong_links.crypto._
 import play.api.Play
+import play.api.mvc.Call
 
 object OAuthErrorTypes extends Enumeration {
   type OAuthErrorTypes = Value 
@@ -27,12 +28,6 @@ class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectF
     "https://www.facebook.com/dialog/oauth?" +
       "&client_id=" + appKey +
       "&redirect_uri=" + loginRedirectFromFacebook
-
-
-  def loginWithFacebookUrl(path: String) =
-    "https://www.facebook.com/dialog/oauth?" +
-      "&client_id=" + appKey +
-      "&redirect_uri=" + path
       
   def obtainAccessToken(code: String) = {
 
@@ -125,17 +120,24 @@ class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectF
 object FacebookProtocol extends CryptoUtil {
   
   def logger = Logger("application")
-
-  val facebookOAuthManager = new FacebookOAuthManager(
-    facebookAppId, facebookSecret, "https://localhost/fbauth")
   
-  private val facebookAppId = 
-    Play.current.configuration.getString("application.FacebookAppId").getOrElse("missing application.FacebookAppId config")
+  private def mandatoryStringConfig(n: String) =
+    Play.current.configuration.getString(n).getOrElse("missing config '"+n + "'")
+  
+  private def facebookAppId = 
+    mandatoryStringConfig("application.FacebookAppId")
 
-  private val facebookSecret = 
-    Play.current.configuration.getString("application.FacebookSecret").getOrElse("missing application.FacebookSecret config")
+  private def facebookSecret = 
+    mandatoryStringConfig("application.FacebookSecret")
     
-    
+  private def applicationDomainName = 
+    mandatoryStringConfig("application.domainName")
+  
+  val facebookOAuthManager = new FacebookOAuthManager(
+    facebookAppId, facebookSecret, "https://"+applicationDomainName+ controllers.routes.MainPage.fbauth.url)
+
+  val loginRedirectUrl = facebookOAuthManager.loginWithFacebookUrl 
+  
   sealed trait FBClickOnApplication
   sealed case class FBClickOnApplicationNonRegistered(jsonMsg: String) extends FBClickOnApplication
   sealed case class FBClickOnApplicationRegistered(fbUserId: Long) extends FBClickOnApplication

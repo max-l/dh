@@ -22,14 +22,14 @@ import models._
 object Dialogs extends BaseDecisionHubController {
 
   def login = MaybeAuthenticated { mpo => implicit request =>
-    Ok(html.login(FacebookProtocol.facebookOAuthManager.loginWithFacebookUrl))
+    Ok(html.login(FacebookProtocol.loginRedirectUrl))
   }
 
 
   def authorizeApp(fbAppReqId: Long) = MaybeAuthenticated { mpo => implicit request =>
     
     val (d, u) = DecisionManager.lookupInvitation(fbAppReqId)
-    Ok(html.viewInvitationAndAuthorizeApp(d, u, FacebookProtocol.facebookOAuthManager.loginWithFacebookUrl))
+    Ok(html.viewInvitationAndAuthorizeApp(d, u, FacebookProtocol.loginRedirectUrl))
   }
   
   def acceptOrDeclineInvitations = IsAuthenticated(expect[Map[Long,Boolean]]) { session => implicit request =>
