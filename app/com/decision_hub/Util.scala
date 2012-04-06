@@ -8,6 +8,20 @@ import com.decision_hub.FacebookProtocol.FBClickOnApplication
 
 object Util {
 
+  private def allHeaders(headers: RequestHeader) = 
+    for(h <- headers.headers.toMap)
+      yield (h._1, h._2.mkString("[",",","]"))
+
+  
+  def dump(headers: RequestHeader) =
+    Seq(
+      //"isAuthenticated: " + isAuthenticatedz,
+      "Method:" +  headers.method,
+      "URL: " + headers.path + headers.rawQueryString,
+      "Headers: \n" + allHeaders(headers).mkString("\n")
+    ).mkString("\n")
+    
+    
   def parseLong(s: String) =
     java.lang.Long.parseLong(s)
 
@@ -45,7 +59,7 @@ object Util {
 
   implicit object fbClickOnApplicationBodyParser extends CustomBodyParser[FBClickOnApplication] {
     def parser = BodyParsers.parse.urlFormEncoded.map { m =>
-      FacebookProtocol.authenticateSignedRequest(m)(controllers.facebookOAuthManager).
+      FacebookProtocol.authenticateSignedRequest(m).
         getOrElse(sys.error("invalid signed request " + m))
     }
   }

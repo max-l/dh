@@ -1,4 +1,5 @@
-package controllers
+package com.decision_hub
+
 
 import play.api._
 import play.api.mvc._
@@ -8,68 +9,42 @@ import com.strong_links.crypto.ToughCookieBakery
 import play.api.libs.iteratee.Done
 import play.api.libs.iteratee.Input
 import com.strong_links.crypto.ToughCookieStatus
-import models.MainPageObjects
 import com.decision_hub._
 import models._
 
 
 object Secured {
 
-  val authenticatonTokenName = "authenticatonToken"
 
-  val authenticator = 
+  val toughCookieBakery = 
     Play.current.configuration.getString("application.secret").
       map(new ToughCookieBakery(_)).getOrElse(sys.error("missing config 'application.secret'"))
-
-  val sslSessionIdHeaderName = 
-    Play.current.configuration.getString("application.sslSessionIdHeaderName")
-}
-
-case class DecisionHubSession(userId: Long, dataInCookie: String, requestHeaders: RequestHeader) {
-  def this(u: User, r: Request[_]) = this(u.id, u.displayableName, r)
-
-  def displayName = dataInCookie
-}
-
-trait ConcreteSecured extends Secured[DecisionHubSession, MainPageObjects] {
-
-  private def parseUserId(s: String) = 
-    try {
-      java.lang.Long.parseLong(s)
-    }
-    catch {
-      case _ => sys.error("UserId is not a long '" + s + "'.")
-    }
-
-  def loadSession(userId: String, dataInCookie: String, h: RequestHeader) = DecisionHubSession(parseUserId(userId), dataInCookie, h)
-  def userIdFromSession(s: DecisionHubSession) = s.userId.toString
-  def dataFromSession(s: DecisionHubSession) = s.dataInCookie
-
-  def mainPageObject(s: Option[DecisionHubSession], h: RequestHeader) = new MainPageObjects(s, h)
 }
 
 
-trait Secured[S,O] {
+trait Secured[S] {
 
   import Secured._
   
+  def logger: Logger
   
   def loadSession(userId: String, dataInCookie: String, h: RequestHeader): S
   def userIdFromSession(s: S): String
   def dataFromSession(s: S): String
-  
-  def mainPageObject(s: Option[S], h: RequestHeader): O
+  def urlForUnauthorized: String
+  def authenticatonTokenName: String
+  def sslSessionIdHeaderName: Option[String]
 
   private def validateToken(request: RequestHeader) = 
     for(authenticatonToken <-request.session.get(authenticatonTokenName); 
-        userId <- authenticator.validate(authenticatonToken,sslSessionId((request))) match {
-          case (ToughCookieStatus.Valid, Some((_, dataInCookie, userIdInCookie))) =>
-            Logger("application").debug("Autenticator cookie valid and not expired")
-            Some(loadSession(userIdInCookie,dataInCookie, request))
-          case (status, _) => 
-            Logger("application").debug("Autenticator invalid or expired : " + status)
-            None
-        }
+      userId <- toughCookieBakery.validate(authenticatonToken,sslSessionId((request))) match {
+        case (ToughCookieStatus.Valid, Some((_, dataInCookie, userIdInCookie))) =>
+          logger.debug("Autenticator cookie valid")
+          Some(loadSession(userIdInCookie,dataInCookie, request))
+        case (status, _) => 
+          logger.debug("Autenticator invalid or expired : " + status)
+          None
+      }
     )
     yield userId
 
@@ -78,25 +53,25 @@ trait Secured[S,O] {
          sid <- request.headers.get(hn))
      yield sid).getOrElse("fwe12342fewf343434")
 
-     
+      
   private def onUnauthorized(request: RequestHeader) = {
-    Logger("application").debug("Autentication failed, will redirect.")
-    Results.Redirect(routes.Application.login)
+    logger.debug("Autentication failed, will redirect.")
+    Results.Redirect(urlForUnauthorized)
   }
     
   val maxIdleTimeInSeconds = 45 * 60
   
-  def MaybeAuthenticated(block: O => Request[AnyContent] => Result): Action[AnyContent] =
+  def MaybeAuthenticated(block: Option[S] => Request[AnyContent] => Result): Action[AnyContent] =
     MaybeAuthenticated(BodyParsers.parse.anyContent)(block)
     
-  def MaybeAuthenticated[A](bp: BodyParser[A])(block: O => Request[A] => Result): Action[A] =
+  def MaybeAuthenticated[A](bp: BodyParser[A])(block: Option[S] => Request[A] => Result): Action[A] =
     Action(bp) { request =>
       validateToken(request) match {
         case Some(session) => 
-          val result = block(mainPageObject(Some(session), request))(request)
+          val result = block(Some(session))(request)
           createOrExtendAuthenticator(request, bake(session, request), result, false)
         case None =>
-          block(mainPageObject(None, request))(request)
+          block(None)(request)
       }
     }
 
@@ -104,10 +79,10 @@ trait Secured[S,O] {
     IsAuthenticated(BodyParsers.parse.anyContent)(f)
 
   def IsAuthenticated[A](bp: BodyParser[A])(f: => S => Request[A] => Result) = {
-    Logger("application").debug("B4 auth ")
+    logger.debug("B4 auth ")
     authenticated(validateToken, onUnauthorized) { session =>
       Action(bp) { request => 
-        Logger("application").debug("Autentication success.")
+        logger.debug("Autentication success.")
         val result = f(session)(request)
         createOrExtendAuthenticator(request, bake(session, request), result, false)
       }
@@ -130,7 +105,7 @@ trait Secured[S,O] {
   private def bake[A](s: S, req: Request[A]) = {
     val userId = userIdFromSession(s)
     val data = dataFromSession(s)
-    authenticator.bake(userId, maxIdleTimeInSeconds, sslSessionId(req), data)
+    toughCookieBakery.bake(userId, maxIdleTimeInSeconds, sslSessionId(req), data)
   }
 
   private def authenticated[A](
@@ -158,7 +133,7 @@ trait Secured[S,O] {
 
     val userId = userIdFromSession(concreteSession)
     val dataInCoookie = dataFromSession(concreteSession)
-    val encodedAuthenticator = authenticator.bake(userId, maxIdleTimeInSeconds, sslSessionId(request), dataInCoookie)
+    val encodedAuthenticator = toughCookieBakery.bake(userId, maxIdleTimeInSeconds, sslSessionId(request), dataInCoookie)
     createOrExtendAuthenticator(request, encodedAuthenticator, result, true)
   }
 }

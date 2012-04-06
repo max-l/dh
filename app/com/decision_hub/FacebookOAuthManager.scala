@@ -3,6 +3,7 @@ import play.api.libs.ws.WS
 import play.api.Logger
 import play.api.libs.json.Json
 import com.strong_links.crypto._
+import play.api.Play
 
 object OAuthErrorTypes extends Enumeration {
   type OAuthErrorTypes = Value 
@@ -125,11 +126,21 @@ object FacebookProtocol extends CryptoUtil {
   
   def logger = Logger("application")
 
+  val facebookOAuthManager = new FacebookOAuthManager(
+    facebookAppId, facebookSecret, "https://localhost/fbauth")
+  
+  private val facebookAppId = 
+    Play.current.configuration.getString("application.FacebookAppId").getOrElse("missing application.FacebookAppId config")
+
+  private val facebookSecret = 
+    Play.current.configuration.getString("application.FacebookSecret").getOrElse("missing application.FacebookSecret config")
+    
+    
   sealed trait FBClickOnApplication
   sealed case class FBClickOnApplicationNonRegistered(jsonMsg: String) extends FBClickOnApplication
   sealed case class FBClickOnApplicationRegistered(fbUserId: Long) extends FBClickOnApplication
 
-  def authenticateSignedRequest(r: Map[String,Seq[String]])(implicit m: FacebookOAuthManager): Option[FBClickOnApplication] = {
+  def authenticateSignedRequest(r: Map[String,Seq[String]]): Option[FBClickOnApplication] = {
 
     val jsonSignedRequest = 
       for(signedReqSeq <- r.get("signed_request");
@@ -160,7 +171,7 @@ object FacebookProtocol extends CryptoUtil {
               val sig : CryptoField = _sig
               val req : CryptoField = __req
               
-              val computedSig = hmacSha256(req)(m.appSecretField)
+              val computedSig = hmacSha256(req)(facebookOAuthManager.appSecretField)
               val z1 = sig.value + "="
               val z2 = computedSig.toUrlSafe
 

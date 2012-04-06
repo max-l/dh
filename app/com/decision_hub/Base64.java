@@ -1297,24 +1297,6 @@ public class Base64
         return bytes;
     }   // end decode
 
-
-
-    /**
-     * Attempts to decode Base64 data and deserialize a Java
-     * Object within. Returns <tt>null</tt> if there was an error.
-     *
-     * @param encodedObject The Base64 data to decode
-     * @return The decoded and deserialized object
-     * @throws NullPointerException if encodedObject is null
-     * @throws java.io.IOException if there is a general error
-     * @throws ClassNotFoundException if the decoded object is of a
-     *         class that cannot be found by the JVM
-     * @since 1.5
-     */
-    public static Object decodeToObject( String encodedObject )
-    throws java.io.IOException, java.lang.ClassNotFoundException {
-        return decodeToObject(encodedObject,NO_OPTIONS,null);
-    }
     
 
     /**
@@ -1333,6 +1315,7 @@ public class Base64
      *         class that cannot be found by the JVM
      * @since 2.3.4
      */
+/*    
     public static Object decodeToObject( 
     String encodedObject, int options, final ClassLoader loader )
     throws java.io.IOException, java.lang.ClassNotFoundException {
@@ -1384,7 +1367,7 @@ public class Base64
         
         return obj;
     }   // end decodeObject
-    
+*/    
     
     
     /**

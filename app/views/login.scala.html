@@ -1,4 +1,4 @@
-@()
+@(facebookLogginUrl: String)
 
 <div class="modal-header">
   <a class="close" data-dismiss="modal" >&times;</a>
@@ -10,7 +10,7 @@
 /*
   function fbLogin() {  
     $('#modalLogin').load(
-      @controllers.facebookOAuthManager.loginWithFacebookUrl
+      facebookLogginUrl,
       function() {}
     )
   }
@@ -18,7 +18,7 @@
 </script>
 
 <div id='modalLogin' class="modal-body">
-  <a href='@controllers.facebookOAuthManager.loginWithFacebookUrl'>Login with Facebook</a>
+  <a href='@facebookLogginUrl'>Login with Facebook</a>
 </div>
 
 <div class="modal-footer">

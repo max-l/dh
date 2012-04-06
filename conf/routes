@@ -1,31 +1,32 @@
 
 
-GET     /                                      controllers.Application.index
-GET     /login                                 controllers.Application.login
-GET     /fbauth                                controllers.Application.fbauth
-GET     /logout                                controllers.Application.logout
-GET     /test                                  controllers.Application.test
 
-GET     /externalLogin/:provider/*path         controllers.Application.externalLogin(provider: String, path: String)
+GET     /fbauth                                controllers.MainPage.fbauth
+GET     /logout                                controllers.MainPage.logout
 
-GET     /p/:decisionId                         controllers.Decisions.decisionDetails(decisionId: Long)
-GET     /vote/:decisionId                      controllers.Decisions.voteScreen(decisionId: Long)
-POST    /vote/:decisionId                      controllers.Decisions.submitVote(decisionId: Long)
+GET     /                                      controllers.MainPage.index
+POST    /facebookCanvasUrl/                    controllers.MainPage.facebookCanvasUrl
+GET     /channel.html                          controllers.MainPage.facebookChannelFile
+GET     /externalLogin/:provider/*path         controllers.MainPage.externalLogin(provider: String, path: String)
 
-GET     /decision/create                       controllers.Decisions.create
-GET     /decisionSummaries                     controllers.Decisions.decisionSummaries
 
-GET     /participants/:decisionId/:page/:size  controllers.Decisions.participants(decisionId: Long, page: Int, size: Int)
+GET     /decisionSummaries                     controllers.Screens.decisionSummaries
+GET     /p/:decisionId                         controllers.Screens.decisionDetails(decisionId: Long)
+GET     /participants/:decisionId/:page/:size  controllers.Screens.participants(decisionId: Long, page: Int, size: Int)
 
-POST    /recordInvitationList                  controllers.Decisions.recordInvitationList
 
-POST    /facebookCanvasUrl/                    controllers.Decisions.facebookCanvasUrl
-POST    /acceptOrDeclineInvitations            controllers.Decisions.acceptOrDeclineInvitations
-GET     /viewInvitationAndAuthorizeApp/:fbAppReqId  controllers.Decisions.viewInvitationAndAuthorizeApp(fbAppReqId: Long)
+GET     /login                                 controllers.Dialogs.login
+GET     /vote/:decisionId                      controllers.Dialogs.voteScreen(decisionId: Long)
+POST    /vote/:decisionId                      controllers.Dialogs.submitVote(decisionId: Long)
+GET     /authorizeApp/:fbAppReqId              controllers.Dialogs.authorizeApp(fbAppReqId: Long)
+POST    /acceptOrDeclineInvitations            controllers.Dialogs.acceptOrDeclineInvitations
+GET     /decision/create                       controllers.Dialogs.create
+POST    /recordInvitationList                  controllers.Dialogs.recordInvitationList
 
-GET     /channel.html                          controllers.Application.facebookChannelFile
-GET     /emptyPage                             controllers.Application.emptyPage
-GET     /compareVotingMethods                  controllers.Application.compareVotingMethods
+
+GET     /test                                  controllers.Test.test
+GET     /emptyPage                             controllers.Test.emptyPage
+GET     /compareVotingMethods                  controllers.Test.compareVotingMethods
 
 
 # Map static resources from the /public folder to the /assets URL path
