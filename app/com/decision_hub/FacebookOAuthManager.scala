@@ -146,21 +146,11 @@ object FacebookProtocol extends CryptoUtil {
           None
         case Some((_sig, __req)) =>
 
-          val _req = convertToUrlSafe(__req)
-          
-          println("r1:" + _req)
-          val reqBin = javax.xml.bind.DatatypeConverter.parseBase64Binary(_req)
-          
-          //TOTAL HACK !!!!  TODO replace with base64url decode :
-          var reqStr = new String(reqBin)
-            reqStr = reqStr.last match {
-              case '}' => reqStr
-              case '"' => reqStr + "}"
-              case _ => reqStr + "\"}"
-            }
+          if(__req.length() % 4 > 0)
+            sys.error("Bad Facebook signed request, Base64 should have a length multiple of 4 :" + __req)
 
-          
-          println("r2:" + reqStr)
+          val reqBin = Base64.decode(__req, Base64.URL_SAFE)
+          val reqStr = new String(reqBin)
           val js = Json.parse(reqStr)
 
           val algo = (js \ "algorithm").as[Option[String]]
@@ -168,11 +158,12 @@ object FacebookProtocol extends CryptoUtil {
             case None => false
             case Some("HMAC-SHA256") => 
               val sig : CryptoField = _sig
-              val req : CryptoField = _req
+              val req : CryptoField = __req
               
               val computedSig = hmacSha256(req)(m.appSecretField)
               val z1 = sig.value + "="
               val z2 = computedSig.toUrlSafe
+
               val res = z1 == z2
               if(!res)
                 logger.warn("Invalid authentication from Facebook.")
