@@ -21,6 +21,7 @@ POST    /vote/:decisionId                      controllers.Dialogs.submitVote(de
 GET     /authorizeApp/:fbAppReqId              controllers.Dialogs.authorizeApp(fbAppReqId: Long)
 POST    /acceptOrDeclineInvitations            controllers.Dialogs.acceptOrDeclineInvitations
 GET     /decision/create                       controllers.Dialogs.create
+POST    /decision/create                       controllers.Dialogs.submitNewDecision
 POST    /recordInvitationList                  controllers.Dialogs.recordInvitationList
 
 

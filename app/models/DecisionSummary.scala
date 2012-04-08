@@ -3,6 +3,8 @@ package models
 import play.libs.Json
 import play.api.mvc.BodyParsers
 import com.codahale.jerkson.{Json => Jerkson}
+import java.sql.Timestamp
+import java.util.Calendar
 
 
 case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstentions: Int, numberOfVotesExercised: Int, alternativeSummaries: Seq[AlternativeSummary]) {
@@ -40,6 +42,51 @@ case class AlternativeSummary(decisionId: Long, alternativeId: Long, alternative
 
 
 case class CastedVote(alternative: DecisionAlternative, score: Int)
+
+
+case class DecisionPost(
+  title: String,
+  id: Option[Long],
+  punchLine: Option[String],
+  summary: Option[String],
+  endMode: String,
+  endDate: Option[Long],
+  endHour: Int,
+  endMinute: Int,
+  //published: Boolean = false,
+  //votesAreAnonymous: Boolean = false)
+  resultsPrivateUntilEnd: Option[Boolean] = Some(false)) {
+
+  def validate = {
+    val errors = new scala.collection.mutable.HashMap[String,String]
+    val endsOn = endMode match {
+      case "time" =>
+        val c = Calendar.getInstance
+        c.setTimeInMillis(endDate.getOrElse {
+          errors.+= ("endDate" -> "Missing end date")
+          0
+        })
+        c.set(Calendar.HOUR_OF_DAY, endHour)
+        c.set(Calendar.MINUTE, endMinute)
+        Some(new Timestamp(c.getTime().getTime()))
+      case "complete" => None
+    }
+    
+    if(title.length < 5)
+      errors.+= ("title" -> "Title too short")
+    if(errors.size > 0)
+      Right(errors)
+    else
+      Left((d:Decision) => d.copy(
+        title = title,
+        punchLine = punchLine,
+        summary = summary,
+        endsOn = endsOn,
+        resultsPrivateUntilEnd = resultsPrivateUntilEnd.getOrElse(false)
+      ))
+  }
+}
+  
 
 
 case class ParticipantDisplay(displayName: String, iconSrc: Option[String], accepted: Boolean)

@@ -54,10 +54,20 @@ object Dialogs extends BaseDecisionHubController {
 
   def create = IsAuthenticated { dhSession => implicit request =>
 
-    Ok(html.decisionForm(Decision(0L,"")))
+    Ok(html.decisionForm(Decision(0L,""), true))
   }
-  
-  
+
+  def submitNewDecision = IsAuthenticated(expectJson[DecisionPost]) { mpo => implicit request =>
+
+    request.body.validate match {
+      case Right(t) => BadRequest(com.codahale.jerkson.Json.generate(t))
+      case Left(d) =>
+        
+
+        Ok
+    }
+  }
+
   def recordInvitationList = IsAuthenticated(expectJson[FBInvitationRequest]) { mpo => implicit request =>
 
     val invitationRequest = request.body

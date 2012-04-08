@@ -333,4 +333,10 @@ object DecisionManager {
 
 */
   }
+  
+  def createNewDecision(d: Decision) = transaction {
+    decisions.insert(d)
+  }
+  
+  
 }

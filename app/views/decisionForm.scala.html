@@ -1,36 +1,143 @@
-@(d: Decision)
+@(d: Decision, isNew: Boolean)
 
 @import helpers._
 
-<form class="form-horizontal">
-  <fieldset>
+<div id='createDecision' class="modal hide fade">
 
-     @bootstrapField("Title") {
-       <input type="text" value="@d.title"/>
-     }
+  <div class="modal-header">
+    <a class="close" data-dismiss="modal" >&times;</a>
+    <h2>Create (or edit) Decision</h2>
+  </div>
 
-     @bootstrapField("In one phrase") { 
-       <input type="text" value="@d.punchLine.getOrElse("")"/>
-     }
+  <div class="modal-body">
 
-     @bootstrapField("Description") {
-       <textarea class='input-xlarge' type="textarea" value="@d.summary.getOrElse("")"/>
-     }
+    <form id='createOrEditDecisionForm' class="form-horizontal">
 
-     @bootstrapField("Election ends") {
-       <label class="radio">
-         <input type="radio" name="endNode" value="complete" checked>
-         when every one has voted
-       </label>
-       <label class="radio">
-         <input type="radio" name="endMode" value="time">
-         on @dateTimeField(None, "endDate", "endHour", "endMinute")
-       </label>
-     }
+      @if(! isNew) {
+        <input type='hidden' name='id' value='@d.id'>
+      }
 
-     @bootstrapField("Results are shown only at the end") {
-       <input type="checkbox" value='resultsPrivateUntilEnd' @(if(d.resultsPrivateUntilEnd) "checked" else "")/>
-     }
+      <fieldset>
 
-  </fieldset>
-</form>
+        @bootstrapField("Title") {
+          <input name='title' type="text" value="@d.title"/>
+        }
+
+        @bootstrapField("In one phrase") { 
+          <input name='punchLine' type="text" value="@d.punchLine.getOrElse("")"/>
+        }
+
+        @bootstrapField("Description") {
+          <textarea name='summary' class='input-xlarge' type="textarea" value="@d.summary.getOrElse("")"/>
+        }
+
+        @bootstrapField("Election ends") {
+          <label class="radio">
+            <input type="radio" name="endMode" value="complete" checked>
+            when every one has voted
+          </label>
+          <label class="radio">
+            <input type="radio" name="endMode" value="time">
+            on @dateTimeField(None, "endDate", "endHour", "endMinute")
+          </label>
+        }
+
+        @bootstrapField("Results are shown only at the end") {
+          <input type="checkbox" name='resultsPrivateUntilEnd' value='true' @(if(d.resultsPrivateUntilEnd) "checked" else "")/>
+        }
+
+      </fieldset>
+    </form>
+
+    <ul>
+      <form id='alts' action=''>
+        <div id='alternatives'><p>zozo</p></div>
+      </form>
+    </ul>
+
+    <a onClick='addAlt()' class='btn  btn-primary'>Add alternative</a>
+  </div>
+
+  <div class="modal-footer">
+    <a class='btn  btn-primary' data-dismiss="modal" onClick='step2()'>Next</a>
+    <a class='btn' data-dismiss="modal" >Cancel</a>
+  </div>
+
+</div>
+
+
+<div id='createDecisionStep2' class="modal hide fade">
+
+  <div class="modal-header">
+    <a class="close" data-dismiss="modal" >&times;</a>
+    <h2>Create (or edit) Decision</h2>
+  </div>
+
+  <div class="modal-body">
+     <h2>Now CHooooose options</h2>
+  </div>
+
+  <div class="modal-footer">
+    <a class='btn  btn-primary' data-dismiss="modal" onClick='submitNewDecision()'>Save</a>
+    <a class='btn' data-dismiss="modal" >Cancel</a>
+  </div>
+
+</div>
+
+<script>
+  var i = 0
+
+  function addAlt() {
+    i++
+    $('#alternatives').append(
+      $('<li/>').append(
+        $('<input type:"text"/>', {name:i})
+      ).append(
+        $("<a/>", {
+          class:   "btn btn-primary",
+          text:    "remove"
+        }).click(function() {$(this).parent().remove()})
+      )
+    )
+  }
+
+  $.fn.serializeObject = function() {
+      var o = {};
+      var a = this.serializeArray();
+      $.each(a, function() {
+          if (o[this.name] !== undefined) {
+              if (!o[this.name].push) {
+                  o[this.name] = [o[this.name]];
+              }
+              o[this.name].push(this.value || '');
+          } else {
+              o[this.name] = this.value || '';
+          }
+      });
+      return o;
+  }
+
+  function submitNewDecision() {
+
+    var d = $('#endDate').datepicker('getDate').getTime()
+    var formFields = $("#createOrEditDecisionForm").serializeObject()
+    formFields.endDate = d
+    var z = JSON.stringify(formFields)
+
+    $.ajax({
+      type: 'POST',
+      url: "/decision/create",
+      data: z,
+      success: function() {},
+      contentType: "application/json; charset=utf-8",
+      dataType: 'json'
+    })
+  }
+
+  function step2() {
+    $('#createDecision').modal('hide') 
+    $('#createDecisionStep2').modal('show')
+  }
+  
+  $('#createDecision').modal('show')
+</script>
