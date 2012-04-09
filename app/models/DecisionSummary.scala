@@ -53,12 +53,14 @@ case class DecisionPost(
   endDate: Option[Long],
   endHour: Int,
   endMinute: Int,
+  choicesToDelete: Seq[Long],
+  alternativePosts: Seq[AlternativePost],
   //published: Boolean = false,
   //votesAreAnonymous: Boolean = false)
   resultsPrivateUntilEnd: Option[Boolean] = Some(false)) {
 
-  def validate = {
-    val errors = new scala.collection.mutable.HashMap[String,String]
+  def validate: Either[Decision => Decision,Map[String,String]] = {
+    val errors = new scala.collection.mutable.ArrayBuffer[(String,String)]
     val endsOn = endMode match {
       case "time" =>
         val c = Calendar.getInstance
@@ -75,7 +77,7 @@ case class DecisionPost(
     if(title.length < 5)
       errors.+= ("title" -> "Title too short")
     if(errors.size > 0)
-      Right(errors)
+      Right(errors.toMap)
     else
       Left((d:Decision) => d.copy(
         title = title,
@@ -86,7 +88,8 @@ case class DecisionPost(
       ))
   }
 }
-  
+
+case class AlternativePost(id: Long, title: String)
 
 
 case class ParticipantDisplay(displayName: String, iconSrc: Option[String], accepted: Boolean)

@@ -23,6 +23,43 @@ object Screens extends BaseDecisionHubController {
 
   import models._
 
+  def create = IsAuthenticated { dhSession => implicit request =>
+
+    Ok(html.decisionForm(Decision(0L,""), true, Nil))
+  }
+
+  def submitNewDecision = IsAuthenticated(expectJson[DecisionPost]) { mpo => implicit request =>
+
+    //request.body.validate match {
+      //case Right(t) => BadRequest(com.codahale.jerkson.Json.generate(t))
+      //case Left(d) =>
+        
+    println(request.body)
+
+        Ok
+    //}
+  }
+  
+  def edit(decisionId: Long) = IsAuthenticated { sess => implicit request =>
+
+    val (d,alts) = DecisionManager.lookupDecisionForEdit(decisionId, sess.userId)
+    
+    println("alts : " + alts)
+    Ok(html.decisionForm(d, false, alts))
+  }
+  
+  def submitDecisionEdit = IsAuthenticated(expectJson[DecisionPost]) { mpo => implicit request =>
+
+    //request.body.validate match {
+      //case Right(t) => BadRequest(com.codahale.jerkson.Json.generate(t))
+      //case Left(d) =>
+        
+    println(request.body)
+
+        Ok
+    //}
+  }  
+  
   def decisionDetails(decisionId: Long) = MaybeAuthenticated { mpo => implicit request =>
 
     val currentUserId = mpo.map(_.userId)

@@ -10,6 +10,13 @@ import play.api.libs.concurrent.Promise
 
 object Util {
 
+  class JavascriptEscaper(s: String) {
+    def encodedAsJavascript = 
+      s.replace("\'","\\'").replace("\"","\\\"")
+  }
+  
+  implicit def string2JavascriptEscaper(s: String) = new JavascriptEscaper(s)
+  
   private def allHeaders(headers: RequestHeader) = 
     for(h <- headers.headers.toMap)
       yield (h._1, h._2.mkString("[",",","]"))
@@ -52,71 +59,26 @@ object Util {
           throw e
       }
     }
-  
-  //val zz = new Iteratee[String,Int] 
-  val zz = 
-    BodyParsers.parse.tolerantText
 
-  //BodyParsers.parse.tolerantText(rh).pureFold()
+  def expectRawJson[A <: {def validate:Either[B => B,Map[String,String]]},B](implicit m: Manifest[A]) = 
+    BodyParsers.parse.tolerantText.flatMap { jsonText =>
 
-  val consumeOneInputAndEventuallyReturnIt = new Iteratee[String,Int] {
-  
-    def fold[B](
-      done: (Int, Input[String]) => Promise[B],
-      cont: (Input[String] => Iteratee[String, Int]) => Promise[B],
-      error: (String, Input[String]) => Promise[B]
-    ): Promise[B] = {
-      cont(in => Done(1, Input.Empty))
-    }
-  }
-
-  Cont[String,Int](_  match { 
-    case Input.El(e) => Done[String,Int](1, Input.Empty)
-    case _ => Error[String]("!!!", Input.Empty)
-  })
-
-  def qq[A]: (RequestHeader) => Iteratee[Array[Byte], Either[Result, A]] = null
- 
-  def s2a[A](s: String): A = sys.error("!")
-  def rh: RequestHeader = sys.error("!")
-  /*
-  val bp1 = new BodyParser[Int] {
-    def apply(h: RequestHeader) = {
-      val i = BodyParsers.parse.tolerantText(h)
-    }
-  }
-*/  
-/*  
-  def bp[A] = new BodyParser[A] {
-    def apply { (rh: RequestHeader) =>
-      BodyParsers.parse.tolerantText(rh).fold(
-        done => done._1,
-        
-      )
-    }
-  }
-*/  
-/*  
-  def expectRawJson[A <: {def validate:Either[B,Map[String,String]]},B](implicit m: Manifest[A]) = 
-    BodyParsers.parse.tolerantText.andThen { jsonText =>
-      
-      jsonText
-      
-      val a = 
+      val e = 
         try {
-          Jerkson.parse(jsonText)(m)
+          Jerkson.parse(jsonText)(m).validate match {
+            case Left(b) =>  Right(b)
+            case Right(m) => Left(BadRequest(Jerkson.generate(m)) : Result)
+          }
         }
         catch {
           case e:Exception =>
-            logger.error("bad json request, cannot create a '" + 
-               m.erasure.getCanonicalName + "' from :\n" + jsonText, e)
-            throw e
+            logger.error("bad json request, cannot create a '" + m.erasure.getCanonicalName + "' from :\n" + jsonText, e)
+            Left(BadRequest("null") : Result)
         }
-      a.validate match {
-        Left(b) => b
-      }
+
+      BodyParser(rh => Done(e,Input.Empty))
     }
-*/
+
   implicit object booleanLongMapBodyParser extends CustomBodyParser[Map[Long,Boolean]] {
     def parser = BodyParsers.parse.urlFormEncoded.map( m =>
       m.map(_ match {

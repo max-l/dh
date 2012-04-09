@@ -13,15 +13,16 @@ GET     /externalLogin/:provider/*path         controllers.MainPage.externalLogi
 GET     /decisionSummaries                     controllers.Screens.decisionSummaries
 GET     /p/:decisionId                         controllers.Screens.decisionDetails(decisionId: Long)
 GET     /participants/:decisionId/:page/:size  controllers.Screens.participants(decisionId: Long, page: Int, size: Int)
-
+GET     /decision/create                       controllers.Screens.create
+POST    /decision/create                       controllers.Screens.submitNewDecision
+GET     /decision/edit/:decisionId             controllers.Screens.edit(decisionId: Long)
+POST    /decision/edit                         controllers.Screens.submitDecisionEdit
 
 GET     /login                                 controllers.Dialogs.login
 GET     /vote/:decisionId                      controllers.Dialogs.voteScreen(decisionId: Long)
 POST    /vote/:decisionId                      controllers.Dialogs.submitVote(decisionId: Long)
 GET     /authorizeApp/:fbAppReqId              controllers.Dialogs.authorizeApp(fbAppReqId: Long)
 POST    /acceptOrDeclineInvitations            controllers.Dialogs.acceptOrDeclineInvitations
-GET     /decision/create                       controllers.Dialogs.create
-POST    /decision/create                       controllers.Dialogs.submitNewDecision
 POST    /recordInvitationList                  controllers.Dialogs.recordInvitationList
 
 

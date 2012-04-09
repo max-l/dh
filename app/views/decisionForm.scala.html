@@ -1,36 +1,30 @@
-@(d: Decision, isNew: Boolean)
+@(d: Decision, isNew: Boolean, choices: Seq[DecisionAlternative])
 
 @import helpers._
+@import com.decision_hub.Util._
 
-<div id='createDecision' class="modal hide fade">
+  <h2>Create (or edit) Decision</h2>
 
-  <div class="modal-header">
-    <a class="close" data-dismiss="modal" >&times;</a>
-    <h2>Create (or edit) Decision</h2>
-  </div>
 
-  <div class="modal-body">
+    @if(! isNew) {
+      <input type='hidden' name='id' value='@d.id'>
+    }
 
-    <form id='createOrEditDecisionForm' class="form-horizontal">
-
-      @if(! isNew) {
-        <input type='hidden' name='id' value='@d.id'>
-      }
-
-      <fieldset>
+    <fieldset>
+      <form id='createOrEditDecisionForm' class="form-horizontal">
 
         @bootstrapField("Title") {
-          <input name='title' type="text" value="@d.title"/>
+          <input name='title' type="text" value="@d.title.encodedAsJavascript"/>
         }
-
+  
         @bootstrapField("In one phrase") { 
-          <input name='punchLine' type="text" value="@d.punchLine.getOrElse("")"/>
+          <input name='punchLine' type="text" value="@d.punchLine.map(_.encodedAsJavascript).getOrElse("")"/>
         }
-
+  
         @bootstrapField("Description") {
-          <textarea name='summary' class='input-xlarge' type="textarea" value="@d.summary.getOrElse("")"/>
+          <textarea name='summary' class='input-xlarge' type="textarea" value="@d.summary.map(_.encodedAsJavascript).getOrElse("")"/>
         }
-
+  
         @bootstrapField("Election ends") {
           <label class="radio">
             <input type="radio" name="endMode" value="complete" checked>
@@ -41,87 +35,104 @@
             on @dateTimeField(None, "endDate", "endHour", "endMinute")
           </label>
         }
-
+  
         @bootstrapField("Results are shown only at the end") {
           <input type="checkbox" name='resultsPrivateUntilEnd' value='true' @(if(d.resultsPrivateUntilEnd) "checked" else "")/>
         }
 
-      </fieldset>
-    </form>
-
-    <ul>
-      <form id='alts' action=''>
-        <div id='alternatives'><p>zozo</p></div>
       </form>
-    </ul>
 
-    <a onClick='addAlt()' class='btn  btn-primary'>Add alternative</a>
-  </div>
+          @bootstrapField("Choices") {
+            <ul id='alternatives'></ul>
+            <a onClick="addEmptyAlt()" class='btn btn-primary'>Add Choice</a>
+          }
 
-  <div class="modal-footer">
-    <a class='btn  btn-primary' data-dismiss="modal" onClick='step2()'>Next</a>
-    <a class='btn' data-dismiss="modal" >Cancel</a>
-  </div>
-
-</div>
+    </fieldset>
 
 
-<div id='createDecisionStep2' class="modal hide fade">
+  <a class='btn  btn-primary' data-dismiss="modal" onClick='submitNewDecision()'>Save</a>
+  <a class='btn' data-dismiss="modal" >Cancel</a>
 
-  <div class="modal-header">
-    <a class="close" data-dismiss="modal" >&times;</a>
-    <h2>Create (or edit) Decision</h2>
-  </div>
 
-  <div class="modal-body">
-     <h2>Now CHooooose options</h2>
-  </div>
-
-  <div class="modal-footer">
-    <a class='btn  btn-primary' data-dismiss="modal" onClick='submitNewDecision()'>Save</a>
-    <a class='btn' data-dismiss="modal" >Cancel</a>
-  </div>
-
-</div>
 
 <script>
-  var i = 0
 
-  function addAlt() {
-    i++
+  // ids of new choices will be negative
+  var i = 0
+  var persistedChoicesToDelete = new Array(0);
+
+  function removeAlt(idx) {
+    if(idx >= 0)
+      persistedChoicesToDelete.push(idx)
+  }
+
+  function addEmptyAlt() {
+    i--
+    addAlt(i,'')
+  }
+
+  function addAlt(i, txt) {
     $('#alternatives').append(
       $('<li/>').append(
-        $('<input type:"text"/>', {name:i})
-      ).append(
-        $("<a/>", {
-          class:   "btn btn-primary",
-          text:    "remove"
-        }).click(function() {$(this).parent().remove()})
+        $('<form>').append(
+          $('<input/>', {name:'title', type:'text', value:txt})
+        ).append(
+          $('<input/>', {name:'id', type:'hidden', value:i})
+        ).append(
+          $("<a/>", {
+            class:   "btn btn-primary",
+            text:    "remove"
+          }).click(function() {
+            removeAlt(i)
+            $(this).parent().parent().remove()
+          })
+        )
       )
     )
   }
 
-  $.fn.serializeObject = function() {
-      var o = {};
-      var a = this.serializeArray();
-      $.each(a, function() {
-          if (o[this.name] !== undefined) {
-              if (!o[this.name].push) {
-                  o[this.name] = [o[this.name]];
-              }
-              o[this.name].push(this.value || '');
-          } else {
-              o[this.name] = this.value || '';
-          }
-      });
-      return o;
+  @if(choices.size == 0) {
+    addEmptyAlt()
+  } else {
+    @for(c <- choices) {
+      addAlt(@c.id,'@c.title.encodedAsJavascript')
+    }
   }
 
+  $.fn.serializeObject = function() {
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function() {
+      if (o[this.name] !== undefined) {
+        if (!o[this.name].push) {
+            o[this.name] = [o[this.name]];
+        }
+        o[this.name].push(this.value || '');
+      } else {
+        o[this.name] = this.value || '';
+      }
+    });
+    return o;
+  }
+
+  $('#endDate').datepicker().datepicker("setDate", new Date(@(System.currentTimeMillis)));
+  
   function submitNewDecision() {
 
     var d = $('#endDate').datepicker('getDate').getTime()
     var formFields = $("#createOrEditDecisionForm").serializeObject()
     formFields.endDate = d
+
+    formFields.choicesToDelete = persistedChoicesToDelete
+
+    var choiceForms = 
+      $('#alternatives form').map(function() {
+        return $(this).serializeObject()
+      }).get()
+
+    formFields.alternativePosts = choiceForms
+    //alert(":->" +JSON.stringify(choiceForms))
+
     var z = JSON.stringify(formFields)
 
     $.ajax({
@@ -134,10 +145,4 @@
     })
   }
 
-  function step2() {
-    $('#createDecision').modal('hide') 
-    $('#createDecisionStep2').modal('show')
-  }
-  
-  $('#createDecision').modal('show')
 </script>

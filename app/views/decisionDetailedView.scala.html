@@ -24,6 +24,8 @@ for(b <- currentUserIsParticipant if b) {
 
   <div id="voteScreen" class="modal hide fade"></div>
 
+  <a onClick='edit()' class="btn btn-primary btn-large">Edit</a>
+  
   <a data-toggle="modal" onClick='popVote()' class="btn btn-primary btn-large">Vote</a>
 
   <a data-toggle="modal" onClick='inviteVoters(@decisionSummary.decision.id)' class="btn btn-primary btn-large">Invite Facebook friends</a>
@@ -36,6 +38,10 @@ for(b <- currentUserIsParticipant if b) {
       alert(dd)
       dd.live('load', '/test', function() {alert('343434')})
       alert('a2')
+    }
+    
+    function edit() {
+      ajaxAction('/decision/edit/@decisionSummary.decision.id')
     }
     
     //http://www.webgeekly.com/tutorials/jquery/use-jquery-event-handling-with-dynamically-loaded-elements/

@@ -334,6 +334,11 @@ object DecisionManager {
 */
   }
   
+  def lookupDecisionForEdit(decisionId: Long, userId: Long) = transaction {
+    (decisions.where(_.id === decisionId).single,
+     decisionAlternatives.where(_.decisionId === decisionId).toList.toSeq)
+  }
+  
   def createNewDecision(d: Decision) = transaction {
     decisions.insert(d)
   }
