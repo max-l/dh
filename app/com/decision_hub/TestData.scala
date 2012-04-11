@@ -21,7 +21,7 @@ object TestData {
        else None
      
      val d =
-      Schema.decisions.insert(f(Decision(user.id, title, punchLine, Some("bla bla"), anonymous)))
+      Schema.decisions.insert(f(Decision(user.id, title, Some("bla bla"), anonymous)))
 
      for(a <- alternatives) {
 

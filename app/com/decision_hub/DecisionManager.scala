@@ -193,18 +193,21 @@ object DecisionManager {
           where(dp.voterId === userId and dp.decisionId === decisionId)
           select(dp.id)
         ).toList != Nil
-      }
+      }.getOrElse(false)
 
-    (isCurrentUserParticipant,
-     participants(decisionId, 0, 16),
-     invitations(decisionId, 0, 16),
-     DSummary(
+    println(">>>>>>>>>>>>1"+d.ownerId)
+    println(">>>>>>>>>>>>2"+currentUser)
+    (DSummary(
         decision = d,
         numberOfVoters = pSum._1,
         numberOfAbstentions = pSum._2,
         numberOfVotesExercised = pSum._3,
-        alternativeSummaries = aSums.get(d.id).toSeq.flatten)
-     )
+        alternativeSummaries = aSums.get(d.id).toSeq.flatten),
+     invitations(decisionId, 0, 16),
+     participants(decisionId, 0, 16),
+     isCurrentUserParticipant,
+     currentUser.map(_ == d.ownerId).getOrElse(false)
+    )
   }
 
   def acceptOrDeclineFacebookInvitations(invitedUserId: Long, acceptOrDecline: Map[Long,Boolean]) = transaction {
@@ -245,17 +248,15 @@ object DecisionManager {
 
   def pendingInvitations(userId: Long) = inTransaction {
 
-    println("----++++++++++++++++++++++++++++++")
     val pi =
       from(users, participationInvitations, decisions)((u,i,d) =>
         where(i.invitedUserId === userId and i.decisionId === d.id and i.invitingUserId === u.id)
         select(u,i,d)
       ).//remove duplicates :
       groupBy(_._2.decisionId).map { t => 
-    
-      println("----)"+t)
+
       val (u,i,d) = t._2.head
-      
+
       (u.display, d)
     }
     
@@ -339,9 +340,48 @@ object DecisionManager {
      decisionAlternatives.where(_.decisionId === decisionId).toList.toSeq)
   }
   
-  def createNewDecision(d: Decision) = transaction {
-    decisions.insert(d)
-  }
-  
-  
+  def createNewDecision(userId: Long, dp: DecisionPost) =
+    dp.validate match {
+      case Left(d) =>
+        transaction {
+          val newD = decisions.insert(d(Decision(userId, "")))
+          val newAlts = dp.alternativePosts.map(a => DecisionAlternative(newD.id, a.title))
+          decisionAlternatives.insert(newAlts)
+          Left(newD.id)
+        }
+      case Right(js) => Right(js)
+    }
+
+
+  def editDecision(userId: Long, dp: DecisionPost) =
+    dp.validate match {
+      case Left(d) =>
+
+        val (newA, existingA) = dp.alternativePosts.partition(_.id < 0)
+        val aidsToValidateOwnership = existingA.map(_.id) ++ dp.choicesToDelete
+
+        transaction {
+          val existingD = decisions.where(_.id === dp.id).single
+
+          assert(existingD.ownerId == userId, "not owner !")
+
+          val illegalUpdates = 
+            decisionAlternatives.where(da => da.id.in(aidsToValidateOwnership) and da.decisionId <> dp.id).
+              map(da => (da.id, da.decisionId)).toMap
+
+          assert(illegalUpdates.size > 0, 
+            "Cannot update or delete a DecisionAlternative " + 
+            illegalUpdates + ", they are not associated to decision " + dp.id)
+
+          decisions.update(d(existingD))
+
+          decisionAlternatives.deleteWhere(da => da.id in(dp.choicesToDelete))
+
+          decisionAlternatives.insert(newA.map(a => DecisionAlternative(existingD.id, a.title)))
+
+          decisionAlternatives.update(existingA.map(a => DecisionAlternative(existingD.id, a.title)))
+          None
+        }
+      case Right(js) => Some(js)
+    }
 }

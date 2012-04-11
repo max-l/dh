@@ -2,53 +2,59 @@
 
 @import helpers._
 @import com.decision_hub.Util._
+@import com.decision_hub.Repeater._
+
 
   <h2>Create (or edit) Decision</h2>
 
+  @row(s: String)(h: Html) = {
+    <div class='row'>
+      <div class='control-group'>
+        <div class='span1'>
+          <label class="control-label">@s</label>
+        </div>
+        <div class='span11'>
+          <div class="controls">
+            @h
+            <span class="help-inline"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 
+  <form id='createOrEditDecisionForm' class="form-horizontal">
     @if(! isNew) {
       <input type='hidden' name='id' value='@d.id'>
     }
+    @row("Title") {
+      <input name='title' type="text" value="@d.title.encodedAsJavascript"/>
+    }
 
-    <fieldset>
-      <form id='createOrEditDecisionForm' class="form-horizontal">
+    @row("Description") {
+      <textarea name='summary' class='input-xlarge' type="textarea">@d.description.getOrElse("")</textarea>
+    }
 
-        @bootstrapField("Title") {
-          <input name='title' type="text" value="@d.title.encodedAsJavascript"/>
-        }
-  
-        @bootstrapField("In one phrase") { 
-          <input name='punchLine' type="text" value="@d.punchLine.map(_.encodedAsJavascript).getOrElse("")"/>
-        }
-  
-        @bootstrapField("Description") {
-          <textarea name='summary' class='input-xlarge' type="textarea" value="@d.summary.map(_.encodedAsJavascript).getOrElse("")"/>
-        }
-  
-        @bootstrapField("Election ends") {
-          <label class="radio">
-            <input type="radio" name="endMode" value="complete" checked>
-            when every one has voted
-          </label>
-          <label class="radio">
-            <input type="radio" name="endMode" value="time">
-            on @dateTimeField(None, "endDate", "endHour", "endMinute")
-          </label>
-        }
-  
-        @bootstrapField("Results are shown only at the end") {
-          <input type="checkbox" name='resultsPrivateUntilEnd' value='true' @(if(d.resultsPrivateUntilEnd) "checked" else "")/>
-        }
+    @row("Election ends") {
+      <label class="radio">
+        <input type="radio" name="endMode" value="complete" checked>
+        when every one has voted
+      </label>
+      <label class="radio">
+        <input type="radio" name="endMode" value="time">
+        on @dateTimeField(None, "endDate", "endHour", "endMinute")
+      </label>
+    }
 
-      </form>
+    @row("Results are shown only at the end") {
+      <input type="checkbox" name='resultsPrivateUntilEnd' value='true' @(if(d.resultsPrivateUntilEnd) "checked" else "")/>
+    }
 
-          @bootstrapField("Choices") {
-            <ul id='alternatives'></ul>
-            <a onClick="addEmptyAlt()" class='btn btn-primary'>Add Choice</a>
-          }
-
-    </fieldset>
-
+    @row("Choices") {
+        <div id='alternatives'/>
+        <a onClick="addEmptyAlt()" class='btn btn-primary'>Add Choice</a>
+    }
+  </form>
 
   <a class='btn  btn-primary' data-dismiss="modal" onClick='submitNewDecision()'>Save</a>
   <a class='btn' data-dismiss="modal" >Cancel</a>
@@ -73,16 +79,13 @@
 
   function addAlt(i, txt) {
     $('#alternatives').append(
-      $('<li/>').append(
+      $('<div/>').append(
         $('<form>').append(
           $('<input/>', {name:'title', type:'text', value:txt})
         ).append(
           $('<input/>', {name:'id', type:'hidden', value:i})
         ).append(
-          $("<a/>", {
-            class:   "btn btn-primary",
-            text:    "remove"
-          }).click(function() {
+          $("<a class='btn'><i class='icon-remove'></i> Remove</a>").click(function() {
             removeAlt(i)
             $(this).parent().parent().remove()
           })
@@ -99,50 +102,6 @@
     }
   }
 
-  $.fn.serializeObject = function() {
-    var o = {};
-    var a = this.serializeArray();
-    $.each(a, function() {
-      if (o[this.name] !== undefined) {
-        if (!o[this.name].push) {
-            o[this.name] = [o[this.name]];
-        }
-        o[this.name].push(this.value || '');
-      } else {
-        o[this.name] = this.value || '';
-      }
-    });
-    return o;
-  }
-
   $('#endDate').datepicker().datepicker("setDate", new Date(@(System.currentTimeMillis)));
-  
-  function submitNewDecision() {
-
-    var d = $('#endDate').datepicker('getDate').getTime()
-    var formFields = $("#createOrEditDecisionForm").serializeObject()
-    formFields.endDate = d
-
-    formFields.choicesToDelete = persistedChoicesToDelete
-
-    var choiceForms = 
-      $('#alternatives form').map(function() {
-        return $(this).serializeObject()
-      }).get()
-
-    formFields.alternativePosts = choiceForms
-    //alert(":->" +JSON.stringify(choiceForms))
-
-    var z = JSON.stringify(formFields)
-
-    $.ajax({
-      type: 'POST',
-      url: "/decision/create",
-      data: z,
-      success: function() {},
-      contentType: "application/json; charset=utf-8",
-      dataType: 'json'
-    })
-  }
 
 </script>

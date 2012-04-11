@@ -1,4 +1,6 @@
-@(decisionSummary: DSummary, participantDisplays: Seq[ParticipantDisplay], invitationDisplays: Seq[ParticipantDisplay], currentUserIsParticipant: Option[Boolean]) <!-- //, voteIfParticipantAndLogged: Option[Seq[CastedVote]]) -->
+@(decisionSummary: DSummary, participantDisplays: Seq[ParticipantDisplay], invitationDisplays: Seq[ParticipantDisplay], currentUserCanVote: Boolean, currentUserIsAdmin: Boolean) <!-- //, voteIfParticipantAndLogged: Option[Seq[CastedVote]]) -->
+
+@import com.decision_hub.Util._
 
 <h1>@decisionSummary.title</h1>
 
@@ -20,77 +22,33 @@
 
 <div id=__participantList'>@participantList(participantDisplays, invitationDisplays)</div>
 
-for(b <- currentUserIsParticipant if b) {
+@if(currentUserCanVote) {
 
   <div id="voteScreen" class="modal hide fade"></div>
+  <a data-toggle="modal" onClick='popVote()' class="btn btn-primary btn-large">Vote</a>  
+}
+
+@if(currentUserIsAdmin) {
 
   <a onClick='edit()' class="btn btn-primary btn-large">Edit</a>
-  
-  <a data-toggle="modal" onClick='popVote()' class="btn btn-primary btn-large">Vote</a>
-
   <a data-toggle="modal" onClick='inviteVoters(@decisionSummary.decision.id)' class="btn btn-primary btn-large">Invite Facebook friends</a>
+}
 
-  <script>
+<script>
 
-    function refreshParticipationList(pageIdx) {
-     alert('/participants/@decisionSummary.decision.id/' + pageIdx + '/16')
-      var dd = $('#__participantList')
-      alert(dd)
-      dd.live('load', '/test', function() {alert('343434')})
-      alert('a2')
-    }
-    
+  @if(currentUserIsAdmin) {
+    var inviteVoters = inviteFrieldsFunc('Invitation to vote on : @decisionSummary.title.encodedAsJavascript', {zaz:123})
     function edit() {
       ajaxAction('/decision/edit/@decisionSummary.decision.id')
     }
-    
-    //http://www.webgeekly.com/tutorials/jquery/use-jquery-event-handling-with-dynamically-loaded-elements/
-    //refreshParticipationList(0)
+  }
 
-    function popVote() {
+  @if(currentUserCanVote) {
+   function popVote() {
       $('#voteScreen').load('/vote/' + @decisionSummary.decision.id, function() {
         $('#voteScreen').modal('show')
       })
     }
+  }
 
-
-    function augmentAndPostInfo(response) {
-
-      var fbIds = JSON.stringify(response.to).replace('[','(').replace(']',')')
-
-      FB.api({
-        method: 'fql.query',
-          query: 'SELECT uid,name FROM user WHERE uid in ' + fbIds
-        },
-        function(queryResponse) {
-          response.to = queryResponse
-          var msgToPost = JSON.stringify(response)
-          $.ajax({
-            type: 'POST',
-            url: "/recordInvitationList",
-            data: msgToPost,
-            success: function() {
-              refreshCenterPanel()
-            },
-            contentType: "application/json; charset=utf-8",
-            dataType: 'json'
-          })
-        }
-      )
-    }
-
-    function inviteVoters(decisionId) {
-      FB.ui({method: 'apprequests',
-        message: 'Invitation to vote on ...',
-        data: 'abc123'
-      },
-      function requestCallback(response) {
-        if(response != null) {
-          response.decisionId = decisionId
-          augmentAndPostInfo(response)
-         }
-      })
-    }
-
-  </script>
-}
+</script>

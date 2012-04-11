@@ -39,7 +39,7 @@ trait Secured[S] {
     for(authenticatonToken <-request.session.get(authenticatonTokenName); 
       userId <- toughCookieBakery.validate(authenticatonToken,sslSessionId((request))) match {
         case (ToughCookieStatus.Valid, Some((_, dataInCookie, userIdInCookie))) =>
-          logger.debug("Autenticator cookie valid")
+          logger.debug("Autenticator cookie valid, userId:" + userIdInCookie)
           Some(loadSession(userIdInCookie,dataInCookie, request))
         case (status, _) => 
           logger.debug("Autenticator invalid or expired : " + status)

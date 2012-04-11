@@ -119,8 +119,7 @@ case class User(
 case class Decision(
   ownerId: Long,
   title: String,
-  punchLine: Option[String] = None,
-  summary: Option[String] = None,
+  description: Option[String] = None,
   published: Boolean = false,
   endsOn: Option[Timestamp] = None,// if None, ends when complete
   endedByCompletionOn: Option[Timestamp] = None,

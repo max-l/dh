@@ -63,29 +63,26 @@ object MainPage extends BaseDecisionHubController {
      )
   }
   
+  private def extractRequestIds(m: Map[String,Seq[String]], k: String) = 
+    for(s <- m.get(k).flatten;
+        id <- s.split(',').toSeq)
+    yield Util.parseLong(id)
+
   def facebookCanvasUrl = MaybeAuthenticated(expect[FBClickOnApplication]) { dhSession => implicit request =>
 
 
     request.body match {
       case FBClickOnApplicationNonRegistered(js) =>
-        val requestIds = request.queryString.get("request_ids").flatten
         
-        val reqId = requestIds.headOption.map(Util.parseLong(_)).get
-        
-        //map(s => s.map(Util.parseLong(_))).flatten.head
+        val requestIds = extractRequestIds(request.queryString, "request_ids")
 
-        Ok(html.fcpe(routes.Dialogs.authorizeApp(reqId).url, None))
+        Ok(html.fcpe(routes.Dialogs.authorizeApp(requestIds.head).url, None))
       case FBClickOnApplicationRegistered(fbUserId) =>
         AuthenticationManager.lookupFacebookUser(fbUserId) match {
           case Some(u) =>
             val ses = new DecisionHubSession(u, request)
             this.logger.debug("registered user " + fbUserId + " authenticated.")
 
-            //val requestIds =
-            //   request.queryString.get("request_ids").
-            //     flatten.map(Util.parseLong(_))
-
-            //DecisionManager.acceptFacebookInvitation(u.id, requestIds)
             AuthenticationSuccess(Redirect(routes.MainPage.index), ses)
           case None => // user clicked on 'my applications'
 

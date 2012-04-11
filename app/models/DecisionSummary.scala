@@ -10,7 +10,6 @@ import java.util.Calendar
 case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstentions: Int, numberOfVotesExercised: Int, alternativeSummaries: Seq[AlternativeSummary]) {
   
   def title = decision.title
-  def punchLine = decision.punchLine 
   
   def publishableStats = {
     import decision._
@@ -47,8 +46,7 @@ case class CastedVote(alternative: DecisionAlternative, score: Int)
 case class DecisionPost(
   title: String,
   id: Option[Long],
-  punchLine: Option[String],
-  summary: Option[String],
+  description: Option[String],
   endMode: String,
   endDate: Option[Long],
   endHour: Int,
@@ -81,8 +79,7 @@ case class DecisionPost(
     else
       Left((d:Decision) => d.copy(
         title = title,
-        punchLine = punchLine,
-        summary = summary,
+        description = description,
         endsOn = endsOn,
         resultsPrivateUntilEnd = resultsPrivateUntilEnd.getOrElse(false)
       ))

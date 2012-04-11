@@ -1,16 +1,38 @@
 @(decision: Decision, invitingUser: ParticipantDisplay, authorizeAppUrl: String)
 
-<script></script>
+<div id="authorizeAppModalDialog" class="modal hide fade">
+  <div class="modal-header">
+    <a class="close" data-dismiss="modal" >&times;</a>
+    <h2>Welcome to Decision Hub</h2>
+  </div>
+
+  <div class="modal-body">
+
+    <h2>@texts.whatIsIt()</h2>
+
+    <h3>
+      Hi, you have been invited by <img src='@invitingUser.iconSrc'/><a>@invitingUser.displayName</a>
+      to vote on @decision.title
+    </h3>
+
+  </div>
+  
+  <div class="modal-footer">
+    <a class='btn  btn-primary' data-dismiss="modal" onClick='acceptFunc()'>Accept</a>
+    <a class='btn' data-dismiss="modal" >Decline</a>
+    <a class='btn  btn-primary' data-dismiss="modal" onClick='aut1()'>Zaz</a>
+  </div>
+</div>
+
+<script>
 
 
-<h2>Welcome to Decision Hub</h2>
 
-<h2>@texts.whatIsIt()</h2>
+ function acceptFunc() {
+   window.location.href = "/externalLogin/facebook/decisionSummaries"
+  
+    //window.location.href = '@authorizeAppUrl'
+  }
 
-
-<h3>
-  Hi, you have been invited by <img src='@invitingUser.iconSrc'/><a>@invitingUser.displayName</a>
-  to vote on @decision.title
-</h3>
- 
-<a href='@authorizeAppUrl'>Accept</a>
+  $('#authorizeAppModalDialog').modal('show')
+</script>

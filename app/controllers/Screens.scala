@@ -28,16 +28,13 @@ object Screens extends BaseDecisionHubController {
     Ok(html.decisionForm(Decision(0L,""), true, Nil))
   }
 
-  def submitNewDecision = IsAuthenticated(expectJson[DecisionPost]) { mpo => implicit request =>
+  def submitNewDecision = IsAuthenticated(expectJson[DecisionPost]) { session => implicit request =>
 
-    //request.body.validate match {
-      //case Right(t) => BadRequest(com.codahale.jerkson.Json.generate(t))
-      //case Left(d) =>
-        
     println(request.body)
-
-        Ok
-    //}
+    DecisionManager.createNewDecision(session.userId, request.body) match {
+      case Left(dId) => Ok(""+dId)
+      case Right(js) => BadRequest(com.codahale.jerkson.Json.generate(js))
+    }
   }
   
   def edit(decisionId: Long) = IsAuthenticated { sess => implicit request =>
@@ -48,23 +45,31 @@ object Screens extends BaseDecisionHubController {
     Ok(html.decisionForm(d, false, alts))
   }
   
-  def submitDecisionEdit = IsAuthenticated(expectJson[DecisionPost]) { mpo => implicit request =>
+  def submitDecisionEdit = IsAuthenticated(expectJson[DecisionPost]) { session => implicit request =>
 
-    //request.body.validate match {
-      //case Right(t) => BadRequest(com.codahale.jerkson.Json.generate(t))
-      //case Left(d) =>
-        
-    println(request.body)
-
-        Ok
-    //}
+    DecisionManager.editDecision(session.userId, request.body) match {
+      case None => Ok      
+      case Some(errorMap) =>
+        //case Some(js) => BadRequest(com.codahale.jerkson.Json.generate(js))
+        //import play.libs.Json._
+        import play.api.libs.json.Json._
+        //import play.api.libs.json.Writes._
+        //play.api.libs.json.Writes.
+        val js0 =  toJson(Map("status" -> "KO", "message" -> "Missing parameter [name]"))
+        val js = toJson(errorMap : Map[String,String])
+        BadRequest(js)
+        //BadRequest(toJson(js))
+    }
   }  
   
-  def decisionDetails(decisionId: Long) = MaybeAuthenticated { mpo => implicit request =>
+  def decisionDetails(decisionId: Long) = MaybeAuthenticated { session => implicit request =>
 
-    val currentUserId = mpo.map(_.userId)
-    val (isCurrentUserParticipant, participantLinks, invitationLinks, d) = DecisionManager.decisionDetails(decisionId, currentUserId)
-    Ok(html.decisionDetailedView(d, participantLinks, invitationLinks, isCurrentUserParticipant))
+    val currentUserId = session.map(_.userId)
+
+    val (decisionSummary, participantDisplays, invitationDisplays, currentUserCanVote, currentUserIsAdmin) =
+      DecisionManager.decisionDetails(decisionId, currentUserId)
+
+    Ok(html.decisionDetailedView(decisionSummary, participantDisplays, invitationDisplays, currentUserCanVote, currentUserIsAdmin))
   }
 
   
