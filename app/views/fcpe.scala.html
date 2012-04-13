@@ -1,4 +1,4 @@
-@(centerPanelUri: String, displayName: Option[String])
+@(centerPanelUriAndContent: (String,Html), displayName: Option[String], refreshCenterPanelAfterLoad: Boolean)
 <!DOCTYPE html>
 
 <html>
@@ -77,7 +77,7 @@
            centerPanelUrl = '/' + u
        }
 
-       setCenterPanelUri("@centerPanelUri")
+       setCenterPanelUri("@centerPanelUriAndContent._1")
 
        function login() {
          window.location.href = "/externalLogin/facebook" + centerPanelUrl
@@ -172,7 +172,7 @@ function aut1() {
 
     <div id="fb-root"></div>
     <script>
-      @facebookClientSideAuth("300426153342097")
+      @facebookClientSideAuth("300426153342097"){Html.empty}
     </script>
 
 
@@ -218,7 +218,9 @@ function aut1() {
   <section>
     <div class="container">
   
-      <div id="centerPanel"></div>
+      <div id="centerPanel">
+        @centerPanelUriAndContent._2
+      </div>
   
     </div>
   
@@ -228,7 +230,9 @@ function aut1() {
   <script>
     refreshAuthenticatedStatus()
     loggedInStatusTimer = window.setInterval(refreshAuthenticatedStatus, 10000)
-    refreshCenterPanel()
+    @if(refreshCenterPanelAfterLoad) {
+      refreshCenterPanel()
+    }
   </script>
   </body>
 </html>

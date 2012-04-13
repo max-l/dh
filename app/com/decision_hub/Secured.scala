@@ -11,6 +11,8 @@ import play.api.libs.iteratee.Input
 import com.strong_links.crypto.ToughCookieStatus
 import com.decision_hub._
 import models._
+import play.api.mvc.PlainResult
+import play.api.libs.concurrent.Promise
 
 
 object Secured {
@@ -91,17 +93,27 @@ trait Secured[S] {
   
   private def createOrExtendAuthenticator[A](request: Request[A], encodedAuthenticator: String, r: Result, isCreate: Boolean) = {
     
-    val plainResult = r.asInstanceOf[PlainResult]
     
-    val r2 =
-      if(isCreate)
-        plainResult.withSession(request.session + (authenticatonTokenName -> encodedAuthenticator))
-      else // Extend
-        plainResult.withSession(authenticatonTokenName -> encodedAuthenticator)
+    def addCookiesAndSessionData(plainResult: PlainResult) = { 
+      val r2 =
+        if(isCreate)
+          plainResult.withSession(request.session + (authenticatonTokenName -> encodedAuthenticator))
+        else // Extend
+          plainResult.withSession(authenticatonTokenName -> encodedAuthenticator)
 
-     r2.withCookies(Cookie("DISPLAY_AS_LOGGED_IN","true", maxAge = maxIdleTimeInSeconds, httpOnly = false)) 
-  } 
-  
+       r2.withCookies(Cookie("DISPLAY_AS_LOGGED_IN","true", maxAge = maxIdleTimeInSeconds, httpOnly = false))
+    }
+
+    r match {
+      case pr:PlainResult =>
+        addCookiesAndSessionData(pr)
+      case ar:AsyncResult =>
+        AsyncResult(ar.result.map(res =>
+          addCookiesAndSessionData(res.asInstanceOf[PlainResult])
+        ))
+    }
+  }
+
   private def bake[A](s: S, req: Request[A]) = {
     val userId = userIdFromSession(s)
     val data = dataFromSession(s)

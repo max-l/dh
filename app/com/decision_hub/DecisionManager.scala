@@ -263,6 +263,10 @@ object DecisionManager {
     pi.toSeq
   }
   
+  def lookupDecision(decisionId: Long) = inTransaction {
+    decisions.lookup(decisionId).get
+  }
+  
   def lookupInvitation(facebookRequestId: Long) = inTransaction {
     
    val dp = participationInvitations.where(_.facebookAppRequestId === facebookRequestId).head

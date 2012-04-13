@@ -34,20 +34,23 @@ object MainPage extends BaseDecisionHubController {
     }
   }
   
-  def index = MaybeAuthenticated { mpo =>  r =>
+  def landingPage(session: Option[DecisionHubSession]) =
+    html.fcpe((defaultLandingPage, Screens.decisionSummariesPage(session)), session.map(_.displayName), false)
+  
+  def index = MaybeAuthenticated { session =>  r =>
 
     val displayName = 
-      for(sess <- mpo;
+      for(sess <- session;
           u <- AuthenticationManager.lookupUser(sess.userId))
         yield u.displayableName
 
     val uri = r.cookies.get(LANDING_PAGE_COOKIE_NAME).map(_.value)
 
     uri match {
-      case None =>
-        Ok(html.fcpe(defaultLandingPage, displayName))
-      case Some(u) =>
-        Ok(html.fcpe(u, displayName))
+      case None => 
+        Ok(landingPage(session))
+      case Some(u) => // post login
+        Ok(html.fcpe((defaultLandingPage, Html.empty), displayName, true))
     }
   }
 
@@ -68,22 +71,37 @@ object MainPage extends BaseDecisionHubController {
         id <- s.split(',').toSeq)
     yield Util.parseLong(id)
 
-  def facebookCanvasUrl = MaybeAuthenticated(expect[FBClickOnApplication]) { dhSession => implicit request =>
 
+  def clientSideAuthorize = 
+    Ok(html.test())
+  
+  // TODO: ensure that reverse proxy only forwards here when HTTPS
+  def facebookCanvasUrl = MaybeAuthenticated(expect[FBClickOnApplication]) { session => implicit request =>
 
     request.body match {
       case FBClickOnApplicationNonRegistered(js) =>
-        
-        val requestIds = extractRequestIds(request.queryString, "request_ids")
 
-        Ok(html.fcpe(routes.Dialogs.authorizeApp(requestIds.head).url, None))
+        extractRequestIds(request.queryString, "request_ids").headOption match {
+          case None => 
+            Ok(landingPage(session))
+          clientSideAuthorize
+          case Some(reqId) => Async(
+            Dialogs.authorizeAppPage(reqId).map(page => Ok(html.fcpe(page, None, false)))
+          )
+          clientSideAuthorize
+      }
       case FBClickOnApplicationRegistered(fbUserId) =>
         AuthenticationManager.lookupFacebookUser(fbUserId) match {
           case Some(u) =>
-            val ses = new DecisionHubSession(u, request)
+            val session = new DecisionHubSession(u, request)
             this.logger.debug("registered user " + fbUserId + " authenticated.")
 
-            AuthenticationSuccess(Redirect(routes.MainPage.index), ses)
+            //no need to redirect because : (1) we are in an iframe, (2) we are on https
+            AuthenticationSuccess(
+              Ok(html.fcpe((defaultLandingPage, Screens.decisionSummariesPage(Some(session))), Some(u.displayableName), false)),
+              session
+            )
+            //AuthenticationSuccess(Redirect(routes.MainPage.index), ses)
           case None => // user clicked on 'my applications'
 
             this.logger.error("non fatal error : fb user " + fbUserId + 

@@ -37,7 +37,7 @@
 <script>
 
   @if(currentUserIsAdmin) {
-    var inviteVoters = inviteFrieldsFunc('Invitation to vote on : @decisionSummary.title.encodedAsJavascript', {zaz:123})
+    var inviteVoters = inviteFrieldsFunc('Invitation to vote on : @decisionSummary.title.encodedAsJavascript', @decisionSummary.decision.id)
     function edit() {
       ajaxAction('/decision/edit/@decisionSummary.decision.id')
     }

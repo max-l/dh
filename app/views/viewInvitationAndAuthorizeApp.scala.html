@@ -1,4 +1,5 @@
-@(decision: Decision, invitingUser: ParticipantDisplay, authorizeAppUrl: String)
+@(decision: Decision, appReq: com.decision_hub.FBAppRequestInfo, authorizeAppUrl: String)
+
 
 <div id="authorizeAppModalDialog" class="modal hide fade">
   <div class="modal-header">
@@ -11,28 +12,31 @@
     <h2>@texts.whatIsIt()</h2>
 
     <h3>
-      Hi, you have been invited by <img src='@invitingUser.iconSrc'/><a>@invitingUser.displayName</a>
-      to vote on @decision.title
+      Hi, you have been invited by <img src='@appReq.senderIconUri'/><a>@appReq.from.name</a> to vote on @decision.title
     </h3>
 
   </div>
   
   <div class="modal-footer">
-    <a class='btn  btn-primary' data-dismiss="modal" onClick='acceptFunc()'>Accept</a>
+    <a class='btn btn-primary' data-dismiss="modal" onClick='acceptFunc()'>Accept</a>
     <a class='btn' data-dismiss="modal" >Decline</a>
-    <a class='btn  btn-primary' data-dismiss="modal" onClick='aut1()'>Zaz</a>
+    <a class='btn btn-primary' data-dismiss="modal" onClick='viewAppReqs()'>Zaz</a>
   </div>
 </div>
 
 <script>
 
-
-
  function acceptFunc() {
    window.location.href = "/externalLogin/facebook/decisionSummaries"
-  
     //window.location.href = '@authorizeAppUrl'
-  }
+   }
 
-  $('#authorizeAppModalDialog').modal('show')
+   $('#authorizeAppModalDialog').modal('show')
+   
+   function viewAppReqs() {
+
+    FB.api("/me/apprequests", function(r) {
+      alert(JSON.stringify(r))
+    })
+   }
 </script>

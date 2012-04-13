@@ -1,28 +1,48 @@
 @()
+
+@import com.decision_hub._
+
 <!DOCTYPE html>
 
 <html>
    <head>
-
-     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/bootstrap.css")">
-
      <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")"    type="text/javascript"></script>
-
-     <script src='@routes.Assets.at("javascripts/bootstrap-dropdown.js")'  type="text/javascript"></script>
-     <script src='@routes.Assets.at("javascripts/bootstrap-scrollspy.js")' type="text/javascript"></script>
-     <script src='@routes.Assets.at("javascripts/bootstrap-collapse.js")'  type="text/javascript"></script>
-     <script src='@routes.Assets.at("javascripts/bootstrap-modal.js")'  type="text/javascript"></script>
-     <script src='@routes.Assets.at("javascripts/bootstrap-tooltip.js")'   type="text/javascript"></script>
-     <script src='@routes.Assets.at("javascripts/bootstrap-button.js")'    type="text/javascript"></script>
-     <script src='@routes.Assets.at("javascripts/bootstrap-tab.js")'       type="text/javascript"></script>
-
    </head>
   <body>
-
-    <div id="fb-root"></div>
+   <div id="fb-root"></div>
     <script>
-      @facebookClientSideAuth("300426153342097")
+    var declined = 0;
+    
+        
+    @facebookClientSideAuth("300426153342097") {
+      
+        // listen for and handle auth.statusChange events
+        FB.Event.subscribe('auth.statusChange', function(response) {
+          if (response.authResponse) {
+            // user has auth'd your app and is logged into Facebook
+            alert('authorized : ...')
+            FB.api('/me', function(me){
+              if (me.name) {
+                alert('name is : ...' + me.name)
+              }
+            })
+          } else {
+            if(declined == 1) {
+              alert('NOT authorized : ...')
+            }
+          }
+        });
+        
+      }
+      
+      function zazzz() {
+        declined = 1
+        FB.login();
+      }
     </script>
+    
+    <a onClick='zazzz()'>ZZZZZ</a>
+
 
   </body>
 </html>

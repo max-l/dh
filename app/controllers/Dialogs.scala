@@ -25,11 +25,20 @@ object Dialogs extends BaseDecisionHubController {
     Ok(html.login(FacebookProtocol.loginRedirectUrl))
   }
 
+  
+  def authorizeAppPage(fbAppReqId: Long) =
+    FacebookProtocol.looupAppRequestInfo(fbAppReqId).map { appReqInfo =>
+      
+      val d = DecisionManager.lookupDecision(appReqInfo.data)
+      
+      (routes.Dialogs.authorizeApp(fbAppReqId).url,
+       html.viewInvitationAndAuthorizeApp(d, appReqInfo, FacebookProtocol.loginRedirectUrl))
+    }
 
   def authorizeApp(fbAppReqId: Long) = MaybeAuthenticated { mpo => implicit request =>
-
-    val (d, u) = DecisionManager.lookupInvitation(fbAppReqId)
-    Ok(html.viewInvitationAndAuthorizeApp(d, u, FacebookProtocol.loginRedirectUrl))
+    Async {
+      authorizeAppPage(fbAppReqId).map(r => Ok(r._2))
+    }
   }
 
   def acceptOrDeclineInvitations = IsAuthenticated(expect[Map[Long,Boolean]]) { session => implicit request =>

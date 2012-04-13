@@ -6,7 +6,7 @@ GET     /logout                                controllers.MainPage.logout
 
 GET     /                                      controllers.MainPage.index
 POST    /facebookCanvasUrl/                    controllers.MainPage.facebookCanvasUrl
-GET     /channel.html                          controllers.MainPage.facebookChannelFile
+GET     /channel                               controllers.MainPage.facebookChannelFile
 GET     /externalLogin/:provider/*path         controllers.MainPage.externalLogin(provider: String, path: String)
 
 

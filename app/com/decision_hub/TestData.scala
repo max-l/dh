@@ -152,8 +152,27 @@ object TestData {
       "client_id" -> clientId.toString,
       "client_secret" -> clientSecret
     ).get.map { r =>
-       r.body.split('=')(1)
+      println("-> "+r.body)
+       r.body.split('=').toList match {
+         case List(expiryInSeconds, value) => new AuthorizationToken(value, Long.MaxValue)
+         case _ => sys.error("bad response " + r.body)
+       }
     }.await(1000 * 30).get
+  }
+  
+  def appR = {
+
+    val appAccessToken = appToken(300426153342097L, "52242a46291a5c1d4e37b69a48be689f")
+
+    println("TOK:" + appAccessToken)
+    //GET /fql?q=SELECT+uid2+FROM+friend+WHERE+uid1=me()&access_token=...
+    val zaza =
+      WS.url("https://graph.facebook.com/338696852845604").
+       withQueryString("access_token" -> appAccessToken.value).get.map { r =>
+        //withQueryString("q" -> "SELECT request_id, app_id FROM apprequest WHERE request_id = 338696852845604"). get.map { r =>
+          println(">>>>>>>>>>> "+r.body)
+      }.await(1000 * 30)
+    
   }
   
   def doIt {
@@ -162,7 +181,7 @@ object TestData {
     println("TOK:" + appAccessToken)
     val testUserIds =
       WS.url("https://graph.facebook.com/300426153342097/accounts/test-users").
-        withQueryString("access_token" -> appAccessToken). get.map { r =>
+        withQueryString("access_token" -> appAccessToken.value).get.map { r =>
 
         val d = (r.json \\ "id")
         d
@@ -184,12 +203,14 @@ object TestData {
   }
   
   
+  
   def main(args: Array[String]): Unit = {
         
    //println(FBInvitationRequest.parseString(js))
    //println(parse[FBInvitationRequest](js))
      
-   doIt
+   //doIt
+    appR
      
     try { 1}
     catch {

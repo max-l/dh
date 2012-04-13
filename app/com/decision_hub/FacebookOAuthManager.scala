@@ -5,6 +5,7 @@ import play.api.libs.json.Json
 import com.strong_links.crypto._
 import play.api.Play
 import play.api.mvc.Call
+import play.api.templates.Html
 
 object OAuthErrorTypes extends Enumeration {
   type OAuthErrorTypes = Value 
@@ -12,7 +13,9 @@ object OAuthErrorTypes extends Enumeration {
   val PermissionNotGranted, UnexpectedResponse = Value
 }
 
-case class AuthorizationToken(value: String, numberOfSecondsUntilExpiry: Int)
+case class AuthorizationToken(value: String, expiryTime: Long) {
+  def this(v: String, exp: String) = this(v, Integer.parseInt(exp) * 1000 + System.currentTimeMillis)
+}
 
 case class MinimalInfo(id: String, firstName: Option[String], lastName: Option[String], name: Option[String], email: Option[String])
 
@@ -44,7 +47,7 @@ class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectF
         val txt = response.body
         txt.split('&').flatMap(_.split('=')).toList match {
           case List("access_token", accessToken,"expires", secondsUntilExpiry) => 
-            Left(AuthorizationToken(accessToken, Integer.parseInt(secondsUntilExpiry)))
+            Left(new AuthorizationToken(accessToken, secondsUntilExpiry))
           case _  => 
             logUnexpectedResponse("getting access token", txt)
             Right(UnexpectedResponse)
@@ -136,7 +139,8 @@ object FacebookProtocol extends CryptoUtil {
   val facebookOAuthManager = new FacebookOAuthManager(
     facebookAppId, facebookSecret, "https://"+applicationDomainName+ controllers.routes.MainPage.fbauth.url)
 
-  val loginRedirectUrl = facebookOAuthManager.loginWithFacebookUrl 
+  
+  val loginRedirectUrl = facebookOAuthManager.loginWithFacebookUrl
   
   sealed trait FBClickOnApplication
   sealed case class FBClickOnApplicationNonRegistered(jsonMsg: String) extends FBClickOnApplication
@@ -158,11 +162,15 @@ object FacebookProtocol extends CryptoUtil {
           logger.error("bad signed_request format :'" + r + "'")
           None
         case Some((_sig, __req)) =>
+          
+          val paddedReq = (__req.length() % 4) match {
+            case 0 => __req
+            case 1 => __req + "==="
+            case 2 => __req + "=="
+            case 3 => __req + "="
+          }
 
-          if(__req.length() % 4 > 0)
-            sys.error("Bad Facebook signed request, Base64 should have a length multiple of 4 :" + __req)
-
-          val reqBin = Base64.decode(__req, Base64.URL_SAFE)
+          val reqBin = Base64.decode(paddedReq, Base64.URL_SAFE)
           val reqStr = new String(reqBin)
           val js = Json.parse(reqStr)
 
@@ -200,4 +208,42 @@ object FacebookProtocol extends CryptoUtil {
       }
   }
   
+  case class FBAppOAuthToken(tok: String, exipryTime: Long)
+  
+  
+  var cachedAppToken: Option[AuthorizationToken] = None
+  
+  def appToken(clientId: String, clientSecret: String) = cachedAppToken.getOrElse {
+
+    WS.url("https://graph.facebook.com/oauth/access_token").withQueryString(
+      "grant_type"->"client_credentials",
+      "grant_type" -> "client_credentials",
+      "client_id" -> clientId,
+      "client_secret" -> clientSecret
+    ).get.map { r =>
+       AuthorizationToken(r.body.split('=')(1), Long.MaxValue)
+    }.await(1000 * 30).get
+  }
+  
+  
+  def looupAppRequestInfo(requestId: Long) = {
+    
+    val appAccessToken = appToken(facebookAppId, facebookSecret)
+
+    WS.url("https://graph.facebook.com/" + requestId).
+     withQueryString("access_token" -> appAccessToken.value).get.map { r =>
+      //withQueryString("q" -> "SELECT request_id, app_id FROM apprequest WHERE request_id = 338696852845604"). get.map { r =>
+        println(">>>>>>>>>>> "+r.body)
+
+        com.codahale.jerkson.Json.parse[FBAppRequestInfo](r.body)
+    }
+  }
+  
+}
+
+case class FBAppRequestInfoFrom(id: Long, name: String)
+case class FBAppRequestInfo(id: String, from: FBAppRequestInfoFrom, created_time: String, data: Long) {
+  
+  def senderIconUri =
+    "https://graph.facebook.com/"+from.id+"/picture"
 }

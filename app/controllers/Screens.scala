@@ -80,19 +80,23 @@ object Screens extends BaseDecisionHubController {
         DecisionManager.invitations(decisionId, page, size)))
   }
   
-  def decisionSummaries = MaybeAuthenticated { mpo => implicit request =>
-    
-    mpo match {
+  def decisionSummariesPage(session: Option[DecisionHubSession]) =
+    session match {
       case None =>
+        
+        
 
-        Ok(html.decisionSummaries(DecisionManager.decisionSummariesMostActive, Nil))
+        html.decisionSummaries(DecisionManager.decisionSummariesMostActive, Nil)
       case Some(s) =>
 
         val pis = DecisionManager.pendingInvitations(s.userId)
         println("pis" + pis)
         val ds = DecisionManager.decisionSummariesOf(s.userId, false)
-        Ok(html.decisionSummaries(DecisionManager.decisionSummariesMostActive, pis))
-    }
+        html.decisionSummaries(DecisionManager.decisionSummariesMostActive, pis)
+    }    
+  
+  def decisionSummaries = MaybeAuthenticated { session => implicit request =>
+    Ok(decisionSummariesPage(session))
   }
 
 }
