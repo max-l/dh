@@ -6,6 +6,10 @@ import com.strong_links.crypto._
 import play.api.Play
 import play.api.mvc.Call
 import play.api.templates.Html
+import play.api.libs.json.JsValue
+import java.net.URLEncoder
+import play.api.libs.concurrent.Promise
+import javax.xml.ws.Response
 
 object OAuthErrorTypes extends Enumeration {
   type OAuthErrorTypes = Value 
@@ -17,7 +21,7 @@ case class AuthorizationToken(value: String, expiryTime: Long) {
   def this(v: String, exp: String) = this(v, Integer.parseInt(exp) * 1000 + System.currentTimeMillis)
 }
 
-case class MinimalInfo(id: String, firstName: Option[String], lastName: Option[String], name: Option[String], email: Option[String])
+case class MinimalInfo(id: String, firstName: Option[String] = None, lastName: Option[String] = None, name: Option[String] = None, email: Option[String] = None)
 
 class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectFromFacebook: String, extraArgs: Map[String,String] = Map.empty) extends CryptoUtil {
 
@@ -40,10 +44,12 @@ class FacebookOAuthManager(val appKey: String, appSecret: String, loginRedirectF
         "redirect_uri" -> loginRedirectFromFacebook, 
         "client_secret" -> appSecret,
         "code" -> code
-      ).get
+      )
 
+    println("acc tok url : \n" + u.url + "/" + u.queryString)
+      
     val res = 
-      u.map { response =>
+      u.get.map { response =>
         val txt = response.body
         txt.split('&').flatMap(_.split('=')).toList match {
           case List("access_token", accessToken,"expires", secondsUntilExpiry) => 
@@ -139,36 +145,24 @@ object FacebookProtocol extends CryptoUtil {
   val facebookOAuthManager = new FacebookOAuthManager(
     facebookAppId, facebookSecret, "https://"+applicationDomainName+ controllers.routes.MainPage.fbauth.url)
 
-  
   val loginRedirectUrl = facebookOAuthManager.loginWithFacebookUrl
   
   sealed trait FBClickOnApplication
-  sealed case class FBClickOnApplicationNonRegistered(jsonMsg: String) extends FBClickOnApplication
+  sealed case class FBClickOnApplicationNonRegistered(jsonMsg: JsValue) extends FBClickOnApplication
   sealed case class FBClickOnApplicationRegistered(fbUserId: Long) extends FBClickOnApplication
 
-  def authenticateSignedRequest(r: Map[String,Seq[String]]): Option[FBClickOnApplication] = {
-
-    val jsonSignedRequest = 
-      for(signedReqSeq <- r.get("signed_request");
-          signedReq  <- signedReqSeq.map(_.split('.').toList).headOption;
-          sr <- signedReq match {
-            case List(sig, req) => Some((sig, req))
-            case _ => None
-          })
-      yield sr
-        
-      jsonSignedRequest match {
-        case None =>
-          logger.error("bad signed_request format :'" + r + "'")
-          None
-        case Some((_sig, __req)) =>
-          
-          val paddedReq = (__req.length() % 4) match {
-            case 0 => __req
-            case 1 => __req + "==="
-            case 2 => __req + "=="
-            case 3 => __req + "="
-          }
+  private def padBas64(s: String) = 
+    (s.length() % 4) match {
+      case 0 => s
+      case 1 => s + "==="
+      case 2 => s + "=="
+      case 3 => s + "="
+    }
+  
+  def authenticateSignedRequest(signedRequest: String): Option[JsValue] = 
+    signedRequest.split('.').toList match {
+      case List(_sig, __req) =>
+          val paddedReq = padBas64(__req)
 
           val reqBin = Base64.decode(paddedReq, Base64.URL_SAFE)
           val reqStr = new String(reqBin)
@@ -192,6 +186,44 @@ object FacebookProtocol extends CryptoUtil {
           }
 
           logger.info("Authentication from Facebook status :" + isValid)
+          if(isValid) Some(js) else None
+      case _ => 
+        logger.error("bad facebook signed_request format :'%s'".format(signedRequest))
+        None
+    }
+
+  def authenticateSignedRequest(r: Map[String,Seq[String]]): Option[FBClickOnApplication] = {
+
+    r.get("signed_request").flatten.toSeq match {
+      case Seq(sreq) =>
+        authenticateSignedRequest(sreq).flatMap { validReqJson =>
+          (validReqJson \ "user_id").asOpt[String] match {
+            case None => Some(FBClickOnApplicationNonRegistered(validReqJson))
+            case Some(sUserId) => parseLong(sUserId) match {
+              case None =>
+                logger.error("invalid facebook userId ")
+                None
+              case Some(uId) => Some(FBClickOnApplicationRegistered(uId)) 
+            }
+          }
+        }
+      case _ => None
+    }
+/*    
+    val jsonSignedRequest = 
+      for(signedReqSeq <- r.get("signed_request").flatten;
+          req <- authenticateSignedRequest(signedReqSeq)
+      yield req
+        
+      jsonSignedRequest match {
+        case None =>
+          logger.error("bad signed_request format :'" + r + "'")
+          None
+        case Some((_sig, __req)) =>
+
+          val isValid = authenticateSignedRequest(__req)
+
+          logger.info("Authentication from Facebook status :" + isValid)
           if(! isValid)
             None
           else
@@ -206,14 +238,15 @@ object FacebookProtocol extends CryptoUtil {
             }
           
       }
+*/      
   }
   
   case class FBAppOAuthToken(tok: String, exipryTime: Long)
   
   
-  var cachedAppToken: Option[AuthorizationToken] = None
+  private var cachedAppToken: Option[AuthorizationToken] = None
   
-  def appToken(clientId: String, clientSecret: String) = cachedAppToken.getOrElse {
+  private def appToken(clientId: String, clientSecret: String) = cachedAppToken.getOrElse {
 
     WS.url("https://graph.facebook.com/oauth/access_token").withQueryString(
       "grant_type"->"client_credentials",
@@ -221,24 +254,35 @@ object FacebookProtocol extends CryptoUtil {
       "client_id" -> clientId,
       "client_secret" -> clientSecret
     ).get.map { r =>
-       AuthorizationToken(r.body.split('=')(1), Long.MaxValue)
+       val t = AuthorizationToken(URLEncoder.encode(r.body.split('=')(1),"UTF-8"), Long.MaxValue)
+       cachedAppToken = Some(t)
+       t
     }.await(1000 * 30).get
   }
   
+  def appAccessToken = appToken(facebookAppId, facebookSecret)
   
-  def looupAppRequestInfo(requestId: Long) = {
-    
-    val appAccessToken = appToken(facebookAppId, facebookSecret)
+  def lookupAppRequestInfo(requestId: Long) = {
 
     WS.url("https://graph.facebook.com/" + requestId).
      withQueryString("access_token" -> appAccessToken.value).get.map { r =>
-      //withQueryString("q" -> "SELECT request_id, app_id FROM apprequest WHERE request_id = 338696852845604"). get.map { r =>
-        println(">>>>>>>>>>> "+r.body)
-
         com.codahale.jerkson.Json.parse[FBAppRequestInfo](r.body)
     }
   }
   
+  def deleteAppRequest(requestId: Long, fbUserId: Long) =
+    zdeleteAppRequest(requestId, fbUserId, appAccessToken.value)
+
+  
+  
+  def zdeleteAppRequest(requestId: Long, fbUserId: Long, appToken: String) = {
+    val u = WS.url("https://graph.facebook.com/" + requestId + "_" + fbUserId + "/").
+       withQueryString("access_token" -> appToken)
+    
+    logger.debug("FB api call : \n" + u.url + u.queryString)
+    logger.debug(u.headers.mkString("\n"))
+    u.delete
+  }  
 }
 
 case class FBAppRequestInfoFrom(id: Long, name: String)
@@ -247,3 +291,13 @@ case class FBAppRequestInfo(id: String, from: FBAppRequestInfoFrom, created_time
   def senderIconUri =
     "https://graph.facebook.com/"+from.id+"/picture"
 }
+
+  /* 
+   *   {"accessToken":"...",
+   *    "userID":"100003718310868",
+   *    "expiresIn":4605,
+   *    "signedRequest":"..."}
+   */
+case class FBAuthResponse(accessToken: String, userID: Long, expiresIn: Int, signedRequest: String)
+
+  

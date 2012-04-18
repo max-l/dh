@@ -138,7 +138,7 @@ case class Decision(
     }
   
   def voteRange = 4
-
+  
   def middleOfRange = 2
 
   def alternativeLabels = 

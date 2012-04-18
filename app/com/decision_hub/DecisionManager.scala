@@ -155,8 +155,12 @@ object DecisionManager {
 
   private implicit def tuplePi(t: (ParticipationInvitation, User)) = 
     t._1.display(t._2)
-    
-  def participants(decisionId: Long, page: Int, size: Int) = inTransaction {
+  
+  def participantAndInvitation(decisionId: Long, page: Int, size: Int) = inTransaction {
+    (invitations(decisionId, page, size), participants(decisionId, page, size))
+  }
+  
+  private def participants(decisionId: Long, page: Int, size: Int) = {
 
     from(decisionParticipations, users)((dp, u) =>
       where(dp.decisionId === decisionId and dp.voterId === u.id)
@@ -164,7 +168,7 @@ object DecisionManager {
     ).page(page, size).map(t => t : ParticipantDisplay).toSeq
   }
   
-  def invitations(decisionId: Long, page: Int, size: Int) = inTransaction {
+  private def invitations(decisionId: Long, page: Int, size: Int) = {
 
     from(participationInvitations, users)((i, u) =>
       where(i.decisionId === decisionId and i.invitedUserId === u.id)
@@ -195,41 +199,65 @@ object DecisionManager {
         ).toList != Nil
       }.getOrElse(false)
 
-    println(">>>>>>>>>>>>1"+d.ownerId)
-    println(">>>>>>>>>>>>2"+currentUser)
     (DSummary(
         decision = d,
         numberOfVoters = pSum._1,
         numberOfAbstentions = pSum._2,
         numberOfVotesExercised = pSum._3,
         alternativeSummaries = aSums.get(d.id).toSeq.flatten),
-     invitations(decisionId, 0, 16),
      participants(decisionId, 0, 16),
+     invitations(decisionId, 0, 16),
      isCurrentUserParticipant,
      currentUser.map(_ == d.ownerId).getOrElse(false)
     )
   }
 
-  def acceptOrDeclineFacebookInvitations(invitedUserId: Long, acceptOrDecline: Map[Long,Boolean]) = transaction {
-    
-    val acceptedIds = acceptOrDecline.filter(_._2).map(_._1)
-    val refusedIds  = acceptOrDecline.filterNot(_._2).map(_._1)
-    
-    update(participationInvitations)( pi => 
-      where(pi.invitedUserId === invitedUserId and pi.decisionId.in(refusedIds))
-      set(pi.declined := true)
-    )
-    
-    val pis = 
-      participationInvitations.deleteWhere(i => i.decisionId.in(acceptedIds) and i.invitedUserId === invitedUserId)
+  /**
+   * return the FB appRequestIds that were deleted in the DB 
+   */
+  def acceptOrDeclineFacebookInvitations(invitedUserId: Long, acceptOrDecline: Map[Long,Boolean]) = 
+    if(acceptOrDecline.isEmpty) 
+      Nil 
+    else transaction {
 
-    val toInsert = 
-      for(dId <- acceptedIds)
-        yield DecisionParticipation(dId, invitedUserId)
-    
-    decisionParticipations.insert(toInsert)
-  }
-  
+      val acceptedIds = acceptOrDecline.filter(_._2).map(_._1)
+      val refusedIds  = acceptOrDecline.filterNot(_._2).map(_._1)
+      val allInvitationIds = acceptOrDecline.keys
+
+      val facebookReqIds = 
+        from(participationInvitations)(dp =>
+          where(dp.decisionId.in(allInvitationIds) and dp.invitedUserId === invitedUserId)
+          select(&(dp.facebookAppRequestId))
+        ).toList.toSeq : Seq[Long]
+
+      /*
+      FacebookProtocol.deleteAppRequest(allInvitationIds.head, invitedUserId).map { r =>
+        r.status match {
+          case 200 =>
+            logger.debug("deleted FB apprequest" + allInvitationIds.head)
+          case s:Any =>
+            sys.error("delete of facebook apprequest returned with error " + r)
+        }
+      }
+      */
+
+      update(participationInvitations)( pi => 
+        where(pi.invitedUserId === invitedUserId and pi.decisionId.in(refusedIds))
+        set(pi.declined := true)
+      )
+
+      val pis = 
+        participationInvitations.deleteWhere(i => i.decisionId.in(acceptedIds) and i.invitedUserId === invitedUserId)
+
+      val toInsert = 
+        for(dId <- acceptedIds)
+          yield DecisionParticipation(dId, invitedUserId)
+
+      decisionParticipations.insert(toInsert)
+
+      facebookReqIds
+    }
+
   def acceptFacebookInvitation(requestId: Long, invitedUserId: Long): DecisionParticipation = transaction {
 
     val inv = 

@@ -6,13 +6,14 @@ GET     /logout                                controllers.MainPage.logout
 
 GET     /                                      controllers.MainPage.index
 POST    /facebookCanvasUrl/                    controllers.MainPage.facebookCanvasUrl
+POST    /loginWithFacebookToken                controllers.MainPage.loginWithFacebookToken
 GET     /channel                               controllers.MainPage.facebookChannelFile
 GET     /externalLogin/:provider/*path         controllers.MainPage.externalLogin(provider: String, path: String)
 
 
 GET     /decisionSummaries                     controllers.Screens.decisionSummaries
-GET     /p/:decisionId                         controllers.Screens.decisionDetails(decisionId: Long)
 GET     /participants/:decisionId/:page/:size  controllers.Screens.participants(decisionId: Long, page: Int, size: Int)
+GET     /p/:decisionId                         controllers.Screens.decisionDetails(decisionId: Long)
 GET     /decision/create                       controllers.Screens.create
 POST    /decision/create                       controllers.Screens.submitNewDecision
 GET     /decision/edit/:decisionId             controllers.Screens.edit(decisionId: Long)

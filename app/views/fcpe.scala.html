@@ -1,4 +1,4 @@
-@(centerPanelUriAndContent: (String,Html), displayName: Option[String], refreshCenterPanelAfterLoad: Boolean)
+@(centerPanelUriAndContent: (String,Html), displayName: Option[String], refreshCenterPanelAfterLoad: Boolean, clientSideFbLogin: Boolean)
 <!DOCTYPE html>
 
 <html>
@@ -7,16 +7,13 @@
      <style type="text/css"></style>
 
      <link rel="stylesheet" href="@routes.Assets.at("stylesheets/bootstrap.css")">
-     <link rel="stylesheet" href="@routes.Assets.at("jquery-ui/jquery-ui-1.8.18.custom.css")">
 
-     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-     <!--
-     <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")"    type="text/javascript"></script>
-     -->
-     <script src="@routes.Assets.at("jquery-ui/development-bundle/jquery-1.7.1.js")"    type="text/javascript"></script>
-     <script src="@routes.Assets.at("jquery-ui/development-bundle/ui/jquery-ui-1.8.18.custom.js")"    type="text/javascript"></script>
+     <link rel="stylesheet" 
+            href="@routes.Assets.at("javascripts/jquery-custom/themes/ui-lightness/jquery-ui-1.8.18.custom.css")">
 
-     <script src='@routes.Assets.at("javascripts/bootstrap-dropdown.js")'  type="text/javascript"></script>
+     <script src="@routes.Assets.at("javascripts/jquery-custom/jquery-1.7.1.js")"                  type="text/javascript"></script>
+     <script src="@routes.Assets.at("javascripts/jquery-custom/ui/jquery-ui-1.8.18.custom.js")"    type="text/javascript"></script>
+
      <script src='@routes.Assets.at("javascripts/bootstrap-scrollspy.js")' type="text/javascript"></script>
      <script src='@routes.Assets.at("javascripts/bootstrap-collapse.js")'  type="text/javascript"></script>
      <script src='@routes.Assets.at("javascripts/bootstrap-tooltip.js")'   type="text/javascript"></script>
@@ -27,10 +24,6 @@
      <script src='@routes.Assets.at("javascripts/funcs.js")'  type="text/javascript"></script>
      
      <script type="text/javascript">
-
-       google.load("visualization", "1", {packages:["corechart"]});
-
-       //google.setOnLoadCallback(function() {})
 
        function readCookie(name) {
          var nameEQ = name + "=";
@@ -79,8 +72,14 @@
 
        setCenterPanelUri("@centerPanelUriAndContent._1")
 
+       @if(!clientSideFbLogin) {
+         $.fn.doLogIn = function() {
+          window.location.href = "/externalLogin/facebook" + centerPanelUrl
+         }
+       }
+
        function login() {
-         window.location.href = "/externalLogin/facebook" + centerPanelUrl
+         $.fn.doLogIn()
        }
 
        function logout() {
@@ -109,70 +108,48 @@
        function newDecisions() {
          ajaxAction('/decision/create')
        }
-
-       function drawChart(targetDiv, chartWidth, data) {
-
-         var options = {
-           width: chartWidth,
-           height: chartWidth,
-           legend: {position : 'none'},
-           chartArea : {top: 0, left: 0, width: chartWidth, height: chartWidth}
-         }
-
-         var t = new google.visualization.DataTable();
-         t.addColumn('string', '');
-         t.addColumn('number', '');
-         t.addRows(data.length)
-
-         for(i = 0; i < data.length; i++) {
-           t.setValue(i, 0, data[i][0])
-           t.setValue(i, 1, data[i][1])
-         }
-
-         new google.visualization.PieChart(targetDiv).draw(t, options);
-       }
-
      </script>
 
-
-   <script> 
-     function displayUser(user) {
-       var userName = document.getElementById('userName');
-       var greetingText = document.createTextNode('Greetings, ' + user.name + '.');
-        userName.appendChild(greetingText);
-     }
-
-function aut1() {
-     var appID = "300426153342097";
-     if (window.location.hash.length == 0) {
-       var path = 'https://www.facebook.com/dialog/oauth?';
-       var queryParams = ['client_id=' + appID, 'redirect_uri=' + window.location, 'response_type=token'];
-       var query = queryParams.join('&');
-       var url = path + query;
-       window.open(url);
-     } else {
-       var accessToken = window.location.hash.substring(1);
-       var path = "https://graph.facebook.com/me?";
-       var queryParams = [accessToken, 'callback=displayUser'];
-       var query = queryParams.join('&');
-       var url = path + query;
-
-       // use jsonp to call the graph
-       var script = document.createElement('script');
-       script.src = url;
-       document.body.appendChild(script);
-}
-     }
-   </script> 
-   <p id="userName"></p> 
-   
     </head>
     <body>
 
 
     <div id="fb-root"></div>
     <script>
-      @facebookClientSideAuth("300426153342097"){Html.empty}
+      @facebookClientSideAuth("300426153342097") {
+        @if(clientSideFbLogin) {
+
+          var wasPromptedForAuthorisation = false;
+
+          $.fn.doLogIn = function() {
+             wasPromptedForAuthorisation = true
+             FB.login()
+          };
+
+          FB.Event.subscribe('auth.statusChange', function(response) {
+            if (response.authResponse) {
+              // user has auth'd your app and is logged into Facebook
+              $.ajax({
+                type: 'POST',
+                url: "/loginWithFacebookToken",
+                data: JSON.stringify(response.authResponse),
+                success: function() {
+                
+                },
+                error: function(p1) {
+                  alert("no !")
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json'
+              })
+            } else {
+              if(wasPromptedForAuthorisation) {
+                alert('NOT authorized : ...')
+              }
+            }
+          })
+        }
+      }
     </script>
 
 

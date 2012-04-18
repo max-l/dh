@@ -7,6 +7,8 @@ import org.squeryl.PrimitiveTypeMode._
 import org.squeryl._
 import play.api.libs.concurrent._
 import com.codahale.jerkson.Json._
+import java.net.URI
+import java.net.URLEncoder
 
 object TestData {
 
@@ -154,7 +156,7 @@ object TestData {
     ).get.map { r =>
       println("-> "+r.body)
        r.body.split('=').toList match {
-         case List(expiryInSeconds, value) => new AuthorizationToken(value, Long.MaxValue)
+         case List(expiryInSeconds, value) => new AuthorizationToken(URLEncoder.encode(value,"UTF-8"), Long.MaxValue)
          case _ => sys.error("bad response " + r.body)
        }
     }.await(1000 * 30).get
@@ -162,18 +164,43 @@ object TestData {
   
   def appR = {
 
+        def zdeleteAppRequest(requestId: Long, fbUserId: Long, appToken: String) = {
+          val u = WS.url("https://graph.facebook.com/" + requestId + "_" + fbUserId + "/").
+             withQueryString("access_token" -> appToken)
+          u.delete
+        }
+        
     val appAccessToken = appToken(300426153342097L, "52242a46291a5c1d4e37b69a48be689f")
 
+    zdeleteAppRequest(418532081508698L, 100003718310868L, appAccessToken.value)
+    
+    
+/*    
     println("TOK:" + appAccessToken)
     //GET /fql?q=SELECT+uid2+FROM+friend+WHERE+uid1=me()&access_token=...
     val zaza =
-      WS.url("https://graph.facebook.com/338696852845604").
+      WS.url("https://graph.facebook.com/284195261666034").
        withQueryString("access_token" -> appAccessToken.value).get.map { r =>
         //withQueryString("q" -> "SELECT request_id, app_id FROM apprequest WHERE request_id = 338696852845604"). get.map { r =>
           println(">>>>>>>>>>> "+r.body)
       }.await(1000 * 30)
-    
+      
+      //curl -sL -w "%{http_code}" 'https://graph.facebook.com/339320519466276/?access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU'
+      //curl -sL -w "%{http_code}" -X DELETE 'https://graph.facebook.com/100003718310868_339320519466276/?access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU'
+      
+      // THis is the one !!!! :
+      //curl -sL -w "%{http_code}" -X DELETE 'https://graph.facebook.com/400557276634723_100003718310868/?access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU'
+
+      
+      
+      WS.url("https://graph.facebook.com/100003718310868_284195261666034").
+       withQueryString("access_token" -> appAccessToken.value).delete.map { r =>
+        //withQueryString("q" -> "SELECT request_id, app_id FROM apprequest WHERE request_id = 338696852845604"). get.map { r =>
+          println(">>>>>>>>>>> "+r.body)
+      }.await(1000 * 30)      
+*/
   }
+  
   
   def doIt {
     val appAccessToken = appToken(300426153342097L, "52242a46291a5c1d4e37b69a48be689f")
@@ -202,15 +229,100 @@ object TestData {
     
   }
   
+  def batchDel = {
+        
+  }
+/*
+  def deleteAppRequest(requestId: Long, fbUserId: Long) = {
+
+    
+    import org.apache.http.client._
+    import org.apache.http.client.methods._
+    import org.apache.http.params._
+    
+    //import org.apache.http.client.methods.
+
+    
+    //org.apache.http.client.
+ 
+    import org.apache.http.impl.client.DefaultHttpClient
+
+    val httpclient = new DefaultHttpClient()
+    
+    val u = new URI("https://graph.facebook.com/" + requestId + "_" + fbUserId + "/?" + 
+        //"access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU")
+        "access_token=" + URLEncoder.encode("300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU","UTF-8"))
+    
+    println(u)
+    
+    //val method = new HttpGet(u)
+    val method = new HttpDelete(u)
+    
+    val r = httpclient.execute(method)
+    
+    r.getAllHeaders().mkString("\n")
+    
+    
+  }
   
+    
+  def qdeleteAppRequest(requestId: Long, fbUserId: Long) = {
+    val u = WS.url("https://graph.facebook.com/" + requestId + "_" + fbUserId + "/").
+       withQueryString("access_token" -> URLEncoder.encode("300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU","UTF-8"))
+       
+     u.delete().map { r0 =>
+       println(r0.status)
+       println(r0.body)
+      
+    }.await(1000 * 5 * 60)
+       
+    //com.ning.http.client.
+      
+    
+    import com.ning.http.client._;
+    import java.util.concurrent.Future;
+
+    val asyncHttpClient = new AsyncHttpClient()
+    val f = asyncHttpClient.prepareDelete("https://graph.facebook.com/" + requestId + "_" + fbUserId + "/").execute();
+    val r = f.get()
+    
+    println(r.getStatusCode())
+    println(r.getStatusText())
+    println(r.getResponseBody())
+    
+    //println(u.headers.map(h => h._1 + "=" + h._2).mkString("\n"))    
+    //println("FB api call : \n" + u.url + u.queryString)
+    //println(u.headers.mkString("\n"))
+    //u.delete
+  }
   
+  def dddd = {
+    deleteAppRequest(418532081508698L, 100003718310868L)
+/*    
+      map{ r => 
+        println(r.status)
+        println(r.body)
+        }.await(1000 * 5 * 60)
+*/      
+  }
+*/  
   def main(args: Array[String]): Unit = {
         
    //println(FBInvitationRequest.parseString(js))
    //println(parse[FBInvitationRequest](js))
      
    //doIt
-    appR
+   //appR
+    //dddd
+    
+    //val tok = URLEncoder.encode("300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU","UTF-8")
+    val tok = "300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU"
+    
+    FBBatchRequest(tok, Seq(FBBatchMethod("POST", "418532081508698_100003718310868"))).wsUri.map { r =>
+      println(r.status)
+      println(r.body)
+    }
+    
      
     try { 1}
     catch {
@@ -221,4 +333,32 @@ object TestData {
     }
   }
 }
+/*
+ * 
+ * 
+curl -F 'access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU' \
+     -F 'batch=[{ "method": "POST","relative_url": "method/fql.query?query=select+name+from+user+where+uid=4"}]' https://graph.facebook.com
+ 
+ 
+{"access_token":"300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU",
+ "batch":[
+   {"method":"DELETE","relative_url":"418532081508698_100003718310868"}
+  ]
+} 
+ 
+curl -F 'access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU' \
+     -F 'batch=[{"method": "DELETE", "relative_url": "418532081508698_100003718310868"}]' https://graph.facebook.com
+*/
+case class FBBatchMethod(method: String, relative_url: String)
+
+
+case class FBBatchRequest(access_token: String, batch: Seq[FBBatchMethod]) {
+  
+  def wsUri = WS.url("https://graph.facebook.com").post{ 
+    val json  = com.codahale.jerkson.Json.generate(this)
+    println(json)
+    json
+  }
+}
+
 

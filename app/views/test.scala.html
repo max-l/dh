@@ -20,12 +20,21 @@
         FB.Event.subscribe('auth.statusChange', function(response) {
           if (response.authResponse) {
             // user has auth'd your app and is logged into Facebook
-            alert('authorized : ...')
-            FB.api('/me', function(me){
-              if (me.name) {
-                alert('name is : ...' + me.name)
-              }
-            })
+            alert('authorized : ...' + JSON.stringify(response.authResponse))
+
+           $.ajax({
+             type: 'POST',
+             url: "/loginWithFacebookToken",
+             data: JSON.stringify(response.authResponse),
+             success: function(idOfNewDecision) {
+               alert("yes !")
+             },
+             error: function(p1) {
+               alert("no !")
+             },
+             contentType: "application/json; charset=utf-8",
+             dataType: 'json'
+           })
           } else {
             if(declined == 1) {
               alert('NOT authorized : ...')

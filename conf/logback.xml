@@ -14,9 +14,10 @@
   <logger name="o.e.j" level="INFO" />
 -->
   
-  <logger name="com.ning" level="INFO" />
-  
   <logger name="com.strong_links" level="DEBUG" />
+  
+  <logger name="com.ning" level="DEBUG" />
+  <logger name="org.apache" level="DEBUG" />
   
   <root level="info">
     <appender-ref ref="STDOUT" />

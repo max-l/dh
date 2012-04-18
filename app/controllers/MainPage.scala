@@ -18,6 +18,18 @@ import com.decision_hub._
 import com.decision_hub.Util._
 import com.decision_hub.FacebookProtocol._
 
+/**
+ * 
+ *  TODO : 
+ * 
+ * Landing centerPanel is  
+ * - When participant in 1 decision ---> decisionDetails
+ * - When participant in > 1 decisions ---> decisionSummaries
+ * - When participant in 0 ---> what is it text....
+ * 
+ */
+
+
 
 object MainPage extends BaseDecisionHubController {
 
@@ -35,7 +47,7 @@ object MainPage extends BaseDecisionHubController {
   }
   
   def landingPage(session: Option[DecisionHubSession]) =
-    html.fcpe((defaultLandingPage, Screens.decisionSummariesPage(session)), session.map(_.displayName), false)
+    html.fcpe((defaultLandingPage, Screens.decisionSummariesPage(session)), session.map(_.displayName), false, false)
   
   def index = MaybeAuthenticated { session =>  r =>
 
@@ -50,7 +62,7 @@ object MainPage extends BaseDecisionHubController {
       case None => 
         Ok(landingPage(session))
       case Some(u) => // post login
-        Ok(html.fcpe((defaultLandingPage, Html.empty), displayName, true))
+        Ok(html.fcpe((defaultLandingPage, Html.empty), displayName, true, false))
     }
   }
 
@@ -74,7 +86,53 @@ object MainPage extends BaseDecisionHubController {
 
   def clientSideAuthorize = 
     Ok(html.test())
-  
+
+  def loginWithFacebookToken = MaybeAuthenticated(expectJson[FBAuthResponse]) { session => implicit request =>
+    session match {
+      case Some(_) => Ok // already logged in...
+      case _ => FacebookProtocol.authenticateSignedRequest(request.body.signedRequest) match {
+        case None =>
+          logger.debug("Invalid FB signedRequest.")
+          BadRequest
+        case Some(req) =>
+
+          val fbUserId = java.lang.Long.parseLong((req \ "user_id").as[String])
+
+          AuthenticationManager.lookupFacebookUser(fbUserId) match {
+            case Some(u) =>
+              logger.debug("fb user %s authenticated.".format(fbUserId))
+              AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
+            case None =>
+
+              val fbCode = (req \ "code").as[String]
+
+              FacebookProtocol.facebookOAuthManager.obtainMinimalInfo(request.body.accessToken) match {
+                case Left(info) => transaction {
+                  val u = AuthenticationManager.authenticateOrCreateUser(info)
+                  val ses = new DecisionHubSession(u, request)
+                  AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
+                }
+                case Right(error) => 
+                  Logger.info("Failed to get info from facebook" + error)
+                  BadRequest
+             }
+          }
+      }
+    }
+  }
+    /**
+     *  Ways to land on the FB canvas :
+     *
+     *    1) User gets invited to vote --> View invitation + Authorize
+     *
+     *    2) User clicks on app within FB --> View about
+     *
+     *
+     *  Ways to land on the site :
+     *
+     *  Vote URL 
+     */
+
   // TODO: ensure that reverse proxy only forwards here when HTTPS
   def facebookCanvasUrl = MaybeAuthenticated(expect[FBClickOnApplication]) { session => implicit request =>
 
@@ -84,26 +142,23 @@ object MainPage extends BaseDecisionHubController {
         extractRequestIds(request.queryString, "request_ids").headOption match {
           case None => 
             Ok(landingPage(session))
-          clientSideAuthorize
-          case Some(reqId) => Async(
-            Dialogs.authorizeAppPage(reqId).map(page => Ok(html.fcpe(page, None, false)))
-          )
-          clientSideAuthorize
+          case Some(reqId) =>
+            Async(
+              Dialogs.authorizeAppPage(reqId).map(page => Ok(html.fcpe(page, None, false, true)))
+            )
       }
       case FBClickOnApplicationRegistered(fbUserId) =>
         AuthenticationManager.lookupFacebookUser(fbUserId) match {
           case Some(u) =>
             val session = new DecisionHubSession(u, request)
             this.logger.debug("registered user " + fbUserId + " authenticated.")
-
             //no need to redirect because : (1) we are in an iframe, (2) we are on https
             AuthenticationSuccess(
-              Ok(html.fcpe((defaultLandingPage, Screens.decisionSummariesPage(Some(session))), Some(u.displayableName), false)),
+              Ok(html.fcpe((defaultLandingPage, Screens.decisionSummariesPage(Some(session))), Some(u.displayableName), false, false)),
               session
             )
             //AuthenticationSuccess(Redirect(routes.MainPage.index), ses)
           case None => // user clicked on 'my applications'
-
             this.logger.error("non fatal error : fb user " + fbUserId + 
                 " registered with FB, but not present in the DB, only explanation : app crash on response from facebook oaut registration.")
             // the login redirect will re import user info... 

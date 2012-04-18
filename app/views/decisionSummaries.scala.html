@@ -34,9 +34,27 @@
   
   <script>
     function saveOrDecline() {
-      $.post("/acceptOrDeclineInvitations", $("#acceptOrDeclineInvitationsForm").serialize())
+
+      var z = $("#acceptOrDeclineInvitationsForm").serialize()
+
+      $.ajax({
+        type: 'POST',
+        url: "/acceptOrDeclineInvitations",
+        data: z,
+        success: function(requestIdsToDeleteJs) {
+          var rIds = requestIdsToDeleteJs
+          $.each(rIds, function(idx, rId) {
+            FB.api(rId + "", 'delete', function(response) {
+              //alert("deleted apprequest " + rId + ": " JSON.stringify(response))
+            })
+          })
+        },
+        error: function(p1) {}
+      })
+
       $('#acceptOrDeclineInvitationsDialog').modal('hide')
     }
+    
     $('#acceptOrDeclineInvitationsDialog').modal('show')
   </script>  
 }
@@ -75,9 +93,3 @@
 </div>
 </a>
 }
-
-<script>
-@for(d <- summaries) {
-  drawChart(document.getElementById('__dsum@d.decision.id'), 120, @Html(d.pieChartData))
-}
-</script>

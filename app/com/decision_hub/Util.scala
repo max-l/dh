@@ -80,12 +80,15 @@ object Util {
     }
 
   implicit object booleanLongMapBodyParser extends CustomBodyParser[Map[Long,Boolean]] {
-    def parser = BodyParsers.parse.urlFormEncoded.map( m =>
+    def parser = BodyParsers.parse.urlFormEncoded.map { m =>
+      
+      println("---->" + m)
+      
       m.map(_ match {
         case (k,Seq("true"))  => (parseLong(k), true)
         case (k,Seq("false")) => (parseLong(k), false)
       })
-    )
+    }
   }
 
   implicit object longIntMapBodyParser extends CustomBodyParser[Map[Long,Int]] {

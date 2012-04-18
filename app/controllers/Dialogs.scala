@@ -27,7 +27,7 @@ object Dialogs extends BaseDecisionHubController {
 
   
   def authorizeAppPage(fbAppReqId: Long) =
-    FacebookProtocol.looupAppRequestInfo(fbAppReqId).map { appReqInfo =>
+    FacebookProtocol.lookupAppRequestInfo(fbAppReqId).map { appReqInfo =>
       
       val d = DecisionManager.lookupDecision(appReqInfo.data)
       
@@ -42,9 +42,16 @@ object Dialogs extends BaseDecisionHubController {
   }
 
   def acceptOrDeclineInvitations = IsAuthenticated(expect[Map[Long,Boolean]]) { session => implicit request =>
+    
+    println(">>>>>>>>>>>>>...")
 
-    DecisionManager.acceptOrDeclineFacebookInvitations(session.userId, request.body)
-    Ok
+    import play.api.libs.json.Json._
+    Ok {
+      val z = 
+        toJson(DecisionManager.acceptOrDeclineFacebookInvitations(session.userId, request.body))
+      println(">>>>>>>>>>>>>: \n " + z)
+      z
+    }
   }
   
   
