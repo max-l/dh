@@ -25,17 +25,6 @@
      
      <script type="text/javascript">
 
-       function readCookie(name) {
-         var nameEQ = name + "=";
-         var ca = document.cookie.split(';');
-         for(var i=0;i < ca.length;i++) {
-           var c = ca[i];
-           while (c.charAt(0)==' ') c = c.substring(1,c.length);
-           if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-         }
-         return null;
-       }
-
        var dn = "@displayName.getOrElse("")"
 
        var loggedInStatusTimer = null
@@ -98,7 +87,7 @@
        }
 
        function myDecisions() {
-         ajaxAction('/decisionSummaries')
+         ajaxAction('/mainScreen')
        }
 
        function decisionDetails(id) {
@@ -134,11 +123,9 @@
                 url: "/loginWithFacebookToken",
                 data: JSON.stringify(response.authResponse),
                 success: function() {
-                
+                  refreshAuthenticatedStatus()
                 },
-                error: function(p1) {
-                  alert("no !")
-                },
+                error: function() {},
                 contentType: "application/json; charset=utf-8",
                 dataType: 'json'
               })

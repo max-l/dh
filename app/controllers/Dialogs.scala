@@ -42,14 +42,10 @@ object Dialogs extends BaseDecisionHubController {
   }
 
   def acceptOrDeclineInvitations = IsAuthenticated(expect[Map[Long,Boolean]]) { session => implicit request =>
-    
-    println(">>>>>>>>>>>>>...")
-
     import play.api.libs.json.Json._
     Ok {
       val z = 
         toJson(DecisionManager.acceptOrDeclineFacebookInvitations(session.userId, request.body))
-      println(">>>>>>>>>>>>>: \n " + z)
       z
     }
   }

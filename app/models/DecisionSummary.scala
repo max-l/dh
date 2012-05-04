@@ -89,7 +89,7 @@ case class DecisionPost(
 case class AlternativePost(id: Long, title: String)
 
 
-case class ParticipantDisplay(displayName: String, iconSrc: Option[String], accepted: Boolean)
+case class ParticipantDisplay(displayName: String, iconSrc: Option[String], accepted: Boolean, email: Option[String])
 
 case class FBFriendInfo(uid: Long, name: String)
 

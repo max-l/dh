@@ -22,7 +22,7 @@ object DecisionManager {
           d.id.in(from(decisionParticipations)(dp => where(dp.voterId === userId) select(dp.decisionId)))
       }
       select(d)
-    )
+    ).distinct
 
  
   def participationSummaries(decisionIds: Seq[Long]) =
@@ -306,7 +306,14 @@ object DecisionManager {
   
   def usersByFbId(fbIds: Traversable[Long]) =
     from(Schema.users)(u =>
-      where(u.facebookId.in(fbIds))
+      where { 
+        val fbId = u.facebookId.~
+
+        println(fbId)
+        val r = fbId.in(fbIds)
+
+        r
+      }
       select(&(u.id), &(u.facebookId))
     )
 
@@ -416,4 +423,17 @@ object DecisionManager {
         }
       case Right(js) => Some(js)
     }
+  
+  def processElectionTerminations = transaction {
+    
+    val n = Option(new Timestamp(Util.now))
+    
+    update(decisions)(d =>
+      where(
+       d.endsOn > n and 
+       d.endedByCompletionOn.isNotNull and 
+       d.endedByOwnerOn.isNotNull)
+      set(d.endedByCompletionOn := n)
+    )
+  }
 }

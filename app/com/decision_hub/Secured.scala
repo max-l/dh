@@ -63,6 +63,8 @@ trait Secured[S] {
     
   val maxIdleTimeInSeconds = 45 * 60
   
+  val rememberMyExpirationInSeconds = 60 * 60 * 24 * 30
+  
   def MaybeAuthenticated(block: Option[S] => Request[AnyContent] => Result): Action[AnyContent] =
     MaybeAuthenticated(BodyParsers.parse.anyContent)(block)
     
@@ -71,7 +73,7 @@ trait Secured[S] {
       validateToken(request) match {
         case Some(session) => 
           val result = block(Some(session))(request)
-          createOrExtendAuthenticator(request, bake(session, request), result, false)
+          createOrExtendAuthenticator(request, session, result, false)
         case None =>
           block(None)(request)
       }
@@ -86,14 +88,16 @@ trait Secured[S] {
       Action(bp) { request => 
         logger.debug("Autentication success.")
         val result = f(session)(request)
-        createOrExtendAuthenticator(request, bake(session, request), result, false)
+        createOrExtendAuthenticator(request, session, result, false)
       }
     }
   }  
   
-  private def createOrExtendAuthenticator[A](request: Request[A], encodedAuthenticator: String, r: Result, isCreate: Boolean) = {
-    
-    
+  private def createOrExtendAuthenticator[A](request: Request[A], session: S, r: Result, isCreate: Boolean) = {
+
+    val userId = userIdFromSession(session)
+    val encodedAuthenticator = bake(session,request)
+
     def addCookiesAndSessionData(plainResult: PlainResult) = { 
       val r2 =
         if(isCreate)
@@ -101,7 +105,10 @@ trait Secured[S] {
         else // Extend
           plainResult.withSession(authenticatonTokenName -> encodedAuthenticator)
 
-       r2.withCookies(Cookie("DISPLAY_AS_LOGGED_IN","true", maxAge = maxIdleTimeInSeconds, httpOnly = false))
+       r2.withCookies(
+           Cookie("DISPLAY_AS_LOGGED_IN","true", maxAge = maxIdleTimeInSeconds, httpOnly = false),
+           Cookie("REMEMBERED_USER",userId.toString, maxAge = maxIdleTimeInSeconds, httpOnly = false)
+          )
     }
 
     r match {
@@ -146,6 +153,6 @@ trait Secured[S] {
     val userId = userIdFromSession(concreteSession)
     val dataInCoookie = dataFromSession(concreteSession)
     val encodedAuthenticator = toughCookieBakery.bake(userId, maxIdleTimeInSeconds, sslSessionId(request), dataInCoookie)
-    createOrExtendAuthenticator(request, encodedAuthenticator, result, true)
+    createOrExtendAuthenticator(request, concreteSession, result, true)
   }
 }

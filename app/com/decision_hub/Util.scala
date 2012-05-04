@@ -10,6 +10,8 @@ import play.api.libs.concurrent.Promise
 
 object Util {
 
+  def now = System.currentTimeMillis
+  
   class JavascriptEscaper(s: String) {
     def encodedAsJavascript = 
       s.replace("\'","\\'").replace("\"","\\\"")
@@ -30,7 +32,21 @@ object Util {
       "Headers: \n" + allHeaders(headers).mkString("\n")
     ).mkString("\n")
     
-    
+
+
+  def encodeLong(v: Long) = {
+    // Every long has 64 bits, and we need 11 segments of 6 bits to represent it.
+    // The characters used are letters, digits, underscore and dash.
+    val uuidChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+    (0 until 11).map(i => uuidChars(((v >> (i * 6)) & 63).toInt)).mkString
+  }
+
+  def newGuid = {
+    import java.util.UUID
+    val uuid = UUID.randomUUID
+    encodeLong(uuid.getMostSignificantBits) + encodeLong(uuid.getLeastSignificantBits)
+  }
+  
   def parseLong(s: String) =
     java.lang.Long.parseLong(s)
 

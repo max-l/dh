@@ -1,0 +1,16 @@
+
+{{view Todos.CreateTodoView placeholder="What are the choices for this decision ?"}}
+
+
+<ul>
+{{#each Todos.todosController}}
+  <li>{{title}} 
+    <a><i class='icon-remove'></i></a>
+    
+  </li>
+  
+  {{view Todos.Alternative}}  
+{{/each}}
+</ul>
+
+{{action "edit" on="click"}}

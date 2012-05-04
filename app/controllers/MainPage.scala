@@ -29,7 +29,7 @@ import com.decision_hub.FacebookProtocol._
  * 
  */
 
-
+case class Todo(id: String, text: String)
 
 object MainPage extends BaseDecisionHubController {
 
@@ -37,6 +37,34 @@ object MainPage extends BaseDecisionHubController {
   val LANDING_PAGE_COOKIE_NAME = "landingPathAfterLogin"
   
   
+  def tdGet = Action { r =>
+    println("--->tdGet")
+    println(r.body)
+    
+    Ok(play.api.libs.json.Json.toJson(Seq(
+      Map("id" -> "a", "text" -> "a"),
+      Map("id" -> "b", "text" -> "b")
+    )))
+  }
+  
+  def tdPost = Action(BodyParsers.parse.json) { r =>
+    println("--->tdPost")
+    println(r.body)
+    Ok
+  }
+
+  def tdPut = Action(BodyParsers.parse.json) { r =>
+    println("--->tdPut")
+    println(r.body)
+    Ok
+  }
+
+  def tdDelete = Action(BodyParsers.parse.json) { r =>
+    println("--->tdDelete")
+    println(r.body)
+    Ok
+  }
+
   def externalLogin(provider: String, currentPageUri: String) = MaybeAuthenticated { mpo => implicit req =>
     provider match {
       case "facebook" =>
@@ -46,8 +74,20 @@ object MainPage extends BaseDecisionHubController {
     }
   }
   
-  def landingPage(session: Option[DecisionHubSession]) =
-    html.fcpe((defaultLandingPage, Screens.decisionSummariesPage(session)), session.map(_.displayName), false, false)
+  def backb = Action { r =>
+    Ok(html.backb())
+  }
+  
+  def backb2 = Action { r =>
+    Ok(html.backb2())
+  }  
+  
+  def sp = Action { r =>
+    Ok(html.sp())
+  }  
+    
+  def landingPage(session: Option[DecisionHubSession], r: Request[_]) =
+    html.fcpe((defaultLandingPage, Screens.mainScreenDef(session, r)), session.map(_.displayName), false, false)
   
   def index = MaybeAuthenticated { session =>  r =>
 
@@ -60,13 +100,13 @@ object MainPage extends BaseDecisionHubController {
 
     uri match {
       case None => 
-        Ok(landingPage(session))
+        Ok(landingPage(session, r))
       case Some(u) => // post login
         Ok(html.fcpe((defaultLandingPage, Html.empty), displayName, true, false))
     }
   }
 
-  val defaultLandingPage = routes.Screens.decisionSummaries.url
+  val defaultLandingPage = routes.Screens.mainScreen.url
   
   def facebookChannelFile = Action {
     val expire = 60*60*24*365
@@ -141,7 +181,7 @@ object MainPage extends BaseDecisionHubController {
 
         extractRequestIds(request.queryString, "request_ids").headOption match {
           case None => 
-            Ok(landingPage(session))
+            Ok(landingPage(session, request))
           case Some(reqId) =>
             Async(
               Dialogs.authorizeAppPage(reqId).map(page => Ok(html.fcpe(page, None, false, true)))
@@ -154,7 +194,7 @@ object MainPage extends BaseDecisionHubController {
             this.logger.debug("registered user " + fbUserId + " authenticated.")
             //no need to redirect because : (1) we are in an iframe, (2) we are on https
             AuthenticationSuccess(
-              Ok(html.fcpe((defaultLandingPage, Screens.decisionSummariesPage(Some(session))), Some(u.displayableName), false, false)),
+              Ok(html.fcpe((defaultLandingPage, Screens.mainScreenDef(Some(session), request)), Some(u.displayableName), false, false)),
               session
             )
             //AuthenticationSuccess(Redirect(routes.MainPage.index), ses)

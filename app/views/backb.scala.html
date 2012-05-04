@@ -1,0 +1,66 @@
+@()
+<!DOCTYPE html>
+
+  @js(p: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
+  @script(s: Html) = {
+    <script>
+      @s
+    </script>
+  }
+
+  @css(p: String) = {<link  href='@routes.Assets.at("stylesheets/" + p)' rel="stylesheet"/>}
+
+  @template(id: String)(body: Html) = {
+    <script type="text/template" id="@id">
+      @body
+    </script>
+  }
+
+<html>
+  <head>
+
+    @css("bootstrap.css")
+    @css("timepicker.css")
+
+    @js("jquery-1.7.1.min.js")
+    
+    @js("underscore.js")
+    @js("backbone.js")
+    
+    @js("bootstrap.js")
+    @js("bootstrap-timepicker.js")
+
+
+    @template("item-template") {
+      <div <%= id ? 'data-id="'+id+'"' : '' %>>
+        <div class="edit">
+          <input class="todo-input" type="text" value="" /><i class='icon-remove'></i>
+        </div>
+      </div>
+    }
+
+    @template("stats-template"){<%=total%>}
+
+  </head>
+  <body>
+    <div id="todoapp">
+    
+      <input type="text" data-provide="timepicker">​
+        
+      <div class="content">
+          
+        <div id="create-todo">
+          <input id="new-todo" placeholder="What needs to be done?" type="text" />
+        </div>
+
+        <ul id="todo-list"></ul>
+
+        <div id="todo-stats"></div>
+
+      </div>
+
+    </div>
+
+    @js("backb.js")
+  </body>
+<html>

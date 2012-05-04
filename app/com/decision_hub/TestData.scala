@@ -203,6 +203,10 @@ object TestData {
   
   
   def doIt {
+    
+    
+    //Schema.users.posoMetaData.fieldsMetaData
+    
     val appAccessToken = appToken(300426153342097L, "52242a46291a5c1d4e37b69a48be689f")
 
     println("TOK:" + appAccessToken)
@@ -311,18 +315,18 @@ object TestData {
    //println(FBInvitationRequest.parseString(js))
    //println(parse[FBInvitationRequest](js))
      
-   //doIt
+   doIt
    //appR
     //dddd
     
     //val tok = URLEncoder.encode("300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU","UTF-8")
     val tok = "300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU"
-    
+/*    
     FBBatchRequest(tok, Seq(FBBatchMethod("POST", "418532081508698_100003718310868"))).wsUri.map { r =>
       println(r.status)
       println(r.body)
     }
-    
+*/    
      
     try { 1}
     catch {

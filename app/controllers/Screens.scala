@@ -50,15 +50,9 @@ object Screens extends BaseDecisionHubController {
     DecisionManager.editDecision(session.userId, request.body) match {
       case None => Ok      
       case Some(errorMap) =>
-        //case Some(js) => BadRequest(com.codahale.jerkson.Json.generate(js))
-        //import play.libs.Json._
         import play.api.libs.json.Json._
-        //import play.api.libs.json.Writes._
-        //play.api.libs.json.Writes.
-        val js0 =  toJson(Map("status" -> "KO", "message" -> "Missing parameter [name]"))
         val js = toJson(errorMap : Map[String,String])
         BadRequest(js)
-        //BadRequest(toJson(js))
     }
   }  
   
@@ -76,24 +70,37 @@ object Screens extends BaseDecisionHubController {
 
     val r = DecisionManager.participantAndInvitation(decisionId, page, size)
 
-    println("-----> "+ r)
-    
     Ok(html.participantList(r._1, r._2))
   }
+  
+  def extractRememberedUserInfo(request: Request[_]) =
+    request.cookies.get("REMEMBERED_USER").flatMap { id =>
+      try {
+        Some(java.lang.Long.parseLong(id.value))
+      }
+      catch {
+        case e: NumberFormatException => None
+      }
+    }
 
-  def decisionSummariesPage(session: Option[DecisionHubSession]) =
+  def mainScreenDef(session: Option[DecisionHubSession], request: Request[_]) =
     session match {
       case None =>
-        html.decisionSummaries(DecisionManager.decisionSummariesMostActive, Nil)
+        extractRememberedUserInfo(request) match {
+          case None => html.mainScreen(DecisionManager.decisionSummariesMostActive, Nil)
+          case Some(uId) =>
+            val ds = DecisionManager.decisionSummariesOf(uId, false)
+            html.mainScreen(ds, Nil)
+        }
       case Some(s) =>
         val pis = DecisionManager.pendingInvitations(s.userId)
         logger.debug("user %d has %d pending invitations".format(s.userId, pis.size))
         val ds = DecisionManager.decisionSummariesOf(s.userId, false)
-        html.decisionSummaries(DecisionManager.decisionSummariesMostActive, pis)
+        html.mainScreen(ds, pis)
     }
 
-  def decisionSummaries = MaybeAuthenticated { session => implicit request =>
-    Ok(decisionSummariesPage(session))
+  def mainScreen = MaybeAuthenticated { session => implicit request =>
+    Ok(mainScreenDef(session, request))
   }
 }
 

@@ -7,6 +7,7 @@ import org.squeryl.adapters.PostgreSqlAdapter
 import java.sql.Timestamp
 import play.api.Play
 import play.api.Logger
+import com.decision_hub.Util
 
 
 object Schema extends org.squeryl.Schema {
@@ -22,6 +23,8 @@ object Schema extends org.squeryl.Schema {
   val participationInvitations = table[ParticipationInvitation]
 
   val votes = table[Vote]
+  
+  val persistentLogins = table[PersistentLogin]
   
   
   on(decisionParticipations)(dp => declare(
@@ -65,6 +68,15 @@ object ResetSchema {
 
     Schema.initDb
   }
+}
+
+class PersistentLogin(val userId: String, val serieId: String, val token: String, val expiryTime: Long) {
+
+  def userIdSerieId = compositeKey(userId, serieId)
+  
+  def this(uId: String, exp: Long) = this(uId, Util.newGuid, Util.newGuid, exp)
+  
+  def renew(newExpiryTime: Long) = new PersistentLogin(userId, serieId, Util.newGuid, newExpiryTime)
 }
 
 
@@ -113,7 +125,7 @@ case class User(
         displayableName, {
           // twitterId.map.getOrElse(u.facebookId.. etc)
           facebookId.map(x => "https://graph.facebook.com/"+x+"/picture")
-        }, true)
+        }, true, this.email)
 }
 
 case class Decision(
@@ -182,7 +194,7 @@ case class DecisionParticipation(
         u.displayableName, {
           // twitterId.map.getOrElse(u.facebookId.. etc)
           u.facebookId.map(x => "https://graph.facebook.com/"+x+"/picture")
-        }, true)
+        }, true, u.email)
 }
 
 case class ParticipationInvitation(
@@ -194,7 +206,7 @@ case class ParticipationInvitation(
   creationTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends DecisionHubEntity with DisplayableUser {
 
   def display(u: User) = 
-    new ParticipantDisplay(u.displayableName, Some("https://graph.facebook.com/"+u.facebookId.get+"/picture"), false) 
+    new ParticipantDisplay(u.displayableName, Some("https://graph.facebook.com/"+u.facebookId.get+"/picture"), false, u.email) 
 }
 
   

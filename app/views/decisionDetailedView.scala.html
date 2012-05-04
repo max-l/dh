@@ -31,13 +31,15 @@
 @if(currentUserIsAdmin) {
 
   <a onClick='edit()' class="btn btn-primary btn-large">Edit</a>
-  <a data-toggle="modal" onClick='inviteVoters(@decisionSummary.decision.id)' class="btn btn-primary btn-large">Invite Facebook friends</a>
+  <a data-toggle="modal" onClick='inviteVoters()' class="btn btn-primary btn-large">Invite Facebook friends</a>
 }
 
 <script>
 
   @if(currentUserIsAdmin) {
-    var inviteVoters = inviteFrieldsFunc('Invitation to vote on : @decisionSummary.title.encodedAsJavascript', @decisionSummary.decision.id)
+  
+    var inviteVoters = inviteFriendsFunc('You are invited to vote on @decisionSummary.title.encodedAsJavascript', @decisionSummary.decision.id)
+    
     function edit() {
       ajaxAction('/decision/edit/@decisionSummary.decision.id')
     }
