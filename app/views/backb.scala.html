@@ -2,11 +2,6 @@
 <!DOCTYPE html>
 
   @js(p: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
-  @script(s: Html) = {
-    <script>
-      @s
-    </script>
-  }
 
   @css(p: String) = {<link  href='@routes.Assets.at("stylesheets/" + p)' rel="stylesheet"/>}
 
@@ -19,34 +14,99 @@
 <html>
   <head>
 
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/jquery-custom/themes/ui-lightness/jquery-ui-1.8.18.custom.css")">
+
     @css("bootstrap.css")
     @css("timepicker.css")
 
     @js("jquery-1.7.1.min.js")
+    @js("jquery-custom/ui/jquery-ui-1.8.18.custom.js")
     
     @js("underscore.js")
     @js("backbone.js")
     
     @js("bootstrap.js")
     @js("bootstrap-timepicker.js")
-
+    @js("handlebars-1.0.0.beta.6.js")
+    @js("handlebarsHelpers.js")
 
     @template("item-template") {
       <div <%= id ? 'data-id="'+id+'"' : '' %>>
         <div class="edit">
-          <input class="todo-input" type="text" value="" /><i class='icon-remove'></i>
+          <input class="todo-input" type="text" value=""/><i class='icon-remove'></i>
         </div>
       </div>
     }
 
+    @template("checkboxW") {
+      <input type='checkbox' value='<%=dynValue%>'>
+    }
+
+    @template("textfieldW") {
+      <input type='text' value='<%=dynValue%>'>
+    }
+
+    @template("mainTemplate") {
+      <div id='dynWidget'>
+        <input name='choice' type="radio" value='1'>boolean</input></br>
+        <input name='choice' type="radio" value='2'>text</input>
+        <div id='dynPart'></div>
+      </div>
+    }
+
     @template("stats-template"){<%=total%>}
+    
+    
+    @row(s: String)(h: Html) = {
+      <div class='row'>
+        <div class='control-group'>
+          <div class='span1'>
+            <label class="control-label">@s</label>
+          </div>
+          <div class='span11'>
+            <div class="controls">
+              @h
+              <span class="help-inline"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <script id="decisionViewTemplate" type="text/x-handlebars-template">
+      <form class="form-horizontal">
+    
+        @row("Title") {
+          <input name='title' type="text" value="{{title}}"/>
+        }
+    
+        @row("Description") {
+          <textarea name='summary' class='input-xlarge' type="textarea"></textarea>
+        }
+    
+        @row("Election ends") {
+          <label class="radio">
+            <input type="radio" name="endMode" value="complete" checked>
+            when every one has voted
+          </label>
+          <label class="radio">
+            <input type="radio" name="endMode" value="time">
+            on <div data-provide='datetimepicker'></div>
+          </label>
+        }
+      </form>
+    </script>
 
   </head>
   <body>
-    <div id="todoapp">
+    <div id='decisionForm'></div>
     
-      <input type="text" data-provide="timepicker">​
+    <div id="todoapp">
+      
+      <!-- <input type="text" id='zaza' datepicker="true"> <input type="text" data-provide="timepicker"> -->​
         
+      <div id='zadtp' data-provide='datetimepicker'></div><a id='qq'>zaza</a>
+      
       <div class="content">
           
         <div id="create-todo">
@@ -62,5 +122,21 @@
     </div>
 
     @js("backb.js")
+    @js("datetimepicker.js")
+    @js("decisionForm.js")
+
+    <script>
+      //$('[datepicker=true]').datepicker()
+      var ddt = new Date();
+      ddt.setHours(11);
+      $('#zadtp').datetimepicker({defaultDatetime: ddt})
+
+
+      $('#qq').click(function() {
+
+         console.log($('#zadtp').data('datetimepicker').getDatetime())
+      })
+    </script>
+    
   </body>
 <html>
