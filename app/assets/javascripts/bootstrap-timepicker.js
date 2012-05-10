@@ -123,8 +123,8 @@
             var timeArray = time.split(':');
 
             this.meridian = meridian;
-            this.hour = parseInt(timeArray[0]);
-            this.minute = parseInt(timeArray[1]);
+            this.hour = parseInt($.trim(timeArray[0]));
+            this.minute = parseInt($.trim(timeArray[1]));
         }
 
         , setDefaultTime: function(defaultTime){

@@ -41,10 +41,11 @@ object MainPage extends BaseDecisionHubController {
     println("--->tdGet")
     println(r.body)
     
+        
     Ok(play.api.libs.json.Json.toJson(Seq(
       Map("id" -> "a", "text" -> "a"),
       Map("id" -> "b", "text" -> "b")
-    )))
+    )))    
   }
   
   def tdPost = Action(BodyParsers.parse.json) { r =>
@@ -64,7 +65,40 @@ object MainPage extends BaseDecisionHubController {
     println(r.body)
     Ok
   }
+  
+//=========================================================================================
 
+  def dGet(decisionId: Long) = Action { r =>
+    println("--->tdGet")
+    println(r.body)
+    
+    Ok(play.api.libs.json.Json.toJson(Seq(
+      Map("id" -> "7", "text" -> "a"),
+      Map("id" -> "8", "text" -> "b")
+    )))
+    
+    //Ok(play.api.libs.json.Json.toJson(Nil: Seq[String]))    
+  }
+  
+  def dPost(decisionId: Long) = Action(BodyParsers.parse.json) { r =>
+    println("--->tdPost")
+    println(r.body)
+    Ok
+  }
+
+  def dPut(decisionId: Long) = Action(BodyParsers.parse.json) { r =>
+    println("--->tdPut")
+    println(r.body)
+    Ok
+  }
+
+  def dDelete(decisionId: Long) = Action(BodyParsers.parse.json) { r =>
+    println("--->tdDelete")
+    println(r.body)
+    Ok
+  }
+
+  
   def externalLogin(provider: String, currentPageUri: String) = MaybeAuthenticated { mpo => implicit req =>
     provider match {
       case "facebook" =>
@@ -74,8 +108,8 @@ object MainPage extends BaseDecisionHubController {
     }
   }
   
-  def backb = Action { r =>
-    Ok(html.backb())
+  def backb(decisionId: Long) = Action { r =>
+    Ok(html.backb(decisionId))
   }
   
   def backb2 = Action { r =>
@@ -85,7 +119,11 @@ object MainPage extends BaseDecisionHubController {
   def sp = Action { r =>
     Ok(html.sp())
   }  
-    
+
+  def vdv = Action { r =>
+    Ok(html.vdv())
+  }
+  
   def landingPage(session: Option[DecisionHubSession], r: Request[_]) =
     html.fcpe((defaultLandingPage, Screens.mainScreenDef(session, r)), session.map(_.displayName), false, false)
   

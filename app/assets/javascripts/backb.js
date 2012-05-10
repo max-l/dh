@@ -26,13 +26,9 @@
         // Re-render the contents of the todo item.
         render: function() {
             var dt = this.model.toJSON();
+            console.log(dt);
             $(this.el).html(this._templateForItem(dt));
-
-            var text = this.model.get('text');
-            this.$('.todo-text').text(text);
-            this.input = this.$('.todo-input');
-            this.input.val(text);
-            return this;
+            return this	
         },
         
         change: function() {
@@ -60,42 +56,40 @@
         url: 'http://localhost:9000/td'
     });
 
-    window.Todos = new TodoList;
-
-    // The Application
-    // ---------------
-    // Our overall **AppView** is the top-level piece of UI.
     window.AppView = Backbone.View.extend({
 
-        // Instead of generating a new element, bind to the existing skeleton of
-        // the App already present in the HTML.
-        el: $("#todoapp"),
-
-        // Our template for the line of statistics at the bottom of the app.
         statsTemplate: _.template($('#stats-template').html()),
+        //events: {"keypress #todoapp input": "createOnEnter"},
 
-        // Delegated events for creating new items, and clearing completed ones.
-        events: {
-            "keypress #new-todo": "createOnEnter"
-        },
-        inputField: this.$("#new-todo"),
-
-        // At initialization we bind to the relevant events on the `Todos`
-        // collection, when items are added or changed. Kick things off by
-        // loading any preexisting todos that might be saved in *localStorage*.
         initialize: function() {
 
-            Todos.bind('add', this.addOne, this);
-            Todos.bind('reset', this.addAll, this);
-            Todos.bind('all', this.render, this);
-            Todos.fetch();
+        	//console.log(this.todoList);
+        	var i = $(this.el).find("input").first();
+        	var md = this.model;
+        	
+        	i.keypress(function(e) {
+                
+                if (e.keyCode != 13) return;
+                var txt = i.val();
+                if(! txt) return;
+                
+                md.create({
+                    text: txt
+                });
+                i.val('');
+            });
+
+            this.model.bind('add', this.addOne, this);
+            this.model.bind('reset', this.addAll, this);
+            this.model.bind('all', this.render, this);
+            this.model.fetch();
         },
 
         // Re-rendering the App just means refreshing the statistics -- the rest
         // of the app doesn't change.
         render: function() {
             this.$('#todo-stats').html(this.statsTemplate({
-                total: Todos.length
+                total: this.model.length
             }));
         },
 
@@ -103,26 +97,15 @@
         // appending its element to the `<ul>`.
         addOne: function(todo) {
             var view = new TodoView({model: todo});
-            this.$("#todo-list").prepend(view.render().el);
+            var ul = this.$("ul");
+            ul.prepend(view.render().el);
         },
 
         // Add all items in the **Todos** collection at once.
         addAll: function() {
-            Todos.each(this.addOne);
-        },
-
-        // If you hit return in the main input field, and there is text to save,
-        // create new **Todo** model persisting it to *localStorage*.
-        createOnEnter: function(e) {
-            //console.log('zaza')
-            var text = this.inputField.val();
-            if (!text || e.keyCode != 13) return;
-            Todos.create({
-                text: text
-            });
-            this.inputField.val('');
+        	this.model.each(this.addOne);
         }
     });
 
     // Finally, we kick things off by creating the **App**.
-    window.App = new AppView;
+    window.App = new AppView({model: new TodoList(), el: $("#todoapp")});

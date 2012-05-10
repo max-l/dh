@@ -1,8 +1,27 @@
 
 
 
+GET      /td                                    controllers.MainPage.tdGet
+POST     /td                                    controllers.MainPage.tdPost
+PUT      /td                                    controllers.MainPage.tdPut
+DELETE   /td                                    controllers.MainPage.tdDelete
+
+GET      /df/:id                                    controllers.MainPage.dGet(id: Long)
+POST     /df/:id                                    controllers.MainPage.dPost(id: Long)
+PUT      /df/:id                                    controllers.MainPage.dPut(id: Long)
+DELETE   /df/:id                                    controllers.MainPage.dDelete(id: Long)
+
+GET    /dec/:id                           controllers.JSonRestApi.getDecision(id: Long)
+
+GET   /vdv                                    controllers.MainPage.vdv
+
+GET     /sp                                    controllers.MainPage.sp
+
 GET     /fbauth                                controllers.MainPage.fbauth
 GET     /logout                                controllers.MainPage.logout
+
+GET     /backb/:decisionId                             controllers.MainPage.backb(decisionId: Long)
+GET     /backb2                                controllers.MainPage.backb2
 
 GET     /                                      controllers.MainPage.index
 POST    /facebookCanvasUrl/                    controllers.MainPage.facebookCanvasUrl
@@ -11,7 +30,7 @@ GET     /channel                               controllers.MainPage.facebookChan
 GET     /externalLogin/:provider/*path         controllers.MainPage.externalLogin(provider: String, path: String)
 
 
-GET     /decisionSummaries                     controllers.Screens.decisionSummaries
+GET     /mainScreen                            controllers.Screens.mainScreen
 GET     /participants/:decisionId/:page/:size  controllers.Screens.participants(decisionId: Long, page: Int, size: Int)
 GET     /p/:decisionId                         controllers.Screens.decisionDetails(decisionId: Long)
 GET     /decision/create                       controllers.Screens.create
@@ -34,6 +53,8 @@ GET     /compareVotingMethods                  controllers.Test.compareVotingMet
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                          controllers.Assets.at(path="/public", file)
+
+#GET     /ltd/*file                          controllers.Assets.at(path="/public/ltd", file)
 
 
 

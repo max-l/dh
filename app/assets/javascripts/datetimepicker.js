@@ -16,11 +16,11 @@
     	 var ms = date.getTime();
     	 var dt = new Date();
          var dta = _extractTimeArray(time);
-         var m = 1
-         if(dta[0] == "PM") m = 2;
+         var m = 0;
+         if(dta[0] == "PM") m = 12;
 
-         dt.setHours(dta[1] * m)
-         dt.setMinutes(dta[2])
+         dt.setHours(dta[1] + m);
+         dt.setMinutes(dta[2]);
 
          return dt;
      };
@@ -38,22 +38,22 @@
             var $this = $(this);
             var data = $this.data('datetimepicker');
 
-            var options = typeof option == 'object' && option;
+            var options = (typeof option == 'object') && option;
             if (!data) {
                 $this.data('datetimepicker', (data = new Datetimepicker(this, options)));
             }
-            if (typeof option == 'string') {
+            if ((typeof option) == 'string') {
                 data[option]();
             }
         })
      };
-     
+
      var Datetimepicker = function(element, options) {
          this.$element = $(element);
          this.options = $.extend({}, $.fn.datetimepicker.defaults, options);
          this.init();
      };
-     
+
      Datetimepicker.prototype = {
         constructor: Datetimepicker,
         init: function() {
@@ -74,9 +74,6 @@
 
     		this.setDatetime(defaultDate)
         },
-	    getTime: function() {
-	        return _extractTimeArray($(w2)[0].value)
-        },
         getDatepicker: function () {
         	return $(this).data('datetimepicker')
         },
@@ -93,9 +90,13 @@
         	if($(w2)[0].value == "") 
         	  return _truncateDate(w1.datepicker("getDate"));
 
-        	return _extractDateTime(
+        	var res = _extractDateTime(
         		dt,
         		$(w2)[0].value)
+        		
+            res.setSeconds(0);
+            res.setMilliseconds(0);
+            return res
         },
         setDatetime: function(datetime) {
 
@@ -117,7 +118,7 @@
 
      $(function () {
         $('body').ready(function() {
-        	$('div[data-provide=datetimepicker]').each(function(i,e) {
+        	$('div[data-provide="datetimepicker"]').each(function(i,e) {
 
                 var $this = $(this);
                 if ($this.data('datetimepicker')) {
