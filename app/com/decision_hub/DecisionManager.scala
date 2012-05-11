@@ -39,8 +39,41 @@ object DecisionManager {
           case Some(s) => Score(a.id, a.title, Some(s.score))
         }
 
-    resAlts
+    new Ballot(resAlts)
   }
+  
+  def vote(decisionId: Long, alternativeId: Long, voterId: Long, score: Int) = inTransaction {
+    
+    //TODO: verify if participant
+    
+    val v = 
+      update(votes)(v =>
+        where(v.decisionId === decisionId and v.alternativeId === alternativeId and v.voterId === voterId)
+        set(v.score := score)
+      )
+      
+    if(v < 1) 
+      votes.insert(new Vote(decisionId, alternativeId, voterId, score))
+  }
+
+  def createAlternative(decisionId: Long, title: String) = inTransaction {
+    
+    decisionAlternatives.insert(DecisionAlternative(decisionId, title))
+  }
+  
+  def updateAlternative(decisionId: Long, alternativeId: Long, title: String) = inTransaction {
+
+    update(decisionAlternatives)(a =>
+      where(a.id === alternativeId)
+      set(a.title := title)
+    )
+  }
+  
+  def deleteAlternative(decisionId: Long, alternativeId: Long) = inTransaction {
+
+    decisionAlternatives.deleteWhere(a => a.id === alternativeId)
+  }  
+  //===========================================================================================
 
   def decisionsOf(userId: Long, returnOwnedOnly : Boolean) = 
     from(decisions)(d => 

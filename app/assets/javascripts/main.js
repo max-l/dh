@@ -6,6 +6,8 @@ function initializeApp(decisionId) {
         url: "/dec/alternative/" + decisionId
     });
 	
+    Ballot = Backbone.Model.extend({});
+
     Decision = Backbone.Model.extend({
         defaults: function() {
             return {
@@ -14,48 +16,57 @@ function initializeApp(decisionId) {
             };
         },
         choiceList: new ChoiceList(),
-        urlRoot: "/dec"
-    });
+        urlRoot: "/dec",
+        getBallot: function() {
+        	var b0 = {
+             		scores: [{
+                		  alternativeId: 4, 
+                		  title: 'Zaza Napoli', 
+                		  currentScore: -1
+                	    },
+                		{
+                  		  alternativeId: 5, 
+                  		  title: 'Renato Baldi', 
+                  		  currentScore: 1
+                  	}]
+                	};
+        	var B = Ballot.extend({
+        		url: '/ballot/' + this.id
+            });
+        	
+        	var b = new B();
 
-    Ballot = Backbone.Model.extend({
-        defaults: function() {return {}}
+        	b.fetch();
+        	
+        	return b
+        }
     });
-    
-    Ballot.fetch = function() {
-    	return new Ballot({
-    		scores: [{
-      		  alternativeId: 4, 
-      		  title: 'Zaza Napoli', 
-      		  currentScore: -1
-      	    },
-      		{
-        		  alternativeId: 5, 
-        		  title: 'Renato Baldi', 
-        		  currentScore: 1
-        	}]
-      	})
-    };
 
     DecisionHubApp = Backbone.Model.extend({
         canVote: true,
         canAdmin: true,
         username: null,
         authenticator: null,
-        currentDecision: null
+        fetchDecision: function(dId) {
+            var d = new Decision({id: dId});
+            d.fetch();
+            d.set('endTime', (new Date().getTime()));
+            this.currentDecision = d
+        },
+        templates: Templates
     });
-    
+
     var decisionHubApp = new DecisionHubApp();
-    
-    var d = new Decision({id: decisionId});
-    d.fetch();
-    d.set('endTime', (new Date().getTime()));
+
+    decisionHubApp.fetchDecision(decisionId);
+
 
 	var decisionView = _.once(function() {
-	  createDecisionView(decisionHubApp, d, $("#adminTab"))
+	  createDecisionView(decisionHubApp, $("#adminTab"))
 	});
 	
 	var ballotView = _.once(function() {
-	  createBallotView(decisionHubApp, Ballot.fetch(), $('#voteTab'))
+	  createBallotView(decisionHubApp, decisionHubApp.currentDecision.getBallot(), $('#voteTab'))
 	});
 
     MainView = Backbone.View.extend({

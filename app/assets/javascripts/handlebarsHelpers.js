@@ -1,17 +1,10 @@
-!function($) {
-
-    var handlebarsHelpersCache = {};
+function initHandlebarsHelpers(compiledTemplates) { 
 
     Handlebars.registerHelper('applyTemplate', function(subTemplateId,ctx){
 
-    	var subTemplate = handlebarsHelpersCache[subTemplateId];
-    	if(! subTemplate) {
-    		subTemplate = Handlebars.compile($('#' + subTemplateId).html());
-    		handlebarsHelpersCache[subTemplateId] = subTemplate
-    	}
+    	var subTemplate = compiledTemplates[subTemplateId];
 
         var innerContent = ctx.fn(this);
-        //var innerContent = ctx.fn({});
         var subTemplateArgs = _.extend({}, 
           ctx.hash, 
           {content: new Handlebars.SafeString(innerContent)});
@@ -27,5 +20,4 @@
         return options.inverse(this);
       }
     });
-
-}(window.jQuery);
+}

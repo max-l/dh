@@ -9,26 +9,37 @@ function createBallotView(decisionHubApp, ballotModel, rootElement) {
         },
         initialize: function() {
             this.model.bind('change', this.render, this);
-            this.render()
         },
         _scoreAlternative: function(e) {
-        	var did = decisionHubApp.decisionId;
+        	var did = decisionHubApp.currentDecision.id;
         	var target = $(e.currentTarget);
         	var altId = target.attr('altId');
         	var score = target.attr('score');
 
-            //var req = $.get("/vote/" + altId + "/" + score);
-            //req.done(function(msg) {});
-        	//req.fail(function(jqXHR, textStatus) {//TODO e.preventDefault() ?})
+            var req = $.get("/vote/" + did + '/' + altId + '/' + score);
+            req.done(function(msg) {
+            });
+        	req.fail(function(jqXHR, textStatus) {
+        		//TODO e.preventDefault() ?
+        	})
         },
         render: function() {
-        	console.log(ballotModel);        	
-        	var ballot = _.extend({}, this.model.toJSON());
-        	console.log(ballot);
-        	var el = $(this.el);
-            var _template =  Handlebars.compile($('#voteTemplate').html());
 
-            el.html(_template(ballot));
+        	
+        	var ballot = _.extend({}, this.model.toJSON());
+        	var el = $(this.el);
+
+            el.html(decisionHubApp.templates.voteTemplate(ballot));
+
+            _.each(ballot.scores, function(score) {
+            	
+            	if(score.currentScore === 0 || score.currentScore) {
+            	  var e = el.find("a[score=" + score.currentScore + "][altId=" + score.alternativeId + "]")
+            	  e.button('toggle');
+            	}
+            })
+            
+
             return this;
         }
     });

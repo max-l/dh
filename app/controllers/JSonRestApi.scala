@@ -21,46 +21,58 @@ import play.mvc.Result
 
 import com.codahale.jerkson.Json
 
-
+//case class Alternative(title: String)
 
 object JSonRestApi extends BaseDecisionHubController {
+
+  def js[A](a: A) = Ok(Json.generate(a))
 
   def getDecision(dId: Long) = Action {
 
     DecisionManager.getDecision(dId).
-     map(Json.generate(_)).map(Ok(_)).getOrElse(NotFound)
+      map(js(_)).getOrElse(NotFound)
   }
-  
+
   def getAlternative(dId: Long) = Action { r =>
     println(r.body)
-    
-    Ok(Json.generate(DecisionManager.getAlternatives(dId)))
+
+    js(DecisionManager.getAlternatives(dId))
   }
 
-  def createAlternative(id: Long) = Action(BodyParsers.parse.json) { r =>
+  def createAlternative(decisionId: Long) = Action(BodyParsers.parse.json) { r =>
     println(r.body)
+    //TODO: verify if admin
+    //TODO: validate title
+    val title = ((r.body) \ "title").as[String]
+    val a = DecisionManager.createAlternative(decisionId, title)
+
+    js(a.id)
+  }
+
+  def updateAlternative(decisionId: Long, altId: Long) = Action(BodyParsers.parse.json) { r =>
+    println("UPDATE : " + r.body)
+    //TODO: verify if admin
+    val title = ((r.body) \ "title").as[String]
+    DecisionManager.updateAlternative(decisionId, altId, title)
     Ok
   }
 
-  def updateAlternative(id: Long, altId: Long) = Action(BodyParsers.parse.json) { r =>
+  def deleteAlternative(decisionId: Long, altId: Long) = Action { r =>
     println(r.body)
-    Ok
-  }
-
-  def deleteAlternative(id: Long, altId: Long) = Action { r =>
-    println(r.body)
+    DecisionManager.deleteAlternative(decisionId, altId)
     Ok
   }
 
   //def getBallot(did: Long) = IsAuthenticated { session => r =>
-  def getBallot(did: Long) = Action { r =>
+  def getBallot(decisionId: Long) = Action { r =>
 
-    Ok
+    js(DecisionManager.getBallot(decisionId, 4))
   }
 
   //def vote(did: Long, altId: Long, score: Int) = IsAuthenticated { session => r =>
   def vote(did: Long, altId: Long, score: Int) = Action { r =>
-
+    
+    DecisionManager.vote(did, altId, 4, score)
     Ok
   }
 }

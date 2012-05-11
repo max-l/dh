@@ -1,9 +1,9 @@
 
 
-function createDecisionView(decisionHubApp, decisionModel, rootElement, afterRender) {
+function createDecisionView(decisionHubApp, rootElement) {
 
     var DecisionView = Backbone.View.extend({
-    	model: decisionModel,
+    	model: decisionHubApp.currentDecision,
     	el: rootElement,
         events: {
             "blur input" : "change",
@@ -27,9 +27,8 @@ function createDecisionView(decisionHubApp, decisionModel, rootElement, afterRen
         render: function() {
         	var decision = _.extend({}, this.model.toJSON());
         	var el = $(this.el);
-        	var _template =  Handlebars.compile($('#decisionViewTemplate').html());
 
-            el.html(_template(decision));
+            el.html(decisionHubApp.templates.decisionViewTemplate(decision));
             $('div[data-provide=datetimepicker]').datetimepicker();
 
             if(decision.endsOn) {
@@ -43,14 +42,13 @@ function createDecisionView(decisionHubApp, decisionModel, rootElement, afterRen
               this.toggleTimeWidget('hide')
             }
 
-	        this._createChoicesListView(decisionModel.choiceList);
+	        this._createChoicesListView(this.model.choiceList);
 
             return this;
         },
         _createChoicesListView: function(choiceList) { 
             ChoiceView = DynListElementView.extend({
-              compiledTemplate: Handlebars.compile(
-                  '<input type="text" value="{{title}}"/><i class="icon-remove"></i>')
+              compiledTemplate: decisionHubApp.templates.choiceTemplate
             });
 
             ChoicesListView = DynListView.extend({

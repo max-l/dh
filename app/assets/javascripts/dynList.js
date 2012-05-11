@@ -17,8 +17,13 @@
             $(this.el).html(this.compiledTemplate(this.model.toJSON()));
             return this;
         },
-        change: function() {
-            this.model.save()
+        change: function(e) {
+        	var txt = $(e.currentTarget).val();
+        	
+        	if(txt != this.model.get('title')) {
+        	  this.model.set('title', txt);
+              this.model.save()
+        	}
         },
         remove: function() {
             $(this.el).remove();
