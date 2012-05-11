@@ -152,6 +152,8 @@ case class Decision(
   def voteRange = 4
   
   def middleOfRange = 2
+  
+  def lowestScore = -2
 
   def alternativeLabels = 
     voteRange match {

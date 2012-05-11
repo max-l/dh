@@ -7,6 +7,9 @@ import java.sql.Timestamp
 import java.util.Calendar
 
 
+case class Score(alternativeId : Long, title: String, currentScore: Option[Int])
+case class Ballot(scores: Seq[Score])
+
 case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstentions: Int, numberOfVotesExercised: Int, alternativeSummaries: Seq[AlternativeSummary]) {
   
   def title = decision.title

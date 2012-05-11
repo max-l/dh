@@ -29,7 +29,7 @@
           <div class='span1'>
             <label class="control-label">{{label}}</label>
           </div>
-          <div class='span11'>
+          <div class='span6'>
             <div class="controls">
               {{content}}
               <span class="help-inline"></span>
@@ -73,23 +73,55 @@
         {{# applyTemplate "rowT" label="Description"}}
           <textarea name='summary' class='input-xlarge' type="textarea"></textarea>
         {{/ applyTemplate}}
-
-        {{# applyTemplate "rowT"}}
-          <a class="btn">Ok</a>
-        {{/ applyTemplate}}
       </form>
     </script>
 
+    <script id="voteTemplate" type="text/x-handlebars-template">
+      <table>
+        <tbody>
+          {{# each}}
+            <tr>
+              <td><h4>{{this.title}}</h4></td>
+              <td>
+                <div class="btn-group" data-toggle="buttons-radio">
+                  <a href='#' altId='{{this.alternativeId}}' score='-2' class='btn'>-2</a>
+                  <a href='#' altId='{{this.alternativeId}}' score='-1' class='btn'>-1</a>
+                  <a href='#' altId='{{this.alternativeId}}' score= '0' class='btn'> 0</a>
+                  <a href='#' altId='{{this.alternativeId}}' score= '1' class='btn'> 1</a>
+                  <a href='#' altId='{{this.alternativeId}}' score= '2' class='btn'> 2</a>
+                </div>
+              </td>
+            </tr>
+          {{/ each}}
+        </tbody>
+      </table>
+    </script>
+
   </head>
+  
   <body>
-    
-    <div id='decisionForm'></div>
+    <div class="container">
+      <div class="row">
+         <div class="tabbable">
+           <ul class="nav nav-tabs">
+             <li class="active"><a data-toggle="tab" href="#adminTab">Admin</a></li>
+             <li><a data-toggle="tab" href="#voteTab">Vote</a></li>
+             <li><a data-toggle="tab" href="#participantsTab">Participants</a></li>
+           </ul>
+           <div class="tab-content">
+             <div class="tab-pane active" id="adminTab"></div>
+             <div class="tab-pane active" id="voteTab"></div>
+             <div class="tab-pane" id="participantsTab">Participants</div>
+           </div>
+         </div>
+      </div>
+    </div>
 
     @js("jquery-1.7.1.min.js")
     @js("jquery-custom/ui/jquery-ui-1.8.18.custom.js")
 
     @js("underscore.js")
-    @js("backbone.js")    
+    @js("backbone.js")
     @js("bootstrap.js")
     @js("handlebars-1.0.0.beta.6.js")
 
@@ -99,42 +131,10 @@
     @js("datetimepicker.js")
     @js("decisionForm.js")
     @js("dynList.js")
+    @js("main.js")
 
-    <script>
-    
-      var d = new Decision({id:@decisionId});
-      d.fetch();
-      d.set('endTime', (new Date().getTime()));
+    <script>initializeApp(@decisionId)</script>
 
-      ChoiceView = DynListElementView.extend({
-        compiledTemplate: Handlebars.compile(
-            '<input type="text" value="{{text}}"/><i class="icon-remove"></i>')
-      })
-
-      ChoiceList = Backbone.Collection.extend({
-          model: DynListElement,
-          url: "/df/123"
-      });
-      
-      ChoicesListView = DynListView.extend({
-        model: new ChoiceList(),
-        createElementView: function(e) {
-          return new ChoiceView({model: e})
-        }
-      });
-      
-      new DecisionView({
-        el: $("#decisionForm"), 
-        model: d,
-        afterRender: function() {
-          new ChoicesListView({el: $('#choiceList')});
-        }
-      });
-
-    </script>
-    
-    
-    
   </body>
   
 <html>

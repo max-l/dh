@@ -1,7 +1,5 @@
     DynListElement = Backbone.Model.extend({
-        defaults: function() {
-            return {id:null};
-        }
+        //defaults: function() {return {id:null}}
     });
 
     DynListElementView = Backbone.View.extend({
@@ -13,15 +11,14 @@
         compiledTemplate: undefined,
         initialize: function() {
             this.model.bind('change', this.render, this);
-            this.model.bind('destroy', this.remove, this);
-            this.render()
+            this.model.bind('destroy', this.remove, this)
         },
         render: function() {
             $(this.el).html(this.compiledTemplate(this.model.toJSON()));
             return this;
         },
         change: function() {
-            this.model.save();
+            this.model.save()
         },
         remove: function() {
             $(this.el).remove();
@@ -40,7 +37,7 @@
 
         initialize: function() {
 
-            var md = this.model;
+	        var zis = this;
 
             var i = $(this.el).find("input").first();
             
@@ -49,10 +46,8 @@
                 if (e.keyCode != 13) return;
                 var text = i.val();
                 if(! text) return;
-
-                md.create({
-                    text: text
-                });
+                
+                zis.createNewElement(zis.model, text);
                 i.val('');
             });
 

@@ -1,66 +1,60 @@
 
+function initializeApp(decisionId) {
 
-console.log("start....");
+    ChoiceList = Backbone.Collection.extend({
+        model: DynListElement,
+        url: "/dec/alternative/" + decisionId
+    });
+	
+    Decision = Backbone.Model.extend({
+        defaults: function() {
+            return {
+                title: "",
+                description: ""
+            };
+        },
+        choiceList: new ChoiceList(),
+        urlRoot: "/dec"
+    });
 
-Example = Ember.Application.create({ 
- name: "Example Application",
- logo: "http://sympodial.com/images/logo.png",
- searchString: "%23EmberJS",
- ready: function() {
-  //Example.populate.getTweets();
-  //setInterval(function() {Example.populate.getTweets();}, 2000);
- } //.observes("name")
-})
 
-Example.Item = Ember.Object.extend();
-Example.LoopingView = Ember.View.extend();
-
-Example.ToSearchValue = Ember.Object.create({
-    value: '#Zaza'
-});
-
-Example.ToSearch = Ember.TextField.extend({
-    valueBinding: 'Example.ToSearchValue.value',
-    keyUp: function(e) {
-        this.interpretKeyEvents(event);
-        if (e.keyCode == 13) {
-            console.log(Example.ToSearchValue.get('value'))
-            Example.populate.clear();
-            Example.populate.getTweets()
+    DecisionHubApp = Backbone.Model.extend({
+        canVote: true,
+        canAdmin: true,
+        username: null,
+        authenticator: null,
+        currentDecision: null
+    });
+    
+    var decisionHubApp = new DecisionHubApp();
+    
+    var d = new Decision({id: decisionId});
+    d.fetch();
+    d.set('endTime', (new Date().getTime()));
+    
+    
+    MainView = Backbone.View.extend({
+    	decisionHubApp: decisionHubApp,
+        events: {
+    	   'click a[href="#adminTab"]'        : '_adminTab',
+           'click a[href="#voteTab"]'         : '_voteTab',
+           'click a[href="#participantsTab"]' : '_participantsTab'
+        },
+        _adminTab: function() {
+        	
+        },
+        _voteTab: function() {
+        	
+        },
+        _participantsTab: function() {
+        	
         }
-    }
-});
+    });
 
-Example.populate = Ember.ArrayController.create({ 
- content: [],
- idArray: {},
- addItem: function(item) { 
-  var id = item.id;
-  if(typeof this.idArray[id]  == "undefined") { 
-   if(item.iso_language_code == "en") { 
-    this.pushObject(item);
-    this.idArray[id] = item.id;
-    Example.Item.create({ name: item.text });
-   }
-  };
- },
- getTweets: function() { 
-
-  var self = this;
-  var searchString = Example.get("searchString");
-
-  searchString = Example.ToSearchValue.get('value')
-  searchString = searchString.replace('#','%23')
-  console.log('->' + searchString);
-  var url = "http://search.twitter.com/search.json?callback=?&q=" + searchString;
-  $.getJSON(url, function(data) {
-   console.log("fetch : " + url)
-   console.log(data)
-   if(data && data.results) { 
-     for (var i = 0; i < data.results.length; i++) { 
-      self.addItem(Example.Item.create(data.results[i]));
-     };
-   }
-  })
- }.observes("Example.searchString")
-});
+   createDecisionView(decisionHubApp, d, $("#adminTab"));
+   
+   Ballot = Backbone.Model.extend({
+        defaults: function() {return {}}
+   });
+   
+}

@@ -12,6 +12,36 @@ object DecisionManager {
 
   def logger = Logger("application")
   
+  def getDecision(dId: Long) = inTransaction {  
+    decisions.lookup(dId)
+  }
+  
+  def getAlternatives(dId: Long) = inTransaction {
+    decisionAlternatives.where(a => a.decisionId === dId).toList
+  }
+  
+  def getBallot(decisionId: Long, voterId: Long) = inTransaction {
+
+    val d = decisions.lookup(decisionId).get
+
+    //if(!isParticipant(decisionId, voterId))
+      //sys.error(voterId + " not participant in " + decisionId)
+
+    val alts = decisionAlternatives.where(a => a.decisionId === decisionId).toList
+
+    val scores =
+      votes.where(v => v.decisionId === decisionId and v.voterId === voterId).toList
+
+    val resAlts =
+      for(a <- alts)
+        yield scores.find(_.alternativeId == a.id) match {
+          case None    => Score(a.id, a.title, None)
+          case Some(s) => Score(a.id, a.title, Some(s.score))
+        }
+
+    resAlts
+  }
+
   def decisionsOf(userId: Long, returnOwnedOnly : Boolean) = 
     from(decisions)(d => 
       where {
