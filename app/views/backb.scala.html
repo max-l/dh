@@ -79,7 +79,7 @@
     <script id="voteTemplate" type="text/x-handlebars-template">
       <table>
         <tbody>
-          {{# each}}
+          {{# each scores}}
             <tr>
               <td><h4>{{this.title}}</h4></td>
               <td>
@@ -102,7 +102,7 @@
   <body>
     <div class="container">
       <div class="row">
-         <div class="tabbable">
+         <div class="tabbable" id='mainPanel'>
            <ul class="nav nav-tabs">
              <li class="active"><a data-toggle="tab" href="#adminTab">Admin</a></li>
              <li><a data-toggle="tab" href="#voteTab">Vote</a></li>
@@ -130,6 +130,7 @@
     @js("handlebarsHelpers.js")
     @js("datetimepicker.js")
     @js("decisionForm.js")
+    @js("votePanel.js")
     @js("dynList.js")
     @js("main.js")
 
