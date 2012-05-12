@@ -1,0 +1,109 @@
+@()
+<!DOCTYPE html>
+
+  @js(p: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
+
+  @css(p: String) = {<link  href='@routes.Assets.at("stylesheets/" + p)' rel="stylesheet"/>}
+
+  @jsv(p: String, version: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
+
+<html>
+  <head>
+
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/jquery-custom/themes/ui-lightness/jquery-ui-1.8.18.custom.css")">
+
+    @css("bootstrap.css")
+    @css("timepicker.css")
+
+    <script id="voteTemplate" type="text/x-handlebars-template">
+      <table>
+          {{# each scores}}
+            <tr>
+              {{# if this.title}} <td><h4>{{this.title}}</h4></td> {{/ if}}
+              <td>
+                <div class="btn-group" data-toggle="buttons-radio">
+                  <a href='#' altId='{{this.alternativeId}}' score='-2' class='btn'>-2</a>
+                  <a href='#' altId='{{this.alternativeId}}' score='-1' class='btn'>-1</a>
+                  <a href='#' altId='{{this.alternativeId}}' score= '0' class='btn'> 0</a>
+                  <a href='#' altId='{{this.alternativeId}}' score= '1' class='btn'> 1</a>
+                  <a href='#' altId='{{this.alternativeId}}' score= '2' class='btn'> 2</a>
+                </div>
+              </td>
+            </tr>
+          {{/ each}}
+      </table>
+    </script>
+    
+    <script id="choiceTemplate" type="text/x-handlebars-template">
+      <input type="text" value="{{title}}"/><i class="icon-remove"></i>'
+    </script>
+  </head>
+  
+  <body>
+    <div class="container">
+    
+      <div class="row">
+         <div id='v1' class='span6'></div>
+         <div id='v2' class='span3'></div>
+         <div id='v3' class='span3'></div>
+         <div id='v4' class='span6'></div>
+      </div>
+    </div>
+
+    @js("jquery-1.7.1.min.js")
+    @js("jquery-custom/ui/jquery-ui-1.8.18.custom.js")
+
+    @js("underscore.js")
+    @js("backbone.js")
+    @js("bootstrap.js")
+    @js("handlebars-1.0.0.beta.6.js")
+
+    @js("bootstrap-timepicker.js")
+
+    @js("handlebarsHelpers.js")
+    
+    
+    <script>
+      var handlebarsTemplates = $("script[type='text/x-handlebars-template']");
+      Templates = {};
+      
+      handlebarsTemplates.each(function(i, templateElement) {
+        var t0 = $(templateElement);
+        var t = Handlebars.compile(t0.html());
+        Templates[t0.attr('id')] = t
+      })
+      
+      initHandlebarsHelpers(Templates)
+    </script>
+
+    @js("votePanelDemo.js")
+
+    <script>
+      Ballot = Backbone.Model.extend({});
+      
+      var v1 = new Ballot({"scores":[
+        {"alternativeId":1,"title":"1this is the one !","currentScore":2},
+        {"alternativeId":2,"title":"2the only absolutely correct coice !","currentScore":1},
+        {"alternativeId":3,"title":"3choose this if you are a winner","currentScore":-1},
+        {"alternativeId":4,"title":"4everyone's favorite","currentScore":2}]});
+
+      var v2 = new Ballot({"scores":[
+        {"alternativeId":1,"currentScore":2},
+        {"alternativeId":2,"currentScore":1},
+        {"alternativeId":3,"currentScore":-1},
+        {"alternativeId":4,"currentScore":2}]});
+        
+      var v3 = new Ballot({"scores":[
+        {"alternativeId":1,"currentScore":2},
+        {"alternativeId":2,"currentScore":1},
+        {"alternativeId":3,"currentScore":-1},
+        {"alternativeId":4,"currentScore":2}]});        
+
+      createBallotView(v1, $('#v1'), Templates).render();
+      createBallotView(v2, $('#v2'), Templates).render();
+      createBallotView(v3, $('#v3'), Templates).render();
+    </script>
+
+  </body>
+  
+<html>
