@@ -4,6 +4,13 @@
   @js(p: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
   @css(p: String) = {<link  href='@routes.Assets.at("stylesheets/" + p)' rel="stylesheet"/>}
 
+  @cell(i: Int)(title: Html)(c: Html) = {
+      <div class='span4'>
+         <strong>@i<strong/><h2>@title</h2>
+         @c
+      </div>
+  }
+
 <html>
   <head>
     @css("bootstrap.css")
@@ -37,110 +44,64 @@
     
 <div class="hero-unit">
   <h1>Vote par approbation</h1>
-  <p>Tagline</p>
-  <p>
-    <a class="btn btn-primary btn-large">
-      Learn more
-    </a>
-  </p>
 </div>
 
-      <h1>Ce que le vote par approbation permet :</h1>
-
-      <h2>De voter selon ses préfférences sans risquer de perdre son vote</h2>
-
-        Le mode de scrutin uninominal en vigueur au Canada et dans chacune des provices
-        fait en sorte que le poids d'un vote soit substantielement réduit si il n'appuie pas un des deux grands partis,
-        Des milliers, voir des millions d'électeurs sont ainsi réduits au silence
-
-      <h2>De mettre fin au "système à deux partis"</h2>
-
-      <h2>D'exprimer sur un bulletin de vote une évaluation de <b>chaque</b> candidat, et non un seul.</h2>
-
-        Un électeur devrait pouvoir appuyer autant de partis ou candidats dont il approuve le programme,
-        ce que ne permet pas le mode de scrutin uninominal en vigueur. 
-        Ceci a une conséquence grave : la division du vote.
-
-        La division du vote fait en sorte qu'il soit plus payant (électoralement) pour un parti de satisfaire son électorat
-        <b>au détriment</b> des autres électeurs, et ce même lorsque ceux ci sont majoritaires.
-
-        À l'inverse, une idée qui est supportée par plus d'un parti est sujete à la division du vote, ce qui la rend 
-        <i>électoralement non viable</i> même si elle est majoritairement partagée.
-        C'est ainsi que s'explique le fait que de nombreuses idées, causes et solutions qui font consensus se retrouvent
-        rarement dans le "radar" des partis politiques dominants.
-
-        Heureusement ce phénomène pas une fatalité incurable de la démocratie, mais une
-        défectuosité des modes de scrutin uninominaux. 
-
-        Le vote par approbation n'a pas cette défectuosité, il permet à l'électeur de voter selon ses valeurs, 
-        sans crainde que la division du vote fasse gagner un parti qu'il désapprouve.
-
-        <ul>
-          <li> La division des votes</li>
-        </ul>
-        <ul>
-          <li>Rendre plus </li>
-        </ul>
-      <h2>Réduire l'impact de maneuvres électoralistes</h2>
-      <h2>
-       Les partis politiques 
-       Un climat ou les partis politiques doivent tenir compte de l'ensemble des électeurs
-       et non seulement de leur bases partisanes 
+    <h1>Ce que le vote par approbation permet :</h1>
+    
+    <div class='row'>
+       @cell(1) {De voter selon ses préfférences sans risquer de perdre son vote} {
+          Le mode de scrutin uninominal en vigueur au Canada et dans chacune des provices
+          fait en sorte que le poids d'un vote soit substantielement réduit si il n'appuie pas un des deux grands partis,
+          Des milliers, voir des millions d'électeurs sont ainsi réduits au silence
+       } 
+       @cell(2) {De mettre fin au "système à deux partis"} {
+         
+       } 
+       @cell(3) {Évaluer <b>chaque</b> candidat lors d'un vote, et non un seul. } {
+         
+          Un électeur devrait pouvoir appuyer autant de partis ou candidats dont il approuve le programme,
+          ce que ne permet pas le mode de scrutin uninominal en vigueur. 
+          Ceci a une conséquence grave : la division du vote.
+  
+          La division du vote fait en sorte qu'il soit plus payant (électoralement) pour un parti de satisfaire son électorat
+          <b>au détriment</b> des autres électeurs, et ce même lorsque ceux ci sont majoritaires.
+  
+          À l'inverse, une idée qui est supportée par plus d'un parti est sujete à la division du vote, ce qui la rend 
+          <i>électoralement non viable</i> même si elle est majoritairement partagée.
+          C'est ainsi que s'explique le fait que de nombreuses idées, causes et solutions qui font consensus se retrouvent
+          rarement dans le "radar" des partis politiques dominants.
+  
+          Heureusement ce phénomène pas une fatalité incurable de la démocratie, mais une
+          défectuosité des modes de scrutin uninominaux. 
+  
+          Le vote par approbation n'a pas cette défectuosité, il permet à l'électeur de voter selon ses valeurs, 
+          sans crainde que la division du vote fasse gagner un parti qu'il désapprouve.
+       }
+     </div>
+     <div class='row'>
+       @cell(4) {Réduire l'impact de maneuvres électoralistes } {
+         
+       } 
+       @cell(5) {Des partis politiques redevable à l'ensemble des électeurs et non uniquement à leur bases partisanes} {
+         
+       } 
        
-       Des plateformes électorales d'avantage basés sur l'ensemble des électeurs 
-       
-       
-       vision réductrice gauche / droite
-       plutôt que sur le 
-       
-      Donner aux idées qui font consensus une poids politique proportionnel</h2>
 
-      dictature de majorité simple
+     </div>
 
-      Il devrait être plus rentable électoralement de mettre de l'avant des idées qui font consensus que 
-          d'employer des stratégies électoralistes</h2>
+       Le mode de scrutin accorde un poids disproportionné aux groupes qui forment un majorité simple.
+       
+       Dictature de majorité simple
+       
+       vision réductrice gauche / droite plutôt que sur le 
+       Il devrait être plus rentable électoralement de mettre de l'avant des idées qui font consensus que 
+       d'employer des stratégies électoralistes
 
           Problèmes : 
           
             - division du vote 
             - first pas the post
             - oligopole de deux partis
-          
-          Is AV a first pas the post system ? 
-          
-          Lets first to determin what we mean and what is undesirable about FPTP.
-          
-          - One a party achieves a simple majority (what we call being past the post), it 
-          I order to a achieving a simple majority, there isn't a big electoral cost to being hated, despised
-          voters that are not among this simple majority.
-          gets past the post ()
     </div>
-
-    Another kind of immutability
-
-    I've been coding in JavaScript lately, for the last five years I've been coding almost exclusively on
-    the "back end" in strongly types languages. I had whitnessed the evolution of the JavaScript ecosystem
-    from a user's perspective : apps kept on being more responsive, more ergonomic more client side.
-    Choosing which client side libraries and/or framework was the first challenge, and the number of quality
-    projects to choose from was another indicator that their is no shortage of talent in the JavaScript
-    community.
-
-    Having been spoiled with Scala's type system that validated my code at the hit of a key stroke, I had 
-    to devellop different coding habits. Fortunately, functional style has become ubiquitous in JavaScript,
-    even more so in it's CoffeeScript flavor.
-    Knowing that static typing in the browser is not for the near future, I've been asking myself :
-    if I loose type checking, can I somehow get some of the goodness of immutability ?
-    To what extent is the principle of favoring immutability applicable in the browser, knowing that JavaScript or
-    CofeeScript can't help in that regard ?
-
-    The question needs to be asked not only in the context of a dynamic programming language, but also
-    in the context of GUI development.
-
-    Anyone developing a minimally complex UI will sonner or later stumble on something similar to the Adapter
-    Pattern.
-
-
   </body>
 <html>
-
-

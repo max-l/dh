@@ -24,6 +24,11 @@ function createDecisionView(decisionHubApp, rootElement) {
       	    this.model.get('endsOn', (new Date()).getTime());
       	    this.toggleTimeWidget('show')
         },
+        setModel: function(m) {
+        	this.model = m
+        	this.choiceView.model = m.choiceList();
+        	this.choiceView.render();
+        },
         render: function() {
         	var decision = _.extend({}, this.model.toJSON());
         	var el = $(this.el);
@@ -37,23 +42,25 @@ function createDecisionView(decisionHubApp, rootElement) {
               this.toggleTimeWidget('show')
             }
             else {
+              this.toggleEndsWhenComplete()
               el.find('#toggleEndsWhenComplete').button('toggle');
               el.find('#endTime').attr('class', 'collapse in')
               this.toggleTimeWidget('hide')
             }
-
-	        this._createChoicesListView(this.model.choiceList);
+            
+            if(! this.choiceView)
+              this.choiceView = this._createChoicesListView(this.model.choiceList());
 
             return this;
         },
-        _createChoicesListView: function(choiceList) { 
+        _createChoicesListView: function(cl) { 
             ChoiceView = DynListElementView.extend({
               compiledTemplate: decisionHubApp.templates.choiceTemplate
             });
 
             ChoicesListView = DynListView.extend({
               el: $('#choiceList'),
-              model: choiceList,
+              model: cl,
               createElementView: function(e) {
                 return new ChoiceView({model: e})
               },

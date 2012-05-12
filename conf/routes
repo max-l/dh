@@ -8,10 +8,10 @@ DELETE   /td                                    controllers.MainPage.tdDelete
 
 GET      /dec/:id                               controllers.JSonRestApi.getDecision(id: Long)
 
-GET      /dec/alternative/:did                  controllers.JSonRestApi.getAlternative(did: Long)
-POST     /dec/alternative/:did                  controllers.JSonRestApi.createAlternative(did: Long)
-PUT      /dec/alternative/:did/:altId           controllers.JSonRestApi.updateAlternative(did: Long, altId: Long)
-DELETE   /dec/alternative/:did/:altId           controllers.JSonRestApi.deleteAlternative(did: Long, altId: Long)
+GET      /dec/alternatives/:did                  controllers.JSonRestApi.getAlternatives(did: Long)
+POST     /dec/alternatives/:did                  controllers.JSonRestApi.createAlternative(did: Long)
+PUT      /dec/alternatives/:did/:altId           controllers.JSonRestApi.updateAlternative(did: Long, altId: Long)
+DELETE   /dec/alternatives/:did/:altId           controllers.JSonRestApi.deleteAlternative(did: Long, altId: Long)
 
 GET      /ballot/:did                           controllers.JSonRestApi.getBallot(did: Long)
 GET      /vote/:did/:altId/:score               controllers.JSonRestApi.vote(did: Long, altId: Long, score: Int)

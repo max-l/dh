@@ -33,7 +33,7 @@ object JSonRestApi extends BaseDecisionHubController {
       map(js(_)).getOrElse(NotFound)
   }
 
-  def getAlternative(dId: Long) = Action { r =>
+  def getAlternatives(dId: Long) = Action { r =>
     println(r.body)
 
     js(DecisionManager.getAlternatives(dId))

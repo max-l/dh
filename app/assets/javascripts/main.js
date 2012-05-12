@@ -1,12 +1,6 @@
 
 function initializeApp(decisionId) {
 	
-    ChoiceList = Backbone.Collection.extend({
-        model: DynListElement,
-        url: "/dec/alternative/" + decisionId
-    });
-	
-    Ballot = Backbone.Model.extend({});
 
     Decision = Backbone.Model.extend({
         defaults: function() {
@@ -15,30 +9,25 @@ function initializeApp(decisionId) {
                 description: ""
             };
         },
-        choiceList: new ChoiceList(),
+        choiceList: function() {
+          if(! this._choiceList) {
+             var ChoiceList = Backbone.Collection.extend({
+                 model: DynListElement,
+                 url: "/dec/alternatives/" + this.id
+             });
+        	 this._choiceList = new ChoiceList({id: this.id})
+          }
+          return this._choiceList
+        },
         urlRoot: "/dec",
         getBallot: function() {
-        	var b0 = {
-             		scores: [{
-                		  alternativeId: 4, 
-                		  title: 'Zaza Napoli', 
-                		  currentScore: -1
-                	    },
-                		{
-                  		  alternativeId: 5, 
-                  		  title: 'Renato Baldi', 
-                  		  currentScore: 1
-                  	}]
-                	};
-        	var B = Ballot.extend({
-        		url: '/ballot/' + this.id
+        	var Ballot = Backbone.Model.extend({});
+            var B = Ballot.extend({
+              url: '/ballot/' + this.id
             });
-        	
-        	var b = new B();
-
-        	b.fetch();
-        	
-        	return b
+            var b = new B();
+            b.fetch();
+            return b
         }
     });
 
@@ -47,27 +36,36 @@ function initializeApp(decisionId) {
         canAdmin: true,
         username: null,
         authenticator: null,
-        fetchDecision: function(dId) {
+        decisionView: _.once(function() {
+  	       return createDecisionView(decisionHubApp, $("#adminTab"))
+        }),
+        ballotView: _.once(function() {
+    	    return createBallotView(decisionHubApp, $('#voteTab'))
+        }),
+        setCurrentDecision: function(dId) {
+
             var d = new Decision({id: dId});
             d.fetch();
             d.set('endTime', (new Date().getTime()));
-            this.currentDecision = d
+            this.currentDecision = d;
         },
+        resetCurrentDecision: function(did) {
+        	this.setCurrentDecision(did);
+        	this.decisionView().model = this.currentDecision;
+        	this.decisionView().initialize();
+        	this.decisionView().render();
+        	this.ballotView().model = this.currentDecision.getBallot();
+        	this.ballotView().initialize();
+        	this.ballotView().render();
+        	$('#adminTab').tab('show');
+        },        
         templates: Templates
     });
 
     var decisionHubApp = new DecisionHubApp();
 
-    decisionHubApp.fetchDecision(decisionId);
+    decisionHubApp.setCurrentDecision(decisionId);
 
-
-	var decisionView = _.once(function() {
-	  createDecisionView(decisionHubApp, $("#adminTab"))
-	});
-	
-	var ballotView = _.once(function() {
-	  createBallotView(decisionHubApp, decisionHubApp.currentDecision.getBallot(), $('#voteTab'))
-	});
 
     MainView = Backbone.View.extend({
     	el: $('#mainPanel'),
@@ -75,26 +73,27 @@ function initializeApp(decisionId) {
         events: {
     	   'click a[href=#adminTab]'        : '_adminTab',
            'click a[href=#voteTab]'         : '_voteTab',
-           'click a[href=#participantsTab]' : '_participantsTab'
+           'click a[href=#participantsTab]' : '_participantsTab',
+           'click a[id=zaza]' : 'a'
+        },
+        a: function() {
+            decisionHubApp.resetCurrentDecision($('#aa').val())
         },
         initialize: function() {
-
+            //TODO: pre initialize depending on permissions :
+            this._adminTab()
         },
         _adminTab: function() {
-            decisionView()
+            decisionHubApp.decisionView()
         },
         _voteTab: function() {
-            ballotView()
+            decisionHubApp.ballotView()
         },
         _participantsTab: function() {
-        	
+            
         }
     });
 
-   
-   //TODO: pre initialize depending on permissions :
-   decisionView();
-   
    new MainView()
 }
 

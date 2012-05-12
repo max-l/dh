@@ -1,14 +1,13 @@
 
-
-function createBallotView(decisionHubApp, ballotModel, rootElement) {
+function createBallotView(decisionHubApp, rootElement) {
      var V = Backbone.View.extend({
     	el: rootElement,
-    	model: ballotModel,
+    	model: decisionHubApp.currentDecision.getBallot(),
         events: {
             "click a[altId]" : "_scoreAlternative"
         },
         initialize: function() {
-            this.model.bind('change', this.render, this);
+            this.model.on('change', this.render, this);
         },
         _scoreAlternative: function(e) {
         	var did = decisionHubApp.currentDecision.id;
