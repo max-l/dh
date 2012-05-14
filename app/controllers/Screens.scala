@@ -37,7 +37,7 @@ object Screens extends BaseDecisionHubController {
     }
   }
   
-  def edit(decisionId: Long) = IsAuthenticated { sess => implicit request =>
+  def edit(decisionId: String) = IsAuthenticated { sess => implicit request =>
 
     val (d,alts) = DecisionManager.lookupDecisionForEdit(decisionId, sess.userId)
     
@@ -56,7 +56,7 @@ object Screens extends BaseDecisionHubController {
     }
   }  
   
-  def decisionDetails(decisionId: Long) = MaybeAuthenticated { session => implicit request =>
+  def decisionDetails(decisionId: String) = MaybeAuthenticated { session => implicit request =>
 
     val currentUserId = session.map(_.userId)
 
@@ -66,7 +66,7 @@ object Screens extends BaseDecisionHubController {
     Ok(html.decisionDetailedView(decisionSummary, participantDisplays, invitationDisplays, currentUserCanVote, currentUserIsAdmin))
   }
 
-  def participants(decisionId: Long, page: Int, size: Int) = MaybeAuthenticated { mpo => implicit request =>
+  def participants(decisionId: String, page: Int, size: Int) = MaybeAuthenticated { mpo => implicit request =>
 
     val r = DecisionManager.participantAndInvitation(decisionId, page, size)
 

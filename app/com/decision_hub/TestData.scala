@@ -315,6 +315,10 @@ object TestData {
    //println(FBInvitationRequest.parseString(js))
    //println(parse[FBInvitationRequest](js))
      
+    import play.core.StaticApplication
+
+   new StaticApplication(new java.io.File("."))
+    
    doIt
    //appR
     //dddd

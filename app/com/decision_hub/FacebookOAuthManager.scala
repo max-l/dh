@@ -286,7 +286,7 @@ object FacebookProtocol extends CryptoUtil {
 }
 
 case class FBAppRequestInfoFrom(id: Long, name: String)
-case class FBAppRequestInfo(id: String, from: FBAppRequestInfoFrom, created_time: String, data: Long) {
+case class FBAppRequestInfo(id: String, from: FBAppRequestInfoFrom, created_time: String, data: String) {
   
   def senderIconUri =
     "https://graph.facebook.com/"+from.id+"/picture"

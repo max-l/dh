@@ -139,7 +139,9 @@ case class Decision(
   resultsPrivateUntilEnd: Boolean = true,
   votesAreAnonymous: Boolean = true,
   weekActivity: Int = 0,
-  allTimeActivity: Int = 0) extends DecisionHubEntity {
+  allTimeActivity: Int = 0) extends KeyedEntity[String] {
+  
+  val id = Util.newGuid
 
   def resultsCanBeDisplayed = 
     if(! resultsPrivateUntilEnd)
@@ -169,7 +171,7 @@ case class Decision(
 
 
 case class DecisionAlternative(
-  decisionId: Long,
+  decisionId: String,
   title: String,
   advocateId: Option[Long] = None, //this is the candidate userId if the decision is an election.
   text: Option[String] = None) extends DecisionHubEntity
@@ -186,7 +188,7 @@ trait DisplayableUser {
 }
 
 case class DecisionParticipation(
-  decisionId: Long,
+  decisionId: String,
   voterId: Long,
   hasVoted: Int = 0,
   abstained: Int = 0) extends DecisionHubEntity with DisplayableUser {
@@ -200,7 +202,7 @@ case class DecisionParticipation(
 }
 
 case class ParticipationInvitation(
-  decisionId: Long,
+  decisionId: String,
   facebookAppRequestId: Long, //facebook app request id
   invitedUserId: Long,
   invitingUserId: Long,
@@ -213,7 +215,7 @@ case class ParticipationInvitation(
 
   
 case class Vote(
-  decisionId: Long, 
+  decisionId: String, 
   alternativeId: Long, 
   voterId: Long, 
   score: Int) extends DecisionHubEntity

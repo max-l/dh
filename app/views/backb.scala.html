@@ -1,4 +1,4 @@
-@(decisionId: Long)
+@(decisionId: String)
 <!DOCTYPE html>
 
   @js(p: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
@@ -73,6 +73,10 @@
         {{# applyTemplate "rowT" label="Description"}}
           <textarea name='summary' class='input-xlarge' type="textarea"></textarea>
         {{/ applyTemplate}}
+        
+        {{# applyTemplate "rowT" label=""}}
+          <a id='save' class='btn'>Save</a>
+        {{/ applyTemplate}}        
       </form>
     </script>
 
@@ -96,9 +100,38 @@
         </tbody>
       </table>
     </script>
-    
+
     <script id="choiceTemplate" type="text/x-handlebars-template">
       <input type="text" value="{{title}}"/><i class="icon-remove"></i>'
+    </script>
+
+    <script id="decisionEditorTemplate" type="text/x-handlebars-template">
+       <div class="tabbable">
+         <a id='zaza'>ZAZA</a> <input id='aa' type='text'>
+         <ul class="nav nav-tabs">
+           <li class="active"><a data-toggle="tab" href="#adminTab">Admin</a></li>
+           <li><a data-toggle="tab" href="#voteTab">Vote</a></li>
+           <li><a data-toggle="tab" href="#participantsTab">Participants</a></li>
+         </ul>
+         <div class="tab-content">
+           <div class="tab-pane active" id="adminTab"></div>
+           <div class="tab-pane active" id="voteTab"></div>
+           <div class="tab-pane" id="participantsTab">Participants</div>
+         </div>
+       </div>
+    </script>
+
+    <script id="homeTemplate" type="text/x-handlebars-template">
+       
+        <div class="hero-unit">
+          <h1>Decision Hub</h1>
+          <p>Decision Hub is a tool for taking group decisions by approval voting</p>
+          <p>
+            <a id='createNewDecision' class="btn btn-primary btn-large">
+              Create Decision
+            </a>
+          </p>
+        </div>
     </script>
   </head>
   
@@ -106,19 +139,7 @@
     <div class="container">
     
       <div class="row">
-         <div class="tabbable" id='mainPanel'>
-         <a id='zaza'>ZAZA</a> <input id='aa' type='text'>
-           <ul class="nav nav-tabs">
-             <li class="active"><a data-toggle="tab" href="#adminTab">Admin</a></li>
-             <li><a data-toggle="tab" href="#voteTab">Vote</a></li>
-             <li><a data-toggle="tab" href="#participantsTab">Participants</a></li>
-           </ul>
-           <div class="tab-content">
-             <div class="tab-pane active" id="adminTab"></div>
-             <div class="tab-pane active" id="voteTab"></div>
-             <div class="tab-pane" id="participantsTab">Participants</div>
-           </div>
-         </div>
+        <div id='mainPanel'></div>
       </div>
     </div>
 
@@ -153,7 +174,7 @@
     @js("dynList.js")
     @js("main.js")
 
-    <script>initializeApp(@decisionId)</script>
+    <script>initializeApp('@decisionId')</script>
 
   </body>
   

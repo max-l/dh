@@ -32,7 +32,6 @@
         clear: function() {
             this.model.destroy();
         }
-
     });
 
     DynList = Backbone.Collection.extend({

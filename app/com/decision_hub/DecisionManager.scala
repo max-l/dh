@@ -12,15 +12,15 @@ object DecisionManager {
 
   def logger = Logger("application")
   
-  def getDecision(dId: Long) = inTransaction {  
-    decisions.lookup(dId)
+  def getDecision(decisionId: String) = inTransaction {  
+    decisions.lookup(decisionId)
   }
   
-  def getAlternatives(dId: Long) = inTransaction {
-    decisionAlternatives.where(a => a.decisionId === dId).toList
+  def getAlternatives(decisionId: String) = inTransaction {
+    decisionAlternatives.where(a => a.decisionId === decisionId).toList
   }
   
-  def getBallot(decisionId: Long, voterId: Long) = inTransaction {
+  def getBallot(decisionId: String, voterId: Long) = inTransaction {
 
     val d = decisions.lookup(decisionId).get
 
@@ -42,7 +42,7 @@ object DecisionManager {
     new Ballot(resAlts)
   }
   
-  def vote(decisionId: Long, alternativeId: Long, voterId: Long, score: Int) = inTransaction {
+  def vote(decisionId: String, alternativeId: Long, voterId: Long, score: Int) = inTransaction {
     
     //TODO: verify if participant
     
@@ -56,12 +56,12 @@ object DecisionManager {
       votes.insert(new Vote(decisionId, alternativeId, voterId, score))
   }
 
-  def createAlternative(decisionId: Long, title: String) = inTransaction {
+  def createAlternative(decisionId: String, title: String) = inTransaction {
     
     decisionAlternatives.insert(DecisionAlternative(decisionId, title))
   }
   
-  def updateAlternative(decisionId: Long, alternativeId: Long, title: String) = inTransaction {
+  def updateAlternative(decisionId: String, alternativeId: Long, title: String) = inTransaction {
 
     update(decisionAlternatives)(a =>
       where(a.id === alternativeId)
@@ -69,7 +69,7 @@ object DecisionManager {
     )
   }
   
-  def deleteAlternative(decisionId: Long, alternativeId: Long) = inTransaction {
+  def deleteAlternative(decisionId: String, alternativeId: Long) = inTransaction {
 
     decisionAlternatives.deleteWhere(a => a.id === alternativeId)
   }  
@@ -88,14 +88,14 @@ object DecisionManager {
     ).distinct
 
  
-  def participationSummaries(decisionIds: Seq[Long]) =
+  def participationSummaries(decisionIds: Seq[String]) =
     from(decisionParticipations)(dp =>
       where(dp.decisionId.in(decisionIds))
       groupBy(dp.decisionId)
       compute(count, nvl(sum(dp.abstained),0), nvl(sum(dp.hasVoted),0))
     )
 
-  def alternativeSummary(decisionIds: Seq[Long]) = 
+  def alternativeSummary(decisionIds: Seq[String]) = 
     join(decisionAlternatives, votes.leftOuter)((a,v) => 
       where(a.decisionId.in(decisionIds))
       groupBy(a.decisionId, a.id, a.title)
@@ -132,7 +132,7 @@ object DecisionManager {
     else {
 
       val decisionIds = ds.map(_.id)
-      val pSums = participationSummaries(decisionIds).map(t => (t.key: Long, t.measures)).toMap
+      val pSums = participationSummaries(decisionIds).map(t => (t.key: String, t.measures)).toMap
       val aSums = alternativeSummary(decisionIds).groupBy(_.decisionId)
       ds map { d =>
   
@@ -147,14 +147,14 @@ object DecisionManager {
       }
     }
   
-  def isParticipant(decisionId: Long, voterId: Long) =
+  def isParticipant(decisionId: String, voterId: Long) =
     from(decisionParticipations)(dp =>
         where(dp.voterId === voterId and dp.decisionId === decisionId)
         select(dp.id)
     ).toList != Nil 
   
   
-  def voteScreenModel(decisionId: Long, voterId: Long) = inTransaction {
+  def voteScreenModel(decisionId: String, voterId: Long) = inTransaction {
 
     val d = decisions.lookup(decisionId).get
 
@@ -183,7 +183,7 @@ object DecisionManager {
     vote(voter.id, decision.id, scores)
   
   
-  def vote(voterId: Long, decisionId: Long, scores: Map[Long,Int]): Unit = inTransaction {
+  def vote(voterId: Long, decisionId: String, scores: Map[Long,Int]): Unit = inTransaction {
 
     if(scores.isEmpty)
       sys.error("empty vote.")
@@ -219,11 +219,11 @@ object DecisionManager {
   private implicit def tuplePi(t: (ParticipationInvitation, User)) = 
     t._1.display(t._2)
   
-  def participantAndInvitation(decisionId: Long, page: Int, size: Int) = inTransaction {
+  def participantAndInvitation(decisionId: String, page: Int, size: Int) = inTransaction {
     (invitations(decisionId, page, size), participants(decisionId, page, size))
   }
   
-  private def participants(decisionId: Long, page: Int, size: Int) = {
+  private def participants(decisionId: String, page: Int, size: Int) = {
 
     from(decisionParticipations, users)((dp, u) =>
       where(dp.decisionId === decisionId and dp.voterId === u.id)
@@ -231,7 +231,7 @@ object DecisionManager {
     ).page(page, size).map(t => t : ParticipantDisplay).toSeq
   }
   
-  private def invitations(decisionId: Long, page: Int, size: Int) = {
+  private def invitations(decisionId: String, page: Int, size: Int) = {
 
     from(participationInvitations, users)((i, u) =>
       where(i.decisionId === decisionId and i.invitedUserId === u.id)
@@ -239,13 +239,13 @@ object DecisionManager {
     ).page(page, size).map(t => t : ParticipantDisplay).toSeq
   }
   
-  def decisionDetails(decisionId: Long, currentUser: Option[Long]) = inTransaction {
+  def decisionDetails(decisionId: String, currentUser: Option[Long]) = inTransaction {
 
     val d = decisions.lookup(decisionId).get
 
-    val pSums = participationSummaries(Seq(decisionId)).map(t => (t.key: Long, t.measures)).toMap
+    val pSums = participationSummaries(Seq(decisionId)).map(t => (t.key: String, t.measures)).toMap
 
-    val aSums: Map[Long,Iterable[AlternativeSummary]] =
+    val aSums: Map[String,Iterable[AlternativeSummary]] =
       if(d.resultsCanBeDisplayed) 
         alternativeSummary(Seq(decisionId)).groupBy(_.decisionId)
       else 
@@ -278,7 +278,7 @@ object DecisionManager {
   /**
    * return the FB appRequestIds that were deleted in the DB 
    */
-  def acceptOrDeclineFacebookInvitations(invitedUserId: Long, acceptOrDecline: Map[Long,Boolean]) = 
+  def acceptOrDeclineFacebookInvitations(invitedUserId: Long, acceptOrDecline: Map[String,Boolean]) = 
     if(acceptOrDecline.isEmpty) 
       Nil 
     else transaction {
@@ -354,7 +354,7 @@ object DecisionManager {
     pi.toSeq
   }
   
-  def lookupDecision(decisionId: Long) = inTransaction {
+  def lookupDecision(decisionId: String) = inTransaction {
     decisions.lookup(decisionId).get
   }
   
@@ -437,7 +437,7 @@ object DecisionManager {
 */
   }
   
-  def lookupDecisionForEdit(decisionId: Long, userId: Long) = transaction {
+  def lookupDecisionForEdit(decisionId: String, userId: Long) = transaction {
     (decisions.where(_.id === decisionId).single,
      decisionAlternatives.where(_.decisionId === decisionId).toList.toSeq)
   }
@@ -463,12 +463,12 @@ object DecisionManager {
         val aidsToValidateOwnership = existingA.map(_.id) ++ dp.choicesToDelete
 
         transaction {
-          val existingD = decisions.where(_.id === dp.id).single
+          val existingD = decisions.where(d => Option(d.id) === dp.id).single
 
           assert(existingD.ownerId == userId, "not owner !")
 
           val illegalUpdates = 
-            decisionAlternatives.where(da => da.id.in(aidsToValidateOwnership) and da.decisionId <> dp.id).
+            decisionAlternatives.where(da => da.id.in(aidsToValidateOwnership) and Option(da.decisionId) <> dp.id).
               map(da => (da.id, da.decisionId)).toMap
 
           assert(illegalUpdates.size > 0, 

@@ -19,6 +19,7 @@ function initializeApp(decisionId) {
           }
           return this._choiceList
         },
+        sync: function () { return false },
         urlRoot: "/dec",
         getBallot: function() {
         	var Ballot = Backbone.Model.extend({});
@@ -49,8 +50,14 @@ function initializeApp(decisionId) {
             d.set('endTime', (new Date().getTime()));
             this.currentDecision = d;
         },
-        resetCurrentDecision: function(did) {
-        	this.setCurrentDecision(did);
+        newDecision: function() {
+            var d = new Decision();
+            d.set('endTime', (new Date().getTime()));
+            this.currentDecision = d;
+            return d
+        },
+        resetCurrentDecision: function() {
+        	//this.setCurrentDecision(decision);
         	this.decisionView().model = this.currentDecision;
         	this.decisionView().initialize();
         	this.decisionView().render();
@@ -67,7 +74,24 @@ function initializeApp(decisionId) {
     decisionHubApp.setCurrentDecision(decisionId);
 
 
-    MainView = Backbone.View.extend({
+    HomeView = Backbone.View.extend({
+    	el: $('#mainPanel'),
+    	decisionHubApp: decisionHubApp,
+        events: {
+    	   'click #createNewDecision'  : '_createNewDecision'
+        },
+        _createNewDecision: function() {
+            var d = this.decisionHubApp.newDecision()
+            new AdminView().render()
+            this.decisionHubApp.resetCurrentDecision()
+        },
+        initialize: function() {},
+        render: function() {
+            $(this.el).html(this.decisionHubApp.templates.homeTemplate())
+        }
+    });
+    
+    AdminView = Backbone.View.extend({
     	el: $('#mainPanel'),
     	decisionHubApp: decisionHubApp,
         events: {
@@ -80,9 +104,13 @@ function initializeApp(decisionId) {
             decisionHubApp.resetCurrentDecision($('#aa').val())
         },
         initialize: function() {
+            
+        },
+        render: function() {
+            $(this.el).html(this.decisionHubApp.templates.decisionEditorTemplate())
             //TODO: pre initialize depending on permissions :
             this._adminTab()
-        },
+        },        
         _adminTab: function() {
             decisionHubApp.decisionView()
         },
@@ -94,6 +122,7 @@ function initializeApp(decisionId) {
         }
     });
 
-   new MainView()
+   new HomeView().render()
+   //new AdminView().render()
 }
 

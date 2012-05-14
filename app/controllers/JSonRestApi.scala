@@ -27,19 +27,19 @@ object JSonRestApi extends BaseDecisionHubController {
 
   def js[A](a: A) = Ok(Json.generate(a))
 
-  def getDecision(dId: Long) = Action {
+  def getDecision(decisionId: String) = Action {
 
-    DecisionManager.getDecision(dId).
+    DecisionManager.getDecision(decisionId).
       map(js(_)).getOrElse(NotFound)
   }
 
-  def getAlternatives(dId: Long) = Action { r =>
+  def getAlternatives(decisionId: String) = Action { r =>
     println(r.body)
 
-    js(DecisionManager.getAlternatives(dId))
+    js(DecisionManager.getAlternatives(decisionId))
   }
 
-  def createAlternative(decisionId: Long) = Action(BodyParsers.parse.json) { r =>
+  def createAlternative(decisionId: String) = Action(BodyParsers.parse.json) { r =>
     println(r.body)
     //TODO: verify if admin
     //TODO: validate title
@@ -49,7 +49,7 @@ object JSonRestApi extends BaseDecisionHubController {
     js(a.id)
   }
 
-  def updateAlternative(decisionId: Long, altId: Long) = Action(BodyParsers.parse.json) { r =>
+  def updateAlternative(decisionId: String, altId: Long) = Action(BodyParsers.parse.json) { r =>
     println("UPDATE : " + r.body)
     //TODO: verify if admin
     val title = ((r.body) \ "title").as[String]
@@ -57,22 +57,22 @@ object JSonRestApi extends BaseDecisionHubController {
     Ok
   }
 
-  def deleteAlternative(decisionId: Long, altId: Long) = Action { r =>
+  def deleteAlternative(decisionId: String, altId: Long) = Action { r =>
     println(r.body)
     DecisionManager.deleteAlternative(decisionId, altId)
     Ok
   }
 
-  //def getBallot(did: Long) = IsAuthenticated { session => r =>
-  def getBallot(decisionId: Long) = Action { r =>
+  //def getBallot(decisionId: String) = IsAuthenticated { session => r =>
+  def getBallot(decisionId: String) = Action { r =>
 
     js(DecisionManager.getBallot(decisionId, 4))
   }
 
-  //def vote(did: Long, altId: Long, score: Int) = IsAuthenticated { session => r =>
-  def vote(did: Long, altId: Long, score: Int) = Action { r =>
+  //def vote(decisionId: String, altId: Long, score: Int) = IsAuthenticated { session => r =>
+  def vote(decisionId: String, altId: Long, score: Int) = Action { r =>
     
-    DecisionManager.vote(did, altId, 4, score)
+    DecisionManager.vote(decisionId, altId, 4, score)
     Ok
   }
 }

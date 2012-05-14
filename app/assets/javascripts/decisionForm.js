@@ -8,7 +8,13 @@ function createDecisionView(decisionHubApp, rootElement) {
         events: {
             "blur input" : "change",
             "click #toggleEndsWhenComplete" : "toggleEndsWhenComplete",
-            "click #toggleEndsAt" : "toggleEndsAt"
+            "click #toggleEndsAt" : "toggleEndsAt",
+            'click #save' : function() {
+                if (this.model.sync !== Backbone.sync) {
+                    this.model.sync = Backbone.sync;
+                    this.model.save()
+                }
+            }
         },
         initialize: function() {
             this.model.bind('change', this.render, this);

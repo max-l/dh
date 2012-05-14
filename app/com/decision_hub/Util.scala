@@ -115,6 +115,26 @@ object Util {
     )
   }
 
+  implicit object booleanStringMapBodyParser extends CustomBodyParser[Map[String,Boolean]] {
+    def parser = BodyParsers.parse.urlFormEncoded.map { m =>
+      
+      println("---->" + m)
+      
+      m.map(_ match {
+        case (k,Seq("true"))  => (k, true)
+        case (k,Seq("false")) => (k, false)
+      })
+    }
+  }
+
+  implicit object stringIntMapBodyParser extends CustomBodyParser[Map[String,Int]] {
+    def parser = BodyParsers.parse.urlFormEncoded.map( m =>
+      m.map(_ match {
+        case (k,Seq(i)) => (k, parseInt(i))
+      })
+    )
+  }
+  
   implicit object fbClickOnApplicationBodyParser extends CustomBodyParser[FBClickOnApplication] {
     def parser = BodyParsers.parse.urlFormEncoded.map { m =>
       FacebookProtocol.authenticateSignedRequest(m).

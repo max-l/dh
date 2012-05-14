@@ -1,33 +1,34 @@
 
 
 
+GET      /                                      controllers.MainPage.home
+
 GET      /td                                    controllers.MainPage.tdGet
 POST     /td                                    controllers.MainPage.tdPost
 PUT      /td                                    controllers.MainPage.tdPut
 DELETE   /td                                    controllers.MainPage.tdDelete
 
-GET      /dec/:id                               controllers.JSonRestApi.getDecision(id: Long)
+GET      /dec/:id                               controllers.JSonRestApi.getDecision(id: String)
 
-GET      /dec/alternatives/:did                  controllers.JSonRestApi.getAlternatives(did: Long)
-POST     /dec/alternatives/:did                  controllers.JSonRestApi.createAlternative(did: Long)
-PUT      /dec/alternatives/:did/:altId           controllers.JSonRestApi.updateAlternative(did: Long, altId: Long)
-DELETE   /dec/alternatives/:did/:altId           controllers.JSonRestApi.deleteAlternative(did: Long, altId: Long)
+GET      /dec/alternatives/:did                  controllers.JSonRestApi.getAlternatives(did: String)
+POST     /dec/alternatives/:did                  controllers.JSonRestApi.createAlternative(did: String)
+PUT      /dec/alternatives/:did/:altId           controllers.JSonRestApi.updateAlternative(did: String, altId: Long)
+DELETE   /dec/alternatives/:did/:altId           controllers.JSonRestApi.deleteAlternative(did: String, altId: Long)
 
-GET      /ballot/:did                           controllers.JSonRestApi.getBallot(did: Long)
-GET      /vote/:did/:altId/:score               controllers.JSonRestApi.vote(did: Long, altId: Long, score: Int)
+GET      /ballot/:did                           controllers.JSonRestApi.getBallot(did: String)
+GET      /vote/:did/:altId/:score               controllers.JSonRestApi.vote(did: String, altId: Long, score: Int)
 
 
 GET   /vdv                                    controllers.MainPage.vdv
+GET   /vdvDemo                                controllers.MainPage.vdvDemo
 
 GET     /sp                                    controllers.MainPage.sp
 
 GET     /fbauth                                controllers.MainPage.fbauth
 GET     /logout                                controllers.MainPage.logout
 
-GET     /backb/:decisionId                             controllers.MainPage.backb(decisionId: Long)
+GET     /backb/:decisionId                             controllers.MainPage.backb(decisionId: String)
 GET     /backb2                                controllers.MainPage.backb2
-
-GET     /                                      controllers.MainPage.index
 POST    /facebookCanvasUrl/                    controllers.MainPage.facebookCanvasUrl
 POST    /loginWithFacebookToken                controllers.MainPage.loginWithFacebookToken
 GET     /channel                               controllers.MainPage.facebookChannelFile
@@ -35,16 +36,16 @@ GET     /externalLogin/:provider/*path         controllers.MainPage.externalLogi
 
 
 GET     /mainScreen                            controllers.Screens.mainScreen
-GET     /participants/:decisionId/:page/:size  controllers.Screens.participants(decisionId: Long, page: Int, size: Int)
-GET     /p/:decisionId                         controllers.Screens.decisionDetails(decisionId: Long)
+GET     /participants/:decisionId/:page/:size  controllers.Screens.participants(decisionId: String, page: Int, size: Int)
+GET     /p/:decisionId                         controllers.Screens.decisionDetails(decisionId: String)
 GET     /decision/create                       controllers.Screens.create
 POST    /decision/create                       controllers.Screens.submitNewDecision
-GET     /decision/edit/:decisionId             controllers.Screens.edit(decisionId: Long)
+GET     /decision/edit/:decisionId             controllers.Screens.edit(decisionId: String)
 POST    /decision/edit                         controllers.Screens.submitDecisionEdit
 
 GET     /login                                 controllers.Dialogs.login
-GET     /vote/:decisionId                      controllers.Dialogs.voteScreen(decisionId: Long)
-POST    /vote/:decisionId                      controllers.Dialogs.submitVote(decisionId: Long)
+GET     /vote/:decisionId                      controllers.Dialogs.voteScreen(decisionId: String)
+POST    /vote/:decisionId                      controllers.Dialogs.submitVote(decisionId: String)
 GET     /authorizeApp/:fbAppReqId              controllers.Dialogs.authorizeApp(fbAppReqId: Long)
 POST    /acceptOrDeclineInvitations            controllers.Dialogs.acceptOrDeclineInvitations
 POST    /recordInvitationList                  controllers.Dialogs.recordInvitationList
@@ -85,7 +86,7 @@ GET     /assets/*file                          controllers.Assets.at(path="/publ
 #GET     /myDecisions/                          controllers.Decisions.myDecisionz
 #POST    /myDecisions/                          controllers.Decisions.myDecisionz
 #POST    /decisionSubmit                        controllers.Decisions.submit
-#GET     /decision/invite/:decisionId           controllers.Decisions.invite(decisionId: Long)
+#GET     /decision/invite/:decisionId           controllers.Decisions.invite(decisionId: String)
 
 
 # accountName is a userName, countryCode or organasationName

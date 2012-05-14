@@ -41,7 +41,7 @@ object Dialogs extends BaseDecisionHubController {
     }
   }
 
-  def acceptOrDeclineInvitations = IsAuthenticated(expect[Map[Long,Boolean]]) { session => implicit request =>
+  def acceptOrDeclineInvitations = IsAuthenticated(expect[Map[String,Boolean]]) { session => implicit request =>
     import play.api.libs.json.Json._
     Ok {
       val z = 
@@ -51,14 +51,14 @@ object Dialogs extends BaseDecisionHubController {
   }
   
   
-  def voteScreen(decisionId: Long) = IsAuthenticated { dhSession => implicit request =>
+  def voteScreen(decisionId: String) = IsAuthenticated { dhSession => implicit request =>
 
     val (decision, alts) = DecisionManager.voteScreenModel(decisionId, dhSession.userId)
 
     Ok(html.voteScreen(decision, alts))
   }
   
-  def submitVote(decisionId: Long) = IsAuthenticated(expect[Map[Long,Int]]) { dhSession => implicit request =>
+  def submitVote(decisionId: String) = IsAuthenticated(expect[Map[Long,Int]]) { dhSession => implicit request =>
 
     DecisionManager.vote(dhSession.userId, decisionId, request.body)
     Ok

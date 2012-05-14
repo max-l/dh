@@ -1,0 +1,27 @@
+@()
+<!DOCTYPE html>
+<html>
+  <head>
+
+    @js(p: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
+    @css(p: String) = {<link  href='@routes.Assets.at("stylesheets/" + p)' rel="stylesheet"/>}
+    @css("bootstrap.css")
+  </head>
+  <body>
+    <div class="container">
+    
+      <div class="row">
+        <div class="hero-unit">
+          <h1>Decision Hub</h1>
+          <p>Decision Hub is a tool for taking group decisions by approval voting</p>
+          <p>
+            <a id='createNewDecision' class="btn btn-primary btn-large">
+              Create Decision
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </body>
+  
+<html>

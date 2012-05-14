@@ -33,6 +33,9 @@ case class Todo(id: String, text: String)
 
 object MainPage extends BaseDecisionHubController {
 
+  def home = Action { r =>
+    Ok(html.home())
+  }
   
   val LANDING_PAGE_COOKIE_NAME = "landingPathAfterLogin"
   
@@ -68,7 +71,7 @@ object MainPage extends BaseDecisionHubController {
   
 //=========================================================================================
 
-  def dGet(decisionId: Long) = Action { r =>
+  def dGet(decisionId: String) = Action { r =>
     println("--->tdGet")
     println(r.body)
     
@@ -80,19 +83,19 @@ object MainPage extends BaseDecisionHubController {
     //Ok(play.api.libs.json.Json.toJson(Nil: Seq[String]))    
   }
   
-  def dPost(decisionId: Long) = Action(BodyParsers.parse.json) { r =>
+  def dPost(decisionId: String) = Action(BodyParsers.parse.json) { r =>
     println("--->tdPost")
     println(r.body)
     Ok
   }
 
-  def dPut(decisionId: Long) = Action(BodyParsers.parse.json) { r =>
+  def dPut(decisionId: String) = Action(BodyParsers.parse.json) { r =>
     println("--->tdPut")
     println(r.body)
     Ok
   }
 
-  def dDelete(decisionId: Long) = Action(BodyParsers.parse.json) { r =>
+  def dDelete(decisionId: String) = Action(BodyParsers.parse.json) { r =>
     println("--->tdDelete")
     println(r.body)
     Ok
@@ -108,7 +111,7 @@ object MainPage extends BaseDecisionHubController {
     }
   }
   
-  def backb(decisionId: Long) = Action { r =>
+  def backb(decisionId: String) = Action { r =>
     Ok(html.backb(decisionId))
   }
   
@@ -268,7 +271,7 @@ object MainPage extends BaseDecisionHubController {
         val u = AuthenticationManager.authenticateOrCreateUser(info)
         val ses = new DecisionHubSession(u, req)
 
-        AuthenticationSuccess(Redirect(routes.MainPage.index), ses)
+        AuthenticationSuccess(Redirect(routes.MainPage.home), ses)
       }
       case Right(error) => 
         Logger.info("Failed Logon " + res)
