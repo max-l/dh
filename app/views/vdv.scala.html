@@ -2,106 +2,109 @@
 <!DOCTYPE html>
 
   @js(p: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
+
   @css(p: String) = {<link  href='@routes.Assets.at("stylesheets/" + p)' rel="stylesheet"/>}
 
-  @cell(i: Int)(title: Html)(c: Html) = {
-      <div class='span4'>
-         <strong>@i<strong/><h2>@title</h2>
-         @c
-      </div>
-  }
-
+  @jsv(p: String, version: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
+   
+  
 <html>
   <head>
-    @css("bootstrap.css")
-    @js("bootstrap.js")
+
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/jquery-custom/themes/ui-lightness/jquery-ui-1.8.18.custom.css")">
+
+    @css("bootstrap.min.css")
+    
+    @im() = {http://placehold.it/50x50.png}
+    
+    @im1() = {<a class="btn btn-large btn-success" href="#"><i class="icon-ok icon-white"></i></a>}
+    
+
+    @thing1(i: Int)(title: Html)(brief: Html) = {
+            <div class="row">
+                <article class="span8 offset1">
+                    <h3>@title</h3>
+                    <p>@brief</p>
+                </article>
+                <div class="span3">
+                    @im1
+                </div>
+            </div>
+    }
+    @thing0(i: Int)(title: Html)(brief: Html) = {
+            <div class="row">
+                <div class="span1 offset1">
+                    @im1
+                </div>
+                <div class="span8">
+                    <h3>@title</h3>
+                    <p>@brief</p>
+                </div>
+            </div>    
+    }
   </head>
+  
   <body>
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="./index.html">EquiVote.ca</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
-              <li class="">
-                <a href="./index.html">Qu'est ce que le vote par approbation ?</a>
-              </li>
-              <li class="">
-                <a href="./examples.html">À propos</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="container">
-    
+  
 <div class="hero-unit">
-  <h1>Vote par approbation</h1>
 </div>
+ <div class="container">
+      
+      <div class="well"><h1>Pourquoi faut-il instaurer le vote par approbation ?</h1></div>
 
-    <h1>Ce que le vote par approbation permet :</h1>
-    
-    <div class='row'>
-       @cell(1) {De voter selon ses préfférences sans risquer de perdre son vote} {
-          Le mode de scrutin uninominal en vigueur au Canada et dans chacune des provices
-          fait en sorte que le poids d'un vote soit substantielement réduit si il n'appuie pas un des deux grands partis,
-          Des milliers, voir des millions d'électeurs sont ainsi réduits au silence
-       } 
-       @cell(2) {De mettre fin au "système à deux partis"} {
-         
-       } 
-       @cell(3) {Évaluer <b>chaque</b> candidat lors d'un vote, et non un seul. } {
-         
-          Un électeur devrait pouvoir appuyer autant de partis ou candidats dont il approuve le programme,
-          ce que ne permet pas le mode de scrutin uninominal en vigueur. 
-          Ceci a une conséquence grave : la division du vote.
-  
-          La division du vote fait en sorte qu'il soit plus payant (électoralement) pour un parti de satisfaire son électorat
-          <b>au détriment</b> des autres électeurs, et ce même lorsque ceux ci sont majoritaires.
-  
-          À l'inverse, une idée qui est supportée par plus d'un parti est sujete à la division du vote, ce qui la rend 
-          <i>électoralement non viable</i> même si elle est majoritairement partagée.
-          C'est ainsi que s'explique le fait que de nombreuses idées, causes et solutions qui font consensus se retrouvent
-          rarement dans le "radar" des partis politiques dominants.
-  
-          Heureusement ce phénomène pas une fatalité incurable de la démocratie, mais une
-          défectuosité des modes de scrutin uninominaux. 
-  
-          Le vote par approbation n'a pas cette défectuosité, il permet à l'électeur de voter selon ses valeurs, 
-          sans crainde que la division du vote fasse gagner un parti qu'il désapprouve.
-       }
-     </div>
-     <div class='row'>
-       @cell(4) {Réduire l'impact de maneuvres électoralistes } {
-         
-       } 
-       @cell(5) {Des partis politiques redevable à l'ensemble des électeurs et non uniquement à leur bases partisanes} {
-         
-       } 
-       
+            @thing0(11) {Pour pouvoir voter honnêtement, et non stratégiquement} {
 
-     </div>
+              À chaque élection, de nombreux électeurs ne votent pas pour leur candidat préféré, 
+              par crainte de contribuer à la victoire d'un parti dont il craignent la prise de pouvoir.
+              - le seul fait qu'un parti soit perçu comme un gagnant potentiel, lui permet de "capter" les votes d'électeurs
+                ne lui étant pas nécéssairement favorable. La phrase : vous n'aimez pas le candidat X ? 
+                Votez pour moi, car je suis votre seul espoir de ne pas le voir prendre pouvoir.
+              Ce genre de discours n'est pas un programme électoral, pourtant beaucoup de politiciens
+              se font élire avec cette stratégie.
+            }
+            @thing1(11) {Pour mettre fin aux "système à deux partis"} {
 
-       Le mode de scrutin accorde un poids disproportionné aux groupes qui forment un majorité simple.
-       
-       Dictature de majorité simple
-       
-       vision réductrice gauche / droite plutôt que sur le 
-       Il devrait être plus rentable électoralement de mettre de l'avant des idées qui font consensus que 
-       d'employer des stratégies électoralistes
+              Un système à parti unique peut difficilement être qualifié de démocratique, 
+              un système ou le pouvoir est détenu par deux parti présente en général
+              de nombreuse similitudes, lorsqu'un de ces parti est chassé du pouvoir, celui
+              ci est assuré de le reprendre.
+            }
+            @thing0(11) {Parce qu'un vote devrait permettre une évaluation indépendante (précise) de chaque choix} {
+              Que pouvons nous exprimer sur un bulletin de vote uninominal (celui en vigueur depuis 300 ans ...pop over) ?
+              Un tel bulletin de vote, signifie que l'électeur approuve à 100% le candidat coché, et rejete
+              tous les autres, de façon égale, combien de fois ceci correspond à son évaluation ?
+              Le vote est la seule opportunité qu'a un citoyen d'exprimer au pouvoir
+              Posons la question autrement : cocher 
 
-          Problèmes : 
-          
-            - division du vote 
-            - first pas the post
-            - oligopole de deux partis
+              Le système uninominal actuel ne permet à l'électeur de voter qu'un seul candidat. Ceci a 
+              pour effet qu'une fois la majorité simple atteinte par un parti, celui ci est à l'abri
+              du jugement de tout les autres électeurs.
+              Ce n'est pas un hazard si beaucoup de parti
+              politiques ignore complètement les électeurs n'ayant pas voté pour lui, même quand 
+              ceux ci constituent la majorité.
+            }
+            @thing1(11) {Les partis politiques sont redevable à l'ensemble des électeurs et non uniquement à leur bases partisanes} {
+              Une élection est gagné par une majorité simple, avec la <a>division du vote</a> il arrive souvent qu'une majorité
+              simple soit une minorité. Un parti ayant l'appui d'une majorité simple, peut gouverner uniquement dans le but 
+              de satisfaire pour celle ci, même au détriment du reste de l'électorat <i>sans être pénalisé</i>.
+              Il devient alors possible qu'une minorité de l'électorat, impose sa volonté à la majorité.
+              <br>
+              Le vote par approbation change la donne, la possibilité qu'a un l'électeur d'évaluer chaque parti sur son
+              bulletin de vote fait en sorte qu'il devienne couteux électo 
+            }
+            @thing0(11) {Parce que le déficit démocratique actuel ne fera que s'accroître s'il n'est pas corrigé} {
+
+            }
     </div>
+
+<!--
+                L'issue d'une élection est davantage déterminé par l'approbation de l'électorat
+                que par les maneuvres électoralistes
+-->
+
+    </div>
+    @js("jquery-1.7.1.min.js")
+    @js("bootstrap.js")
   </body>
+  
 <html>

@@ -1,5 +1,5 @@
 
-function createBallotView(ballotModel, rootElement, templates) {
+function createBallotView(ballotModel, rootElement, templates, totalUpdater) {
      var V = Backbone.View.extend({
     	el: rootElement,
     	model: ballotModel,
@@ -15,6 +15,10 @@ function createBallotView(ballotModel, rootElement, templates) {
         	var target = $(e.currentTarget);
         	var altId = target.attr('altId');
         	var score = target.attr('score');
+        	
+        	ballotModel.get('scores')[altId].currentScore = score
+        	
+        	totalUpdater(altId)
         },
         render: function() {
         	var ballot = _.extend({}, this.model.toJSON());

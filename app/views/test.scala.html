@@ -1,3 +1,74 @@
+
+  @cell(i: Int)(title: Html)(c: Html) = {
+      <div class='span4'>
+         <strong>@i<strong/><h2>@title</h2>
+         @c
+      </div>
+  }
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="./index.html">EquiVote.ca</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="">
+                <a href="./index.html">Qu'est ce que le vote par approbation ?</a>
+              </li>
+              <li class="">
+                <a href="./examples.html">À propos</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <div class='row'>
+       @cell(1) {De voter selon ses préfférences sans risquer de perdre son vote} {
+          Le mode de scrutin uninominal en vigueur au Canada et dans chacune des provices
+          fait en sorte que le poids d'un vote soit substantielement réduit si il n'appuie pas un des deux grands partis,
+          Des milliers, voir des millions d'électeurs sont ainsi réduits au silence
+       } 
+       @cell(2) {De mettre fin au "système à deux partis"} {
+         
+       } 
+       @cell(3) {Évaluer <b>chaque</b> candidat lors d'un vote, et non un seul. } {
+         
+          Un électeur devrait pouvoir appuyer autant de partis ou candidats dont il approuve le programme,
+          ce que ne permet pas le mode de scrutin uninominal en vigueur. 
+          Ceci a une conséquence grave : la division du vote.
+  
+          La division du vote fait en sorte qu'il soit plus payant (électoralement) pour un parti de satisfaire son électorat
+          <b>au détriment</b> des autres électeurs, et ce même lorsque ceux ci sont majoritaires.
+  
+          À l'inverse, une idée qui est supportée par plus d'un parti est sujete à la division du vote, ce qui la rend 
+          <i>électoralement non viable</i> même si elle est majoritairement partagée.
+          C'est ainsi que s'explique le fait que de nombreuses idées, causes et solutions qui font consensus se retrouvent
+          rarement dans le "radar" des partis politiques dominants.
+  
+          Heureusement ce phénomène pas une fatalité incurable de la démocratie, mais une
+          défectuosité des modes de scrutin uninominaux. 
+  
+          Le vote par approbation n'a pas cette défectuosité, il permet à l'électeur de voter selon ses valeurs, 
+          sans crainde que la division du vote fasse gagner un parti qu'il désapprouve.
+       }
+     </div>
+     <div class='row'>
+       @cell(4) {Réduire l'impact de maneuvres électoralistes } {
+         
+       } 
+       @cell(5) {Des partis politiques redevable à l'ensemble des électeurs et non uniquement à leur bases partisanes} {
+         
+       }
+    </div>
+
+
 @()
 
 @import com.decision_hub._

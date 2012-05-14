@@ -41,12 +41,35 @@
   
   <body>
     <div class="container">
-    
+
+      <div class="tabbable tabs-left">
+        <ul class="nav nav-tabs">
+          <li class="active">
+              <a href="#tab1" data-toggle="tab">Section 1</a></li>
+          <li>
+              <a href="#tab2" data-toggle="tab">Section 2</a></li>
+        </ul>
+        <div class="tab-content">
+           <div class="tab-pane active" id="tab1">
+             <p>I'm in Section 1.</p>
+           </div>
+           <div class="tab-pane" id="tab2">
+             <p>Howdy, I'm in Section 2.</p>
+           </div>
+        </div>
+      </div>
+      
       <div class="row">
-         <div id='v1' class='span6'></div>
+         <div id='v1' class='span4'></div>
          <div id='v2' class='span3'></div>
-         <div id='v3' class='span3'></div>
-         <div id='v4' class='span6'></div>
+         <div id='v3' class='span3'>
+           <table>
+                 <tr><td><a total='0' class='btn'>1</a></td></tr>
+                 <tr><td><a total='1' class='btn'>3</a></td></tr>
+                 <tr><td><a total='2' class='btn'>-2</a></td></tr>
+                 <tr><td><a total='3' class='btn'>0</a></td></tr>
+           </table>
+         </div>
       </div>
     </div>
 
@@ -82,26 +105,29 @@
       Ballot = Backbone.Model.extend({});
       
       var v1 = new Ballot({"scores":[
-        {"alternativeId":1,"title":"1this is the one !","currentScore":2},
-        {"alternativeId":2,"title":"2the only absolutely correct coice !","currentScore":1},
-        {"alternativeId":3,"title":"3choose this if you are a winner","currentScore":-1},
-        {"alternativeId":4,"title":"4everyone's favorite","currentScore":2}]});
+        {"alternativeId":0,"title":"Candidat 1", currentScore: 2},
+        {"alternativeId":1,"title":"Candidat 2","currentScore":2},
+        {"alternativeId":2,"title":"Candidat 3","currentScore":-1},
+        {"alternativeId":3,"title":"Candidat 4","currentScore":2}]});
 
       var v2 = new Ballot({"scores":[
-        {"alternativeId":1,"currentScore":2},
-        {"alternativeId":2,"currentScore":1},
-        {"alternativeId":3,"currentScore":-1},
-        {"alternativeId":4,"currentScore":2}]});
-        
-      var v3 = new Ballot({"scores":[
-        {"alternativeId":1,"currentScore":2},
-        {"alternativeId":2,"currentScore":1},
-        {"alternativeId":3,"currentScore":-1},
-        {"alternativeId":4,"currentScore":2}]});        
+        {"alternativeId":0,"currentScore":-1},
+        {"alternativeId":1,"currentScore":1},
+        {"alternativeId":2,"currentScore":-1},
+        {"alternativeId":3,"currentScore":-2}]});
 
-      createBallotView(v1, $('#v1'), Templates).render();
-      createBallotView(v2, $('#v2'), Templates).render();
-      createBallotView(v3, $('#v3'), Templates).render();
+      var totalUpdater = function(altId) {
+        var a = $('a[total=' + altId + ']')
+
+        var s1 = v1.get('scores')[altId].currentScore
+        var s2 = v2.get('scores')[altId].currentScore
+        var tot = parseInt(s1) + parseInt(s2)
+        a.text('' + tot)
+      };
+
+      createBallotView(v1, $('#v1'), Templates, totalUpdater).render();
+      createBallotView(v2, $('#v2'), Templates, totalUpdater).render();
+      //createBallotView(v3, $('#v3'), Templates).render();
     </script>
 
   </body>

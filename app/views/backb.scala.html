@@ -137,9 +137,8 @@
     
     <script>
       var handlebarsTemplates = $("script[type='text/x-handlebars-template']");
-      console.log(handlebarsTemplates);
       Templates = {};
-      
+
       handlebarsTemplates.each(function(i, templateElement) {
         var t0 = $(templateElement);
         var t = Handlebars.compile(t0.html());

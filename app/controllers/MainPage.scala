@@ -124,6 +124,10 @@ object MainPage extends BaseDecisionHubController {
     Ok(html.vdv())
   }
   
+  def vdvDemo = Action { r =>
+    Ok(html.vdvDemo())
+  }  
+  
   def landingPage(session: Option[DecisionHubSession], r: Request[_]) =
     html.fcpe((defaultLandingPage, Screens.mainScreenDef(session, r)), session.map(_.displayName), false, false)
   
