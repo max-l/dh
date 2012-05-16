@@ -27,8 +27,28 @@ object JSonRestApi extends BaseDecisionHubController {
 
   def js[A](a: A) = Ok(Json.generate(a))
 
-  def getDecision(decisionId: String) = Action {
 
+  //def saveDecision(decisionId: String) = Action(BodyParsers.parse.json) { r =>
+  def saveDecision(decisionId: String) = Action(expectJson[Decision]) { r =>
+    
+    
+    val d = r.body
+    println(d.id)
+    println(d)
+    println(">>>>>>>>>"+d.endsOn)
+
+    if(DecisionManager.updateDecision(r.body))
+      Ok
+    else
+      NotFound
+  }
+
+  def getDecision(decisionId: String) = Action { req =>
+
+    println("<<<<<<<<<")
+    println(Json.generate(DecisionManager.getDecision(decisionId)))
+    println(">>>>>>>>>")
+    
     DecisionManager.getDecision(decisionId).
       map(js(_)).getOrElse(NotFound)
   }

@@ -1,46 +1,43 @@
 
 
-function createDecisionView(decisionHubApp, rootElement) {
-
+function createDecisionView(rootElement, templates) {
     var DecisionView = Backbone.View.extend({
-    	model: decisionHubApp.currentDecision,
     	el: rootElement,
         events: {
-            "blur input" : "change",
+            "blur input[name=title]" : function(e) {
+    	        this.model.set('title', $(e.currentTarget).val())
+    	        this.model.save()
+            },
             "click #toggleEndsWhenComplete" : "toggleEndsWhenComplete",
-            "click #toggleEndsAt" : "toggleEndsAt",
-            'click #save' : function() {
-                if (this.model.sync !== Backbone.sync) {
-                    this.model.sync = Backbone.sync;
-                    this.model.save()
-                }
-            }
+            "click #toggleEndsAt" : "toggleEndsAt"
         },
-        initialize: function() {
-            this.model.bind('change', this.render, this);
-        },
+        initialize: function() {},
         toggleTimeWidget: function(showOrHide) {
         	$(this.el).find('#endTime').collapse(showOrHide)
         },
         toggleEndsWhenComplete: function(e) {
-        	this.model.get('endsOn', null);
-          	this.toggleTimeWidget('hide')
+        	this.model.set('endsOn', null);
+          	this.toggleTimeWidget('hide');
+          	this.model.save()
         },
         toggleEndsAt: function(e) {
-      	    this.model.get('endsOn', (new Date()).getTime());
-      	    this.toggleTimeWidget('show')
+        	if(! this.model.get('endsOn')) {
+      	      this.model.set('endsOn', (new Date()).getTime());
+        	}
+      	    this.toggleTimeWidget('show');
+      	    this.model.save()
         },
-        setModel: function(m) {
-        	this.model = m
-        	this.choiceView.model = m.choiceList();
-        	this.choiceView.render();
+        setModel: function(decision) {
+        	this.model = decision
+        	this.model.on('change', this.render, this);
         },
         render: function() {
-        	var decision = _.extend({}, this.model.toJSON());
+        	
+        	this.model.off('change');
+        	var decision = this.model.toJSON();
         	var el = $(this.el);
 
-            el.html(decisionHubApp.templates.decisionViewTemplate(decision));
-            $('div[data-provide=datetimepicker]').datetimepicker();
+            el.html(templates.decisionViewTemplate(decision));
 
             if(decision.endsOn) {
               el.find('#toggleEndsAt').button('toggle');
@@ -54,19 +51,33 @@ function createDecisionView(decisionHubApp, rootElement) {
               this.toggleTimeWidget('hide')
             }
             
-            if(! this.choiceView)
-              this.choiceView = this._createChoicesListView(this.model.choiceList());
+            var zis = this;
+            var dateTimePickerOptions = {
+                onChange: function(dt) {
+    	           zis.model.set('endsOn', dt);
+    	           zis.model.save()
+            	},
+            	minDate: new Date()
+            };
+            
+            if(decision.endsOn)
+              dateTimePickerOptions.defaultDatetime = new Date(decision.endsOn);
+
+            var dp = el.find('div[data-provide=datetimepicker]').datetimepicker(dateTimePickerOptions);
+            
+            var clv = this._createChoicesListView($('#choiceList'));
+        	this.model.choiceList().on('change', clv.render, clv);
+        	clv.setModel(this.model.choiceList());
+        	this.model.choiceList().fetch();
 
             return this;
         },
-        _createChoicesListView: function(cl) { 
+        _createChoicesListView: function(el) { 
             ChoiceView = DynListElementView.extend({
-              compiledTemplate: decisionHubApp.templates.choiceTemplate
+              compiledTemplate: templates.choiceTemplate
             });
 
             ChoicesListView = DynListView.extend({
-              el: $('#choiceList'),
-              model: cl,
               createElementView: function(e) {
                 return new ChoiceView({model: e})
               },
@@ -74,10 +85,8 @@ function createDecisionView(decisionHubApp, rootElement) {
                 return model.create({title: alternativeTitle})
               }
             });
-            new ChoicesListView()
-        },
-        change: function() {
-          //this.model.save();
+
+            return new ChoicesListView({el: el})
         }
     })
     

@@ -4,24 +4,18 @@ function createBallotView(ballotModel, rootElement, templates, totalUpdater) {
     	el: rootElement,
     	model: ballotModel,
         events: {
-            "click a[altId]" : "_scoreAlternative"
-        },
-        initialize: function() {
-        	
-            this.model.on('change', this.render, this);
-        },
-        _scoreAlternative: function(e) {
+            "click a[altId]" : function(e) {
 
-        	var target = $(e.currentTarget);
-        	var altId = target.attr('altId');
-        	var score = target.attr('score');
-        	
-        	ballotModel.get('scores')[altId].currentScore = score
-        	
-        	totalUpdater(altId)
+                var target = $(e.currentTarget);
+                var altId = target.attr('altId');
+                var score = target.attr('score');
+                ballotModel.get('scores')[altId].currentScore = score
+
+                totalUpdater(altId)
+            }
         },
         render: function() {
-        	var ballot = _.extend({}, this.model.toJSON());
+        	var ballot = this.model.toJSON();
         	var el = $(this.el);
 
             el.html(templates.voteTemplate(ballot));

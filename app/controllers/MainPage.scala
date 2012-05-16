@@ -36,70 +36,26 @@ object MainPage extends BaseDecisionHubController {
   def home = Action { r =>
     Ok(html.home())
   }
+
+  def newDecision = Action { req =>
+
+    val d = DecisionManager.newDecision
+
+    Redirect("/decision/" + d.id)
+  }
+
+  def decision(decisionId: String) = Action { req =>
+
+    if(DecisionManager.decisionExists(decisionId)) 
+      Ok(html.backb(decisionId))
+    else
+      Redirect("/")
+  }
   
   val LANDING_PAGE_COOKIE_NAME = "landingPathAfterLogin"
-  
-  
-  def tdGet = Action { r =>
-    println("--->tdGet")
-    println(r.body)
-    
-        
-    Ok(play.api.libs.json.Json.toJson(Seq(
-      Map("id" -> "a", "text" -> "a"),
-      Map("id" -> "b", "text" -> "b")
-    )))    
-  }
-  
-  def tdPost = Action(BodyParsers.parse.json) { r =>
-    println("--->tdPost")
-    println(r.body)
-    Ok
-  }
 
-  def tdPut = Action(BodyParsers.parse.json) { r =>
-    println("--->tdPut")
-    println(r.body)
-    Ok
-  }
-
-  def tdDelete = Action(BodyParsers.parse.json) { r =>
-    println("--->tdDelete")
-    println(r.body)
-    Ok
-  }
   
 //=========================================================================================
-
-  def dGet(decisionId: String) = Action { r =>
-    println("--->tdGet")
-    println(r.body)
-    
-    Ok(play.api.libs.json.Json.toJson(Seq(
-      Map("id" -> "7", "text" -> "a"),
-      Map("id" -> "8", "text" -> "b")
-    )))
-    
-    //Ok(play.api.libs.json.Json.toJson(Nil: Seq[String]))    
-  }
-  
-  def dPost(decisionId: String) = Action(BodyParsers.parse.json) { r =>
-    println("--->tdPost")
-    println(r.body)
-    Ok
-  }
-
-  def dPut(decisionId: String) = Action(BodyParsers.parse.json) { r =>
-    println("--->tdPut")
-    println(r.body)
-    Ok
-  }
-
-  def dDelete(decisionId: String) = Action(BodyParsers.parse.json) { r =>
-    println("--->tdDelete")
-    println(r.body)
-    Ok
-  }
 
   
   def externalLogin(provider: String, currentPageUri: String) = MaybeAuthenticated { mpo => implicit req =>

@@ -14,6 +14,16 @@
 
     @css("bootstrap.css")
     @css("timepicker.css")
+    
+    <style type="text/css">
+      .voteblock {
+        float: left;
+        margin-right: 10px;
+      }
+      .clearVoteBlock {
+        clear: left;
+      }
+    </style>
 
     <script id="voteTemplate" type="text/x-handlebars-template">
       <table>
@@ -33,12 +43,12 @@
           {{/ each}}
       </table>
     </script>
-    
+
     <script id="choiceTemplate" type="text/x-handlebars-template">
       <input type="text" value="{{title}}"/><i class="icon-remove"></i>'
     </script>
   </head>
-  
+
   <body>
     <div class="container">
 
@@ -60,9 +70,9 @@
       </div>
       
       <div class="row">
-         <div id='v1' class='span4'></div>
-         <div id='v2' class='span3'></div>
-         <div id='v3' class='span3'>
+         <div id='v1' class='voteblock'></div>
+         <div id='v2' class='voteblock'></div>
+         <div id='v3' class='voteblock'>
            <table>
                  <tr><td><a total='0' class='btn'>1</a></td></tr>
                  <tr><td><a total='1' class='btn'>3</a></td></tr>
@@ -70,6 +80,7 @@
                  <tr><td><a total='3' class='btn'>0</a></td></tr>
            </table>
          </div>
+         <span class='clearVoteBlock'></span>
       </div>
     </div>
 

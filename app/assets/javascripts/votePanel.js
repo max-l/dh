@@ -1,16 +1,15 @@
 
-function createBallotView(decisionHubApp, rootElement) {
+function createBallotView(rootElement, templates) {
      var V = Backbone.View.extend({
     	el: rootElement,
-    	model: decisionHubApp.currentDecision.getBallot(),
         events: {
             "click a[altId]" : "_scoreAlternative"
         },
         initialize: function() {
-            this.model.on('change', this.render, this);
+            //this.model.on('change', this.render, this);
         },
         _scoreAlternative: function(e) {
-        	var did = decisionHubApp.currentDecision.id;
+        	var did = this.model.decision.id;
         	var target = $(e.currentTarget);
         	var altId = target.attr('altId');
         	var score = target.attr('score');
@@ -22,13 +21,16 @@ function createBallotView(decisionHubApp, rootElement) {
         		//TODO e.preventDefault() ?
         	})
         },
+        setModel: function(ballot) {
+        	this.model = ballot;
+        	this.model.on('change', this.render, this)
+        },
         render: function() {
 
-        	
         	var ballot = _.extend({}, this.model.toJSON());
         	var el = $(this.el);
 
-            el.html(decisionHubApp.templates.voteTemplate(ballot));
+            el.html(templates.voteTemplate(ballot));
 
             _.each(ballot.scores, function(score) {
             	

@@ -14,14 +14,10 @@
      var _extractDateTime = function(date, time) {
 
     	 var ms = date.getTime();
-    	 var dt = new Date();
+    	 var dt = new Date(ms);
          var dta = _extractTimeArray(time);
-         var m = 0;
-         if(dta[0] == "PM") m = 12;
-
-         dt.setHours(dta[1] + m);
+         dt.setHours(dta[1]);
          dt.setMinutes(dta[2]);
-
          return dt;
      };
 
@@ -51,15 +47,35 @@
      var Datetimepicker = function(element, options) {
          this.$element = $(element);
          this.options = $.extend({}, $.fn.datetimepicker.defaults, options);
-         this.init();
+         this.init(this.options);
      };
 
      Datetimepicker.prototype = {
         constructor: Datetimepicker,
-        init: function() {
+        init: function(options) {
+
     	    var e = this.$element;
-     		var w1 = $('<input type="text">').datepicker();
-     		var w2 = $('<input type="text">').timepicker(); //({template: 'modal'});
+    	    var datePickerOptions = {
+    	        minDate: options.minDate
+    	    };
+    	    var zis = this;
+
+    	    if(options.onChange)
+    	       datePickerOptions.onSelect = function() {
+                   var dt = zis.getDatetime()
+                   if(dt) options.onChange(dt)
+   			   };
+
+     		var w1 = $('<input type="text">').datepicker(datePickerOptions);
+     		
+     		var w2 = $('<input type="text">').timepicker({showMeridian: false});
+
+    	    if(options.onChange) {
+    	      w2.blur(function(e) {
+                  var dt = zis.getDatetime()
+                  if(dt) options.onChange(dt)
+   			  });
+    	    }
 
     	    $(this).data('datetimepicker', w1);
     	    $(this).data('timepicker', w2);
@@ -108,9 +124,7 @@
         	var h = datetime.getHours();
         	var m = datetime.getMinutes();
         	m = Math.round(m/5) * 5;
-        	var mer = h >= 12 ? "PM" : "AM";
-        	
-    		$(w2)[0].value = h + ":" + m + " " + mer;
+    		$(w2)[0].value = h + ":" + m
     		var tp = w2.data('timepicker');
     		tp.updateFromElementVal();
         }

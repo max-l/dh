@@ -129,8 +129,9 @@ case class User(
 }
 
 case class Decision(
-  ownerId: Long,
+  ownerId: Long,  
   title: String,
+  id: String = Util.newGuid,
   description: Option[String] = None,
   published: Boolean = false,
   endsOn: Option[Timestamp] = None,// if None, ends when complete
@@ -140,8 +141,6 @@ case class Decision(
   votesAreAnonymous: Boolean = true,
   weekActivity: Int = 0,
   allTimeActivity: Int = 0) extends KeyedEntity[String] {
-  
-  val id = Util.newGuid
 
   def resultsCanBeDisplayed = 
     if(! resultsPrivateUntilEnd)

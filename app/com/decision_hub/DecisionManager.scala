@@ -12,6 +12,19 @@ object DecisionManager {
 
   def logger = Logger("application")
   
+  def newDecision = inTransaction {
+    decisions.insert(Decision(0L, ""))
+  }
+  
+  def decisionExists(dId: String) = inTransaction {
+    decisions.lookup(dId).isDefined
+  }
+  
+  def updateDecision(d: Decision) = inTransaction {
+    decisions.update(d)
+    true
+  } 
+  
   def getDecision(decisionId: String) = inTransaction {  
     decisions.lookup(decisionId)
   }

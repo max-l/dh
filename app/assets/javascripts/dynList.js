@@ -40,11 +40,14 @@
 
     DynListView = Backbone.View.extend({
 
-        initialize: function() {
+        render: function() {
 
 	        var zis = this;
 
             var i = $(this.el).find("input").first();
+
+            if($(this.el).length != 1) throw "!!!!!!!!!!!!!"
+
             
             i.keypress(function(e) {
 
@@ -56,10 +59,14 @@
                 i.val('');
             });
 
-            this.model.bind('add', this.addOne, this);
-            this.model.bind('all', this.render, this);
-            this.model.bind('reset', this.addAll, this);
-            this.model.fetch();
+            //this.model.fetch();
+        },
+    	setModel : function(list) {
+        	this.model = list;
+            this.model.on('add', this.addOne, this);
+            this.model.on('all', this.render, this);
+            this.model.on('reset', this.addAll, this);
+            //this.model.on('change', this.render, this);
         },
         addAll: function() {
         	var ul = this.$("ul");
