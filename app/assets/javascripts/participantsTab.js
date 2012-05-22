@@ -57,7 +57,6 @@ function createParticipantView(rootElement, templates, decisionId) {
            }
         },
         loggedInFacebook: function(meResp, fbAuthResponse) {
-        	debugger;
         	var zis = this;
         	if(fbAuthResponse) {
                 $.ajax({
