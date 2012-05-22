@@ -3,26 +3,33 @@ function initializeApp(decisionId) {
 
     Decision = Backbone.Model.extend({
         defaults: function() {
-            return {
-                title: ""
-            };
+            return {title: ""}
         },
         choiceList: _.once(function() {
-          
-          var ChoiceList = Backbone.Collection.extend({
-             model: DynListElement,
-             url: "/dec/alternatives/" + this.id
-          });
-          return new ChoiceList({id: this.id})
+            var ChoiceList = Backbone.Collection.extend({
+               model: DynListElement,
+               url: "/dec/alternatives/" + this.id
+            });
+            return new ChoiceList({id: this.id})
         }),
         urlRoot: "/dec",
         getBallot: _.once(function() {
-        	var Ballot = Backbone.Model.extend({});
+            var Ballot = Backbone.Model.extend({});
             var B = Ballot.extend({
-              decision: this,
+              decisionId: this.id,
               url: '/ballot/' + this.id
             });
             return new B()
+        }),
+        getFBParticipants: _.once(function() {
+            FBParticipant = Backbone.Model.extend({});
+
+            FBParticipantsList = Backbone.Collection.extend({
+                model: FBParticipant,
+                url: "/dec/participants/" + this.id
+            });
+
+        	return new FBParticipantsList()
         })
     });
 
@@ -44,14 +51,18 @@ function initializeApp(decisionId) {
         events: {
     	   'click a[href=#adminTab]'        : '_adminTab',
            'click a[href=#voteTab]'         : '_voteTab',
-           'click a[href=#participantsTab]' : '_participantsTab'
-           //'click a[id=zaza]' : 'a'
+           'click a[href=#participantsTab]'         : function() {
+              this.participantView().model.fetch()
+            }
         },
         ballotView: _.once(function() {
      	    return createBallotView($('#voteTab'), Templates)
         }),
         decisionView: _.once(function() {
      	    return createDecisionView($('#adminTab'), Templates)
+        }),
+        participantView: _.once(function(){
+        	return createParticipantView($('#participantsTab'), Templates, decisionId)
         }),
         initialize: function() {
         	this.model.on('change', this.render, this)
@@ -61,15 +72,15 @@ function initializeApp(decisionId) {
         	this.model = decisionHubAdminApp;
         	this.decisionView().setModel(decisionHubAdminApp.currentDecision());
         	this.ballotView().setModel(decisionHubAdminApp.currentDecision().getBallot());
+        	this.participantView().setModel(decisionHubAdminApp.currentDecision().getFBParticipants());
         },
         render: function() {
             $(this.el).html(Templates.decisionEditorTemplate())
         },
         _adminTab: function() {},
         _voteTab: function() {
-        	decisionHubAdminApp.currentDecision().getBallot().fetch()
-        },
-        _participantsTab: function() {}
+        	this.model.currentDecision().getBallot().fetch()
+        }
     });
 
 

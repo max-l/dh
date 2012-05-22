@@ -17,6 +17,7 @@ import com.decision_hub.AuthenticationManager
 import com.decision_hub._
 import com.decision_hub.Util._
 import com.decision_hub.FacebookProtocol._
+import com.codahale.jerkson.Json._
 
 /**
  * 
@@ -51,12 +52,46 @@ object MainPage extends BaseDecisionHubController {
     else
       Redirect("/")
   }
-  
-  val LANDING_PAGE_COOKIE_NAME = "landingPathAfterLogin"
 
+  def facebookCanvasUrl = MaybeAuthenticated(expect[FBClickOnApplication]) { sess => implicit request =>
+
+    request.body match {
+      case FBClickOnApplicationNonRegistered(js) =>
+
+        extractRequestIds(request.queryString, "request_ids").headOption match {
+          case None => 
+            Ok(html.home())
+          case Some(fbAppReqId) => Async {
+            FacebookProtocol.lookupAppRequestInfoRaw(fbAppReqId).map { t =>
+              val (appRequestInfoRawJson, jsonAppReqInfo) = t
+              val d = DecisionManager.getDecision(jsonAppReqInfo.data).get
+
+              Ok(html.voterScreen(
+                  true, 
+                  false, 
+                  appRequestInfoRawJson,
+                  generate(Seq(d.id)),
+                  "'" + Util.encodeAsJavascript(d.title) + "'"
+              ))
+            }
+          }
+      }
+      case FBClickOnApplicationRegistered(fbUserId) =>
+        val appReqId = extractRequestIds(request.queryString, "request_ids").headOption
+        DecisionManager.respondToAppRequestClick(appReqId, fbUserId) match {
+          case Some(u) => AuthenticationSuccess(Ok(html.fbVoterScreen()), new DecisionHubSession(u, request))
+          // THis case is only possible with failure of POST /recordInvitationList 
+          case None => Redirect("/")
+        }
+    }
+  }
+  
+  //514-827-5161
   
 //=========================================================================================
 
+  val LANDING_PAGE_COOKIE_NAME = "landingPathAfterLogin"
+  
   
   def externalLogin(provider: String, currentPageUri: String) = MaybeAuthenticated { mpo => implicit req =>
     provider match {
@@ -75,9 +110,7 @@ object MainPage extends BaseDecisionHubController {
     Ok(html.backb2())
   }  
   
-  def sp = Action { r =>
-    Ok(html.sp())
-  }  
+
 
   def vdv = Action { r =>
     Ok(html.vdv())
@@ -175,7 +208,7 @@ object MainPage extends BaseDecisionHubController {
      */
 
   // TODO: ensure that reverse proxy only forwards here when HTTPS
-  def facebookCanvasUrl = MaybeAuthenticated(expect[FBClickOnApplication]) { session => implicit request =>
+  def facebookCanvasUrlZ = MaybeAuthenticated(expect[FBClickOnApplication]) { session => implicit request =>
 
     request.body match {
       case FBClickOnApplicationNonRegistered(js) =>

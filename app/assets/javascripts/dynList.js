@@ -14,7 +14,6 @@
             this.model.bind('destroy', this.remove, this)
         },
         render: function() {
-        	console.log(this.model.toJSON());
             $(this.el).html(this.compiledTemplate(this.model.toJSON()));
             return this;
         },

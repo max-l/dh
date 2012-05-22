@@ -122,10 +122,7 @@ case class User(
   //TODO: display(externalPlatformIEnum#Value)
   def display =
     new ParticipantDisplay(
-        displayableName, {
-          // twitterId.map.getOrElse(u.facebookId.. etc)
-          facebookId.map(x => "https://graph.facebook.com/"+x+"/picture")
-        }, true, this.email)
+        displayableName, facebookId, true, this.email)
 }
 
 case class Decision(
@@ -190,14 +187,12 @@ case class DecisionParticipation(
   decisionId: String,
   voterId: Long,
   hasVoted: Int = 0,
-  abstained: Int = 0) extends DecisionHubEntity with DisplayableUser {
+  abstained: Int = 0,
+  lastModifTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends DecisionHubEntity with DisplayableUser {
   
   def display(u: User) = 
     new ParticipantDisplay(
-        u.displayableName, {
-          // twitterId.map.getOrElse(u.facebookId.. etc)
-          u.facebookId.map(x => "https://graph.facebook.com/"+x+"/picture")
-        }, true, u.email)
+        u.displayableName, u.facebookId, true, u.email)
 }
 
 case class ParticipationInvitation(
@@ -206,10 +201,11 @@ case class ParticipationInvitation(
   invitedUserId: Long,
   invitingUserId: Long,
   declined: Boolean = false,
-  creationTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends DecisionHubEntity with DisplayableUser {
+  creationTime: Timestamp = new Timestamp(System.currentTimeMillis)) 
+ extends DecisionHubEntity with DisplayableUser {
 
   def display(u: User) = 
-    new ParticipantDisplay(u.displayableName, Some("https://graph.facebook.com/"+u.facebookId.get+"/picture"), false, u.email) 
+    new ParticipantDisplay(u.displayableName, u.facebookId, false, u.email) 
 }
 
   

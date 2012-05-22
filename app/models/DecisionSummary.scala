@@ -8,7 +8,7 @@ import java.util.Calendar
 
 
 case class Score(alternativeId : Long, title: String, currentScore: Option[Int])
-case class Ballot(scores: Seq[Score])
+case class Ballot(decisionId: String, decisionTitle: String, scores: Seq[Score])
 
 case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstentions: Int, numberOfVotesExercised: Int, alternativeSummaries: Seq[AlternativeSummary]) {
   
@@ -92,7 +92,7 @@ case class DecisionPost(
 case class AlternativePost(id: Long, title: String)
 
 
-case class ParticipantDisplay(displayName: String, iconSrc: Option[String], accepted: Boolean, email: Option[String])
+case class ParticipantDisplay(displayName: String, facebookId: Option[Long], accepted: Boolean, email: Option[String])
 
 case class FBFriendInfo(uid: Long, name: String)
 

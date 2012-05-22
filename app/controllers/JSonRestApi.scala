@@ -21,21 +21,12 @@ import play.mvc.Result
 
 import com.codahale.jerkson.Json
 
-//case class Alternative(title: String)
 
 object JSonRestApi extends BaseDecisionHubController {
 
   def js[A](a: A) = Ok(Json.generate(a))
 
-
-  //def saveDecision(decisionId: String) = Action(BodyParsers.parse.json) { r =>
   def saveDecision(decisionId: String) = Action(expectJson[Decision]) { r =>
-    
-    
-    val d = r.body
-    println(d.id)
-    println(d)
-    println(">>>>>>>>>"+d.endsOn)
 
     if(DecisionManager.updateDecision(r.body))
       Ok
@@ -45,10 +36,6 @@ object JSonRestApi extends BaseDecisionHubController {
 
   def getDecision(decisionId: String) = Action { req =>
 
-    println("<<<<<<<<<")
-    println(Json.generate(DecisionManager.getDecision(decisionId)))
-    println(">>>>>>>>>")
-    
     DecisionManager.getDecision(decisionId).
       map(js(_)).getOrElse(NotFound)
   }
@@ -60,7 +47,6 @@ object JSonRestApi extends BaseDecisionHubController {
   }
 
   def createAlternative(decisionId: String) = Action(BodyParsers.parse.json) { r =>
-    println(r.body)
     //TODO: verify if admin
     //TODO: validate title
     val title = ((r.body) \ "title").as[String]
@@ -82,11 +68,18 @@ object JSonRestApi extends BaseDecisionHubController {
     DecisionManager.deleteAlternative(decisionId, altId)
     Ok
   }
+  
+  def getParticipants(decisionId: String) = Action { r =>
 
-  //def getBallot(decisionId: String) = IsAuthenticated { session => r =>
-  def getBallot(decisionId: String) = Action { r =>
+    val (i, p) = DecisionManager.participantAndInvitation(decisionId, 0, 1000)
+    
+    js(p)
+  }
 
-    js(DecisionManager.getBallot(decisionId, 4))
+
+  def getBallot(decisionId: String) = IsAuthenticated { session => r =>
+
+    js(DecisionManager.getBallot(decisionId, session.userId))
   }
 
   //def vote(decisionId: String, altId: Long, score: Int) = IsAuthenticated { session => r =>
@@ -95,11 +88,20 @@ object JSonRestApi extends BaseDecisionHubController {
     DecisionManager.vote(decisionId, altId, 4, score)
     Ok
   }
+  
+  def recordInvitationList = Action(expectJson[FBInvitationRequest]) { request =>
+
+    val invitationRequest = request.body
+
+    DecisionManager.inviteVotersFromFacebook0(0L, invitationRequest)
+
+    logger.info("Invited participants to decision " + invitationRequest.decisionId)
+    Ok
+  }
+  
+  def getBallotList = IsAuthenticated { session => request =>
+    js(DecisionManager.getBallotList(session.userId))
+  }
 }
-
-
-
-
-
 
 

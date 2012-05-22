@@ -1,4 +1,5 @@
-@(decisionId: String)
+@()
+
 <!DOCTYPE html>
 
   @js(p: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
@@ -7,35 +8,23 @@
 
 <html>
   <head>
-
-    <link rel="stylesheet" href="@routes.Assets.at("javascripts/jquery-custom/themes/ui-lightness/jquery-ui-1.8.18.custom.css")">
-
     @css("bootstrap.css")
-    @css("timepicker.css")
-    
-    @handlebars.adminScreen()
     @handlebars.ballotView()
   </head>
 
   <body>
-    <div class="container">
-      <div class="row">
-        <div id='mainPanel'></div>
-      </div>
-    </div>
+
+        <div id='mainPanel'>
+          <ul id='ballotList'></ul>
+        </div>
+
 
     @js("jquery-1.7.1.min.js")
-    @js("jquery-custom/ui/jquery-ui-1.8.18.custom.js")
-
     @js("underscore.js")
     @js("backbone.js")
     @js("bootstrap.js")
     @js("handlebars-1.0.0.beta.6.js")
-
-    @js("bootstrap-timepicker.js")
-
     @js("handlebarsHelpers.js")
-    @js("datetimepicker.js")
 
     <script>
       var handlebarsTemplates = $("script[type='text/x-handlebars-template']");
@@ -50,14 +39,11 @@
       initHandlebarsHelpers(Templates)
     </script>
 
-    @js("decisionForm.js")
     @js("votePanel.js")
-    @js("dynList.js")
     @js("participantsTab.js")
     @js("initFacebook.js")
-    @js("main.js")
 
-    <script>initializeApp('@decisionId')</script>
+    @js("fbVoterScreen.js")
 
   </body>
 <html>

@@ -1,0 +1,29 @@
+
+<script id="voteTemplate" type="text/x-handlebars-template">
+
+  <div class='voteblock'>
+    <div class="btn-group" data-toggle="buttons-radio">
+      <table>
+        <thead>
+          <tr>
+            <th>{{this.decisionTitle}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{# each scores}}
+            <tr>
+              <td><h4>{{this.title}}</h4></td>
+              <td>
+                  <a href='#' altId='{{this.alternativeId}}' score='-2' class='btn'>-2</a>
+                  <a href='#' altId='{{this.alternativeId}}' score='-1' class='btn'>-1</a>
+                  <a href='#' altId='{{this.alternativeId}}' score= '0' class='btn'> 0</a>
+                  <a href='#' altId='{{this.alternativeId}}' score= '1' class='btn'> 1</a>
+                  <a href='#' altId='{{this.alternativeId}}' score= '2' class='btn'> 2</a>
+              </td>
+            </tr>
+          {{/ each}}
+        </tbody>
+      </table>
+    </div>  
+  </div>
+</script>

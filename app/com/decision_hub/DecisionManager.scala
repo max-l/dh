@@ -6,6 +6,7 @@ import org.squeryl.PrimitiveTypeMode._
 import java.sql.Timestamp
 import org.squeryl.dsl.ast.LogicalBoolean
 import play.api.Logger
+import models.DecisionParticipation
 
 
 object DecisionManager {
@@ -33,17 +34,22 @@ object DecisionManager {
     decisionAlternatives.where(a => a.decisionId === decisionId).toList
   }
   
-  def getBallot(decisionId: String, voterId: Long) = inTransaction {
+  def getBallot(decisionId: String, voterId: Long): Ballot = inTransaction {
 
     val d = decisions.lookup(decisionId).get
+    
+    getBallot(d, voterId)
+  }
 
+  private def getBallot(decision: Decision, voterId: Long): Ballot = {
+    
     //if(!isParticipant(decisionId, voterId))
       //sys.error(voterId + " not participant in " + decisionId)
 
-    val alts = decisionAlternatives.where(a => a.decisionId === decisionId).toList
+    val alts = decisionAlternatives.where(a => a.decisionId === decision.id).toList
 
     val scores =
-      votes.where(v => v.decisionId === decisionId and v.voterId === voterId).toList
+      votes.where(v => v.decisionId === decision.id and v.voterId === voterId).toList
 
     val resAlts =
       for(a <- alts)
@@ -52,7 +58,7 @@ object DecisionManager {
           case Some(s) => Score(a.id, a.title, Some(s.score))
         }
 
-    new Ballot(resAlts)
+    new Ballot(decision.id, decision.title, resAlts)
   }
   
   def vote(decisionId: String, alternativeId: Long, voterId: Long, score: Int) = inTransaction {
@@ -86,6 +92,111 @@ object DecisionManager {
 
     decisionAlternatives.deleteWhere(a => a.id === alternativeId)
   }  
+  
+  def inviteVotersFromFacebook0(invitingUserId: Long, r: FBInvitationRequest) = inTransaction {
+
+    val recipientsFacebookIds = r.to.map(_.uid).toSet
+
+    val usersAlreadyInSystem = 
+      usersByFbId(recipientsFacebookIds).toMap
+
+    val fbUserIdsToInsert =
+      recipientsFacebookIds.diff(usersAlreadyInSystem.map(_._2.get).toSet)
+
+    val usersToInsert = 
+      for(fbInfo <- r.to if fbUserIdsToInsert.contains(fbInfo.uid))
+        yield User(nickName = Some(fbInfo.name), facebookId = Some(fbInfo.uid))
+
+    logger.debug("Will insert new FB users : " + usersToInsert)
+    
+    users.insert(usersToInsert)
+
+    val alreadyParticipantUserIds = 
+      from(decisionParticipations)(dp =>
+        where(dp.decisionId === r.decisionId and dp.voterId.in(usersAlreadyInSystem.map(_._1).toSeq))
+        select(&(dp.voterId))
+      ).toSet
+    
+    logger.debug("alreadyParticipantUserIds : " + alreadyParticipantUserIds)
+    
+    val z = 
+      if(fbUserIdsToInsert.isEmpty)
+        Map.empty
+      else
+        usersByFbId(fbUserIdsToInsert).toMap
+    
+    val invitationsToInsert =
+      for(u <- (z ++ usersAlreadyInSystem) if ! alreadyParticipantUserIds.contains(u._1))
+        yield ParticipationInvitation(
+          decisionId = r.decisionId,
+          facebookAppRequestId = r.request,
+          invitedUserId = u._1,
+          invitingUserId = invitingUserId)    
+
+    logger.debug("invitationsToInsert : " + invitationsToInsert)
+
+    participationInvitations.insert(invitationsToInsert)
+
+    // automatic acceptation : 
+    val dps = 
+      for(i <- invitationsToInsert)
+        yield DecisionParticipation(i.decisionId, i.invitedUserId)
+    
+    decisionParticipations.insert(dps)
+
+/*    
+    from(participationInvitations, users)((pi, u) =>
+      where(pi.decisionId === r.decisionId and pi.invitedUserId === u.id)
+      select(&(u.f))
+    )
+    //exclude_ids
+
+*/
+  }
+  
+  def respondToAppRequestClick(facebookRequestId: Option[Long], targetFacebookUserId: Long) = inTransaction {
+ 
+    facebookRequestId.foreach { fbReqId =>
+      val dId = 
+        from(participationInvitations)(pi => 
+          where(pi.facebookAppRequestId === fbReqId)
+          select(pi.decisionId)
+        ).headOption
+      
+      if(dId == None) 
+        logger.error("AppRequest "+ fbReqId + " Not found, TODO: DELETE app Requests, and handle AppRequest Not Found")
+      else
+        update(decisionParticipations)(dp => 
+          where(dp.decisionId === dId.get)
+          set(dp.lastModifTime := new Timestamp(System.currentTimeMillis))
+        )
+    }
+    
+    val u = 
+      from(users)(u => 
+        where(u.facebookId === targetFacebookUserId)
+        select(u)
+      ).headOption
+
+    u
+  }
+  
+  def getBallotList(userId: Long) = transaction {
+    println("123---1")
+    //getBallot
+    val ds = 
+      from(decisionParticipations, decisions)((dp, d) =>
+        where(dp.voterId === userId and dp.decisionId === d.id)
+        select(d)
+        orderBy(dp.lastModifTime desc)
+      ).page(0, 10).toList
+    
+    println("123---2> " + ds)
+    
+    for(d <- ds)
+      yield getBallot(d, userId)
+  }
+  
   //===========================================================================================
 
   def decisionsOf(userId: Long, returnOwnedOnly : Boolean) = 
@@ -371,7 +482,7 @@ object DecisionManager {
     decisions.lookup(decisionId).get
   }
   
-  def lookupInvitation(facebookRequestId: Long) = inTransaction {
+  def lookupInvitationz(facebookRequestId: Long) = inTransaction {
     
    val dp = participationInvitations.where(_.facebookAppRequestId === facebookRequestId).head
    val d = decisions.lookup(dp.decisionId).get

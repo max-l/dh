@@ -1,28 +1,24 @@
 
-
-
 GET      /                                      controllers.MainPage.home
 
-GET      /td                                    controllers.MainPage.tdGet
-POST     /td                                    controllers.MainPage.tdPost
-PUT      /td                                    controllers.MainPage.tdPut
-DELETE   /td                                    controllers.MainPage.tdDelete
 
 GET      /dec/:id                               controllers.JSonRestApi.getDecision(id: String)
 
-GET      /dec/alternatives/:did                  controllers.JSonRestApi.getAlternatives(did: String)
-POST     /dec/alternatives/:did                  controllers.JSonRestApi.createAlternative(did: String)
-PUT      /dec/alternatives/:did/:altId           controllers.JSonRestApi.updateAlternative(did: String, altId: Long)
-DELETE   /dec/alternatives/:did/:altId           controllers.JSonRestApi.deleteAlternative(did: String, altId: Long)
+GET      /dec/alternatives/:did                 controllers.JSonRestApi.getAlternatives(did: String)
+POST     /dec/alternatives/:did                 controllers.JSonRestApi.createAlternative(did: String)
+PUT      /dec/alternatives/:did/:altId          controllers.JSonRestApi.updateAlternative(did: String, altId: Long)
+DELETE   /dec/alternatives/:did/:altId          controllers.JSonRestApi.deleteAlternative(did: String, altId: Long)
+
+POST     /dec/recordInvitationList              controllers.JSonRestApi.recordInvitationList
+GET      /dec/participants/:decisionId          controllers.JSonRestApi.getParticipants(decisionId: String)
 
 GET      /ballot/:did                           controllers.JSonRestApi.getBallot(did: String)
 GET      /vote/:did/:altId/:score               controllers.JSonRestApi.vote(did: String, altId: Long, score: Int)
+GET      /fbballots                             controllers.JSonRestApi.getBallotList
 
 
 GET   /vdv                                    controllers.MainPage.vdv
 GET   /vdvDemo                                controllers.MainPage.vdvDemo
-
-GET     /sp                                    controllers.MainPage.sp
 
 GET     /fbauth                                controllers.MainPage.fbauth
 GET     /logout                                controllers.MainPage.logout

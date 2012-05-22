@@ -270,6 +270,14 @@ object FacebookProtocol extends CryptoUtil {
     }
   }
   
+  def lookupAppRequestInfoRaw(requestId: Long) = {
+
+    WS.url("https://graph.facebook.com/" + requestId).
+     withQueryString("access_token" -> appAccessToken.value).get.map { r =>
+        (r.body, com.codahale.jerkson.Json.parse[FBAppRequestInfo](r.body))
+    }
+  }  
+  
   def deleteAppRequest(requestId: Long, fbUserId: Long) =
     zdeleteAppRequest(requestId, fbUserId, appAccessToken.value)
 

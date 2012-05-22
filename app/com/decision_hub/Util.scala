@@ -14,8 +14,16 @@ object Util {
   
   class JavascriptEscaper(s: String) {
     def encodedAsJavascript = 
-      s.replace("\'","\\'").replace("\"","\\\"")
+      encodeAsJavascript(s)
   }
+  
+  def asJavascriptNullable(s: Option[String]) =
+    s.map(x => "'" + x + "'").getOrElse("null")
+    
+  def asJavascriptObject(s: Option[String]) =
+    s.getOrElse("null")
+  
+  def encodeAsJavascript(s: String) = s.replace("\'","\\'").replace("\"","\\\"")
   
   implicit def string2JavascriptEscaper(s: String) = new JavascriptEscaper(s)
   
