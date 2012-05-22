@@ -19,11 +19,11 @@ function createBallotListView(rootElement, templates) {
         },
         addOne: function(ballot) {
             var ul = $(this.el);
-            var li = $('<li></li>');
-            ul.append(li)
-            var bv = createBallotView(li, templates)
+            var ballotDiv = $('<div></div>');
+            ul.append(ballotDiv)
+            var bv = createBallotView(ballotDiv, templates)
             bv.setModel(ballot)
-            li.append(bv.render())
+            ballotDiv.append(bv.render())
         }
     });
 

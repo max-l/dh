@@ -14,11 +14,10 @@ object ApplicationBuild extends Build {
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
-        /*
+
       lessEntryPoints <<= baseDirectory(base => (
-        //(base / "app" / "assets" / "stylesheets" / "bootstrap.less") +++
-        (base / "app" / "assets" / "stylesheets" ** "responsive.less")
+        (base / "app" / "assets" / "stylesheets" / "bootstrap.less") +++
+        (base / "app" / "assets" / "stylesheets" / "timepicker.less")
       ))
-      */
     )
 }

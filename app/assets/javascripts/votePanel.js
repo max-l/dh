@@ -9,7 +9,7 @@ function createBallotView(rootElement, templates) {
             //this.model.on('change', this.render, this);
         },
         _scoreAlternative: function(e) {
-        	var did = this.model.decisionId;
+        	var did = this.model.get('decisionId');
         	var target = $(e.currentTarget);
         	var altId = target.attr('altId');
         	var score = target.attr('score');

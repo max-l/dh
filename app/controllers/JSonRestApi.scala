@@ -82,10 +82,9 @@ object JSonRestApi extends BaseDecisionHubController {
     js(DecisionManager.getBallot(decisionId, session.userId))
   }
 
-  //def vote(decisionId: String, altId: Long, score: Int) = IsAuthenticated { session => r =>
-  def vote(decisionId: String, altId: Long, score: Int) = Action { r =>
-    
-    DecisionManager.vote(decisionId, altId, 4, score)
+  def vote(decisionId: String, altId: Long, score: Int) = IsAuthenticated { session => r =>
+
+    DecisionManager.vote(decisionId, altId, session.userId, score)
     Ok
   }
   

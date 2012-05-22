@@ -1,9 +1,10 @@
 
 GET      /                                      controllers.MainPage.home
-
+GET      /newDecision                           controllers.MainPage.newDecision
+GET      /decision/:id                          controllers.MainPage.decision(id: String)
 
 GET      /dec/:id                               controllers.JSonRestApi.getDecision(id: String)
-
+PUT      /dec/:id                               controllers.JSonRestApi.saveDecision(id: String)
 GET      /dec/alternatives/:did                 controllers.JSonRestApi.getAlternatives(did: String)
 POST     /dec/alternatives/:did                 controllers.JSonRestApi.createAlternative(did: String)
 PUT      /dec/alternatives/:did/:altId          controllers.JSonRestApi.updateAlternative(did: String, altId: Long)
