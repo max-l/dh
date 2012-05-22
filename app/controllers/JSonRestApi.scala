@@ -83,11 +83,11 @@ object JSonRestApi extends BaseDecisionHubController {
     Ok
   }
   
-  def recordInvitationList = Action(expectJson[FBInvitationRequest]) { request =>
+  def recordInvitationList = IsAuthenticated(expectJson[FBInvitationRequest]) { session => request =>
 
     val invitationRequest = request.body
 
-    DecisionManager.inviteVotersFromFacebook0(0L, invitationRequest)
+    DecisionManager.inviteVotersFromFacebook0(session.userId, invitationRequest)
 
     logger.info("Invited participants to decision " + invitationRequest.decisionId)
     Ok
@@ -96,6 +96,43 @@ object JSonRestApi extends BaseDecisionHubController {
   def getBallotList = IsAuthenticated { session => request =>
     js(DecisionManager.getBallotList(session.userId))
   }
+  
+  def loginWithFacebookToken = MaybeAuthenticated(expectJson[FBAuthResponse]) { session => implicit request =>
+    session match {
+      case Some(_) => Ok // already logged in...
+      case _ => FacebookProtocol.authenticateSignedRequest(request.body.signedRequest) match {
+        case None =>
+          logger.debug("Invalid FB signedRequest.")
+          BadRequest
+        case Some(req) =>
+
+          val fbUserId = java.lang.Long.parseLong((req \ "user_id").as[String])
+
+          DecisionManager.lookupFacebookUser(fbUserId) match {
+            case Some(u) =>
+              logger.debug("fb user %s authenticated.".format(fbUserId))
+              AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
+            case None =>
+
+              val fbCode = (req \ "code").as[String]
+                import models.Schema._
+                import org.squeryl.PrimitiveTypeMode._
+              
+
+              FacebookProtocol.facebookOAuthManager.obtainMinimalInfo(request.body.accessToken) match {                
+                case Left(info) => transaction {
+                  val u = DecisionManager.authenticateOrCreateUser(info)
+                  val ses = new DecisionHubSession(u, request)
+                  AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
+                }
+                case Right(error) => 
+                  Logger.info("Failed to get info from facebook" + error)
+                  BadRequest
+             }
+          }
+      }
+    }
+  }  
 }
 
 

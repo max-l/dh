@@ -11,6 +11,7 @@ GET      /dec/alternatives/:did                 controllers.JSonRestApi.getAlter
 POST     /dec/alternatives/:did                 controllers.JSonRestApi.createAlternative(did: String)
 PUT      /dec/alternatives/:did/:altId          controllers.JSonRestApi.updateAlternative(did: String, altId: Long)
 DELETE   /dec/alternatives/:did/:altId          controllers.JSonRestApi.deleteAlternative(did: String, altId: Long)
+POST     /loginWithFacebookToken                controllers.JSonRestApi.loginWithFacebookToken
 
 POST     /dec/recordInvitationList              controllers.JSonRestApi.recordInvitationList
 GET      /dec/participants/:decisionId          controllers.JSonRestApi.getParticipants(decisionId: String)

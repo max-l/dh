@@ -12,6 +12,115 @@ import java.net.URLEncoder
 
 object TestData {
 
+  
+  def vote(voter: User, decision: Decision, scores: Map[Long,Int]): Unit = 
+    vote(voter.id, decision.id, scores)
+  
+  
+  def vote(voterId: Long, decisionId: String, scores: Map[Long,Int]): Unit = inTransaction {
+
+    if(scores.isEmpty)
+      sys.error("empty vote.")
+    
+    val numRows = 
+      update(decisionParticipations)(p => 
+        where(p.decisionId === decisionId and p.voterId === voterId)
+        set(p.hasVoted := 1)
+      )
+    
+    val isParticipant = numRows == 1
+    
+    if(! isParticipant)
+      sys.error("not participant !")
+      
+    val d = decisions.lookup(decisionId).get
+    
+    if(scores.values.filter(_ > d.voteRange) != Nil)
+      sys.error("votes higher than allowable range submited: " + scores.mkString)
+    
+    votes.deleteWhere(v => v.decisionId === decisionId and v.voterId === voterId)
+
+    val toInsert = 
+      for( (alternativeId, score) <- scores)
+        yield Vote(decisionId, alternativeId, voterId, score)
+
+    votes.insert(toInsert.toList)
+  }
+
+  def participationSummaries(decisionIds: Seq[String]) =
+    from(decisionParticipations)(dp =>
+      where(dp.decisionId.in(decisionIds))
+      groupBy(dp.decisionId)
+      compute(count, nvl(sum(dp.abstained),0), nvl(sum(dp.hasVoted),0))
+    )
+
+  def alternativeSummary(decisionIds: Seq[String]) = 
+    join(decisionAlternatives, votes.leftOuter)((a,v) => 
+      where(a.decisionId.in(decisionIds))
+      groupBy(a.decisionId, a.id, a.title)
+      compute(sum(v.map(_.score)))
+      on(a.id === v.map(_.alternativeId))
+    ) map {t =>
+      AlternativeSummary(t.key._1, t.key._2, t.key._3, t.measures.getOrElse(0))
+    }
+  
+  def decisionDetails(decisionId: String, currentUser: Option[Long]) = inTransaction {
+
+    val d = decisions.lookup(decisionId).get
+
+    val pSums = participationSummaries(Seq(decisionId)).map(t => (t.key: String, t.measures)).toMap
+
+    val aSums: Map[String,Iterable[AlternativeSummary]] =
+      if(d.resultsCanBeDisplayed) 
+        alternativeSummary(Seq(decisionId)).groupBy(_.decisionId)
+      else 
+        Map.empty
+
+    val pSum = pSums.get(d.id).getOrElse((0L,0,0))
+      
+    
+    val isCurrentUserParticipant =
+      currentUser.map { userId =>
+        from(decisionParticipations)(dp =>
+          where(dp.voterId === userId and dp.decisionId === decisionId)
+          select(dp.id)
+        ).toList != Nil
+      }.getOrElse(false)
+
+    (DSummary(
+        decision = d,
+        numberOfVoters = pSum._1,
+        numberOfAbstentions = pSum._2,
+        numberOfVotesExercised = pSum._3,
+        alternativeSummaries = aSums.get(d.id).toSeq.flatten),
+     DecisionManager.participants(decisionId, 0, 16),
+     DecisionManager.invitations(decisionId, 0, 16),
+     isCurrentUserParticipant,
+     currentUser.map(_ == d.ownerId).getOrElse(false)
+    )
+  }
+  
+  def decisionSummaries(ds: Seq[Decision]) =
+    if(ds == Nil)
+      Nil 
+    else {
+
+      val decisionIds = ds.map(_.id)
+      val pSums = participationSummaries(decisionIds).map(t => (t.key: String, t.measures)).toMap
+      val aSums = alternativeSummary(decisionIds).groupBy(_.decisionId)
+      ds map { d =>
+  
+        val pSum = pSums.get(d.id).getOrElse((0L,0,0))
+  
+        DSummary(
+          decision = d,
+          numberOfVoters = pSum._1,
+          numberOfAbstentions = pSum._2,
+          numberOfVotesExercised = pSum._3,
+          alternativeSummaries = aSums.get(d.id).toSeq.flatten)
+      }
+    }
+  
   val random = new java.util.Random
   
   
@@ -87,18 +196,18 @@ object TestData {
      //val bobDecisions = DecisionManager.decisionSummariesOf(bob.id, true)
 
 
-     DecisionManager.inviteVotersFromFacebook(
+     DecisionManager.inviteVotersFromFacebook0(
          bob.id, 
          FBInvitationRequest(d1.id,-1L, Seq(FBFriendInfo(nancy.facebookId.get, nancy.displayableName))))
          
-     DecisionManager.inviteVotersFromFacebook(
+     DecisionManager.inviteVotersFromFacebook0(
          bob.id,
          FBInvitationRequest(d1.id,-1L, Seq(FBFriendInfo(bob.facebookId.get, bob.displayableName))))
      
      Session.currentSession.connection.commit()
      
-     DecisionManager.acceptFacebookInvitation(-1L, nancy.id)
-     DecisionManager.acceptFacebookInvitation(-1L, bob.id)
+     //DecisionManager.acceptFacebookInvitation(-1L, nancy.id)
+     //DecisionManager.acceptFacebookInvitation(-1L, bob.id)
      
      val Seq(a1, a2, a3, a4) = 
        Schema.decisionAlternatives.where(_.decisionId === d1.id).toSeq.sortBy(_.title)
@@ -110,7 +219,11 @@ object TestData {
          a4.id -> 4
      )
      
-     DecisionManager.vote(nancy, d1, v1)
+     //DecisionManager.vote(nancy, d1, v1)
+     DecisionManager.vote(d1.id, a1.id, nancy.id, v1(a1.id))
+     DecisionManager.vote(d1.id, a2.id, nancy.id, v1(a2.id))
+     DecisionManager.vote(d1.id, a3.id, nancy.id, v1(a3.id))
+     DecisionManager.vote(d1.id, a4.id, nancy.id, v1(a4.id))
      
      val v2 = Map(
          a1.id -> 0,
@@ -119,11 +232,14 @@ object TestData {
          a4.id -> 4
      )
      
-     DecisionManager.vote(bob, d1, v2)     
+     //DecisionManager.vote(bob, d1, v2)
+     DecisionManager.vote(d1.id, a1.id, bob.id, v2(a1.id))
+     DecisionManager.vote(d1.id, a2.id, bob.id, v2(a2.id))
+     DecisionManager.vote(d1.id, a3.id, bob.id, v2(a3.id))
+     DecisionManager.vote(d1.id, a4.id, bob.id, v2(a4.id))
      
-     val d1ToValidate = DecisionManager.decisionSummaries(Seq(d1)).headOption.getOrElse(sys.error(d1+ " not found in db."))
-     
-     assert(d1ToValidate.numberOfVotesExercised == 2)
+     val d1ToValidate = decisionSummaries(Seq(d1)).headOption.getOrElse(sys.error(d1+ " not found in db."))
+
 
      val expectedScores = 
        v1.map(_._2).zip(v2.map(_._2)).map(t => t._1 + t._2)

@@ -83,40 +83,4 @@ object MainPage extends BaseDecisionHubController {
         id <- s.split(',').toSeq)
     yield Util.parseLong(id)
 
-/*
-  def loginWithFacebookToken = MaybeAuthenticated(expectJson[FBAuthResponse]) { session => implicit request =>
-    session match {
-      case Some(_) => Ok // already logged in...
-      case _ => FacebookProtocol.authenticateSignedRequest(request.body.signedRequest) match {
-        case None =>
-          logger.debug("Invalid FB signedRequest.")
-          BadRequest
-        case Some(req) =>
-
-          val fbUserId = java.lang.Long.parseLong((req \ "user_id").as[String])
-
-          AuthenticationManager.lookupFacebookUser(fbUserId) match {
-            case Some(u) =>
-              logger.debug("fb user %s authenticated.".format(fbUserId))
-              AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
-            case None =>
-
-              val fbCode = (req \ "code").as[String]
-
-              FacebookProtocol.facebookOAuthManager.obtainMinimalInfo(request.body.accessToken) match {
-                case Left(info) => transaction {
-                  val u = AuthenticationManager.authenticateOrCreateUser(info)
-                  val ses = new DecisionHubSession(u, request)
-                  AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
-                }
-                case Right(error) => 
-                  Logger.info("Failed to get info from facebook" + error)
-                  BadRequest
-             }
-          }
-      }
-    }
-  }
-*/  
-
 }

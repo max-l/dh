@@ -57,8 +57,26 @@ function createParticipantView(rootElement, templates, decisionId) {
            }
         },
         loggedInFacebook: function(meResp, fbAuthResponse) {
-        	if(fbAuthResponse) 
-        	  $(this.el).find('#fbConnect').text('Connected To FB ' + meResp.name)
+        	debugger;
+        	var zis = this;
+        	if(fbAuthResponse) {
+                $.ajax({
+                    type: 'POST',
+                    url: "/loginWithFacebookToken",
+                    data: JSON.stringify(fbAuthResponse),
+                    success: function() {
+                	  zis.loggedInFacebookAndDecisionHub(meResp, fbAuthResponse)
+                    },
+                    error: function() {
+                    	$(zis.el).find('#fbConnect').text('Connect To FB')
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    dataType: 'json'
+                })
+            }
+        },
+        loggedInFacebookAndDecisionHub: function(meResp, fbAuthResponse) {
+      	    $(this.el).find('#fbConnect').text('Connected To FB ' + meResp.name)
         },
         ready: function() {
         	this.render()
