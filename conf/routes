@@ -2,6 +2,8 @@
 GET      /                                      controllers.MainPage.home
 GET      /newDecision                           controllers.MainPage.newDecision
 GET      /decision/:id                          controllers.MainPage.decision(id: String)
+POST     /facebookCanvasUrl/                    controllers.MainPage.facebookCanvasUrl
+
 
 GET      /dec/:id                               controllers.JSonRestApi.getDecision(id: String)
 PUT      /dec/:id                               controllers.JSonRestApi.saveDecision(id: String)
@@ -18,81 +20,7 @@ GET      /vote/:did/:altId/:score               controllers.JSonRestApi.vote(did
 GET      /fbballots                             controllers.JSonRestApi.getBallotList
 
 
-GET   /vdv                                    controllers.MainPage.vdv
-GET   /vdvDemo                                controllers.MainPage.vdvDemo
-
-GET     /fbauth                                controllers.MainPage.fbauth
-GET     /logout                                controllers.MainPage.logout
-
-GET     /backb/:decisionId                             controllers.MainPage.backb(decisionId: String)
-GET     /backb2                                controllers.MainPage.backb2
-POST    /facebookCanvasUrl/                    controllers.MainPage.facebookCanvasUrl
-POST    /loginWithFacebookToken                controllers.MainPage.loginWithFacebookToken
-GET     /channel                               controllers.MainPage.facebookChannelFile
-GET     /externalLogin/:provider/*path         controllers.MainPage.externalLogin(provider: String, path: String)
-
-
-GET     /mainScreen                            controllers.Screens.mainScreen
-GET     /participants/:decisionId/:page/:size  controllers.Screens.participants(decisionId: String, page: Int, size: Int)
-GET     /p/:decisionId                         controllers.Screens.decisionDetails(decisionId: String)
-GET     /decision/create                       controllers.Screens.create
-POST    /decision/create                       controllers.Screens.submitNewDecision
-GET     /decision/edit/:decisionId             controllers.Screens.edit(decisionId: String)
-POST    /decision/edit                         controllers.Screens.submitDecisionEdit
-
-GET     /login                                 controllers.Dialogs.login
-GET     /vote/:decisionId                      controllers.Dialogs.voteScreen(decisionId: String)
-POST    /vote/:decisionId                      controllers.Dialogs.submitVote(decisionId: String)
-GET     /authorizeApp/:fbAppReqId              controllers.Dialogs.authorizeApp(fbAppReqId: Long)
-POST    /acceptOrDeclineInvitations            controllers.Dialogs.acceptOrDeclineInvitations
-POST    /recordInvitationList                  controllers.Dialogs.recordInvitationList
-
-
-GET     /test                                  controllers.Test.test
-GET     /emptyPage                             controllers.Test.emptyPage
-GET     /compareVotingMethods                  controllers.Test.compareVotingMethods
 
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                          controllers.Assets.at(path="/public", file)
-
-#GET     /ltd/*file                          controllers.Assets.at(path="/public/ltd", file)
-
-
-
-# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-# GET     /assets/stylesheets/*file              controllers.Assets.at(path="/target/resource_managed/main/public/stylesheets/", file)
-
-#Decisions NG
-
-#GET /:year/:month  controllers.Decisions
-#GET /:year/:month  controllers.Decisions
-
-#GET /global      controllers.continentIndex("global")
-#GET /americas    controllers.continentIndex("americas")
-#GET /europe
-#GET /asia
-#GET /africa
-#GET /oceania
-
-# mind source ? 
-
-#GET     /decision/:id                          controllers.Decisions.show(id: Long)
-#GET     /myDecisions/:ownerId                  controllers.Decisions.myDecisions(ownerId: Long)
-#GET     /myDecisions/                          controllers.Decisions.myDecisionz
-#POST    /myDecisions/                          controllers.Decisions.myDecisionz
-#POST    /decisionSubmit                        controllers.Decisions.submit
-#GET     /decision/invite/:decisionId           controllers.Decisions.invite(decisionId: String)
-
-
-# accountName is a userName, countryCode or organasationName
-# Country codes or continent names cannot be granted for accounts, but a decision can be indexed in it,
-# i.e. anyone can create a decision and publish it under a country or continent 
-
-#GET /:accountName                             controllers.account(accountName: String)
-#GET /:accountName/:decisionName               controllers.decision(accountName: String, decisionName: String)
-#GET /:accountName/:decisionName/:alternative  controllers.alternative(accountName: String, decisionName: String, alternative: String)
-
-#GET /ca/:decisionName/:alternative 
-

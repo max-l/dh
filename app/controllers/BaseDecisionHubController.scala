@@ -22,10 +22,10 @@ trait BaseDecisionHubController extends Controller with Secured[DecisionHubSessi
     Play.current.configuration.getString("application.sslSessionIdHeaderName")
     
     
+  def urlForUnauthorized = "/"
+  
   implicit def logger = Logger("application")
 
-  def urlForUnauthorized: String = controllers.routes.Dialogs.login.url
-  
   private def parseUserId(s: String) = 
     try {
       java.lang.Long.parseLong(s)

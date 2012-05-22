@@ -143,7 +143,7 @@ object FacebookProtocol extends CryptoUtil {
     mandatoryStringConfig("application.domainName")
   
   val facebookOAuthManager = new FacebookOAuthManager(
-    facebookAppId, facebookSecret, "https://"+applicationDomainName+ controllers.routes.MainPage.fbauth.url)
+    facebookAppId, facebookSecret, "https://"+applicationDomainName)
 
   val loginRedirectUrl = facebookOAuthManager.loginWithFacebookUrl
   
