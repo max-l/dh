@@ -40,13 +40,7 @@ function initializeApp(decisionId) {
 
     AdminView = Backbone.View.extend({
     	el: $('#mainPanel'),
-        events: {
-    	   'click a[href=#adminTab]'        : '_adminTab',
-           'click a[href=#voteTab]'         : '_voteTab',
-           'click a[href=#participantsTab]'         : function() {
-              this.participantView().model.fetch()
-            }
-        },
+        events: {},
         decisionView: _.once(function() {
      	    return createDecisionView($('#adminTab'), Templates)
         }),
@@ -61,14 +55,13 @@ function initializeApp(decisionId) {
         	this.model = decisionHubAdminApp;
         	this.decisionView().setModel(decisionHubAdminApp.currentDecision());
         	this.participantView().setModel(decisionHubAdminApp.currentDecision().getFBParticipants());
+        	
+        	decisionHubAdminApp.currentDecision().fetch()
+        	decisionHubAdminApp.currentDecision().getFBParticipants().fetch()
         },
         render: function() {
             $(this.el).html(Templates.decisionEditorTemplate())
             
-        },
-        _adminTab: function() {},
-        _voteTab: function() {
-        	this.model.currentDecision().getBallot().fetch()
         }
     });
 
@@ -78,7 +71,6 @@ function initializeApp(decisionId) {
 
    var adminView = new AdminView({model: decisionHubAdminApp});
    adminView.setModel(decisionHubAdminApp)
-   decisionHubAdminApp.currentDecision().fetch()
 
 }
 
