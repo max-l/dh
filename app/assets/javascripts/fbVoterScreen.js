@@ -30,57 +30,61 @@ function createBallotListView(rootElement, templates) {
     return new V()
  }
 
-function initializeApp() {
-      
-    FBVoterApp = Backbone.Model.extend({
-        canAdmin: true,
-        username: null,
-        authenticator: null,
-        initialize: function() {},
-        currentDecision: function() {throw "No Decision Loaded"},
-        getBallotList: _.once(function() {
-
-            var Ballot = Backbone.Model.extend({});
-
-            BallotList = Backbone.Collection.extend({
-                model: Ballot,
-                url: "/fbballots"
-            });
-
-            return new BallotList()
-        }),
-        setCurrentDecision: function(dId) {
-        	var d = new Decision({id: decisionId});
-        	this.currentDecision = function() {return d}
-        }
-    });
+function initializeApp(invitationInfoWhenUnAuthorized) {
 
     VoterAppView = Backbone.View.extend({
     	el: $('#mainPanel'),
         initialize: function() {
         	initFacebook(this)
+        	this.render()
         },
         render: function() {
-          var bl = this.model.getBallotList();
-          bv = createBallotListView($(this.el).find('#ballotList'), Templates);
+
+          var BallotList = Backbone.Collection.extend({
+              model: Backbone.Model,
+              url: "/fbballots"
+          });
+
+          var bl = new BallotList();
+          var ballotList = $('<div></div>');
+          $(this.el).html(ballotList);
+
+          bv = createBallotListView(ballotList, Templates);
           bv.setModel(bl);
           bv.render()
           bl.fetch()
-        },
-        setModel: function(voterApp) {
-        	this.model = voterApp
         },
         ready: function() {},
         loggedInFacebook: function(meResp, fbAuthResponse) {},
         loggedOutFacebook: function() {}
     });
+    
+    AuthorizeView = Backbone.View.extend({
+    	el: $('#mainPanel'),
+    	events: {
+    	  "click #authorizeApp" : function() {
+    	    FB.login()
+          }
+        }, 
+        initialize: function() {
+           initFacebook(this)
+        },
+        render: function() {
+          $(this.el).html(Templates.invitationForUnauthorizedTemplate(this.model))
+        },
+        ready: function() {
+            this.render()
+        },
+        loggedInFacebook: function(meResp, fbAuthResponse) {
+            new VoterAppView()
+        },
+        loggedOutFacebook: function() {}
+    });    
 
-    var appView = new VoterAppView()
-    appView.setModel(new FBVoterApp())
-    appView.render()
+  if(! invitationInfoWhenUnAuthorized) {
+    new VoterAppView()
+  }
+  else {
+	new AuthorizeView({model: invitationInfoWhenUnAuthorized})
+  }
 }
-
-!function() {
-  initializeApp()
-}()
-

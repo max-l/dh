@@ -12,7 +12,8 @@ import com.codahale.jerkson.Json._
 import html.adminScreen
 
 
-case class Todo(id: String, text: String)
+
+case class DecisionInvitationInfo(decisionTitle: String, appReqInfo: FBAppRequestInfo)
 
 object MainPage extends BaseDecisionHubController {
 
@@ -48,12 +49,8 @@ object MainPage extends BaseDecisionHubController {
               val (appRequestInfoRawJson, jsonAppReqInfo) = t
               val d = DecisionManager.getDecision(jsonAppReqInfo.data).get
 
-              Ok(html.voterScreen(
-                  true, 
-                  false, 
-                  appRequestInfoRawJson,
-                  generate(Seq(d.id)),
-                  "'" + Util.encodeAsJavascript(d.title) + "'"
+              Ok(html.fbVoterScreen( 
+                  Some(DecisionInvitationInfo(d.title, jsonAppReqInfo))
               ))
             }
           }
@@ -61,7 +58,7 @@ object MainPage extends BaseDecisionHubController {
       case FBClickOnApplicationRegistered(fbUserId) =>
         val appReqId = extractRequestIds(request.queryString, "request_ids").headOption
         DecisionManager.respondToAppRequestClick(appReqId, fbUserId) match {
-          case Some(u) => AuthenticationSuccess(Ok(html.fbVoterScreen()), new DecisionHubSession(u, request))
+          case Some(u) => AuthenticationSuccess(Ok(html.fbVoterScreen(None)), new DecisionHubSession(u, request))
           // THis case is only possible with failure of POST /recordInvitationList 
           case None => Redirect("/")
         }

@@ -19,7 +19,7 @@ function initFacebook(fbAuthStatusListener) {
 
       FB.Event.subscribe('auth.statusChange', function(response) {
 
-    	 if(response.authResponse) {
+         if(response.authResponse) {
              FB.api('/me', function(meResp) {
             	 fbAuthStatusListener.loggedInFacebook(meResp, response.authResponse)
              })

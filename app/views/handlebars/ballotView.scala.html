@@ -27,3 +27,16 @@
    </div>
 
 </script>
+
+<script id="invitationForUnauthorizedTemplate" type="text/x-handlebars-template">
+  <div>
+    <h4>
+      Hi, you have been invited by 
+       <img src='https://graph.facebook.com/{{appReqInfo.from.id}}/picture'/>
+       <a target='blank' href='https://facebook.com/{{appReqInfo.from.id}}'>{{appReqInfo.from.name}}</a> <br>
+       to vote on {{decisionTitle}}
+    </h4>
+      <a id='authorizeApp' class='btn'>Accept</a>
+      <a class='btn'>Dismiss</a>
+  </div>
+</script>

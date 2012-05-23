@@ -1,4 +1,4 @@
-@()
+@(invitationInfoWhenUnAuthorized: Option[DecisionInvitationInfo])
 
 <!DOCTYPE html>
 
@@ -52,5 +52,10 @@
 
     @js("fbVoterScreen.js")
 
+    <script>
+      @import com.codahale.jerkson.Json._
+      
+      initializeApp(@Html(invitationInfoWhenUnAuthorized.map(generate(_)).getOrElse("null")))
+    </script>
   </body>
 <html>
