@@ -47,7 +47,7 @@ object JSonRestApi extends BaseDecisionHubController {
     val title = ((r.body) \ "title").as[String]
     val a = DecisionManager.createAlternative(decisionId, title)
 
-    js(a.id)
+    js(Map("id" -> a.id))
   }
 
   def updateAlternative(decisionId: String, altId: Long) = Action(BodyParsers.parse.json) { r =>
@@ -115,9 +115,6 @@ object JSonRestApi extends BaseDecisionHubController {
             case None =>
 
               val fbCode = (req \ "code").as[String]
-                import models.Schema._
-                import org.squeryl.PrimitiveTypeMode._
-              
 
               FacebookProtocol.facebookOAuthManager.obtainMinimalInfo(request.body.accessToken) match {                
                 case Left(info) => transaction {

@@ -7,7 +7,7 @@ function initializeApp(decisionId) {
         },
         choiceList: _.once(function() {
             var ChoiceList = Backbone.Collection.extend({
-               model: DynListElement,
+               model: Backbone.Model,
                url: "/dec/alternatives/" + this.id
             });
             return new ChoiceList({id: this.id})
