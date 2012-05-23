@@ -1,31 +1,29 @@
 
 <script id="voteTemplate" type="text/x-handlebars-template">
 
-  <div class='voteblock'>
-    <div>
-      <table>
-        <thead>
-          <tr>
-            <th>{{this.decisionTitle}}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{# each scores}}
-            <tr>
-              <td><h4>{{this.title}}</h4></td>
-              <td>
-                 <div class="btn-group" data-toggle="buttons-radio">
-                   <a altId='{{this.alternativeId}}' score='-2' class='btn'>-2</a>
-                   <a altId='{{this.alternativeId}}' score='-1' class='btn'>-1</a>
-                   <a altId='{{this.alternativeId}}' score= '0' class='btn'> 0</a>
-                   <a altId='{{this.alternativeId}}' score= '1' class='btn'> 1</a>
-                   <a altId='{{this.alternativeId}}' score= '2' class='btn'> 2</a>
-                 </div>
-              </td>
-            </tr>
-          {{/ each}}
-        </tbody>
-      </table>
-    </div>
-  </div>
+   <div class='avballot'>
+     <div>
+       <h2>Vote on : {{this.decisionTitle}}</h2>
+       <p>Mark your level of approbation for each candidate, <br> 
+          -2: strongly disapprove, -1 disapprove, 0: neutral, 1: approve, 2: strongly approve
+       </p>
+     </div>
+     <div>
+       <ul>
+         {{# each scores}}
+            <li>
+              <span>{{this.title}}</span>
+              <div class="btn-group" data-toggle="buttons-radio">
+                <a altId='{{this.alternativeId}}' score= '-2' class='btn'>-2</a>
+                <a altId='{{this.alternativeId}}' score= '-1' class='btn'>-1</a>
+                <a altId='{{this.alternativeId}}' score= '0' class='btn'>0</a>
+                <a altId='{{this.alternativeId}}' score= '1' class='btn'>1</a>
+                <a altId='{{this.alternativeId}}' score= '2' class='btn'>2</a>
+              </div>
+            </li>
+         {{/ each}}
+       </ul>
+     </div>
+   </div>
+
 </script>

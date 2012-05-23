@@ -13,14 +13,6 @@ function initializeApp(decisionId) {
             return new ChoiceList({id: this.id})
         }),
         urlRoot: "/dec",
-        getBallot: _.once(function() {
-            var Ballot = Backbone.Model.extend({});
-            var B = Ballot.extend({
-              decisionId: this.id,
-              url: '/ballot/' + this.id
-            });
-            return new B()
-        }),
         getFBParticipants: _.once(function() {
             FBParticipant = Backbone.Model.extend({});
 
@@ -55,9 +47,6 @@ function initializeApp(decisionId) {
               this.participantView().model.fetch()
             }
         },
-        ballotView: _.once(function() {
-     	    return createBallotView($('#voteTab'), Templates)
-        }),
         decisionView: _.once(function() {
      	    return createDecisionView($('#adminTab'), Templates)
         }),
@@ -71,11 +60,11 @@ function initializeApp(decisionId) {
         setModel: function(decisionHubAdminApp) {
         	this.model = decisionHubAdminApp;
         	this.decisionView().setModel(decisionHubAdminApp.currentDecision());
-        	this.ballotView().setModel(decisionHubAdminApp.currentDecision().getBallot());
         	this.participantView().setModel(decisionHubAdminApp.currentDecision().getFBParticipants());
         },
         render: function() {
             $(this.el).html(Templates.decisionEditorTemplate())
+            
         },
         _adminTab: function() {},
         _voteTab: function() {

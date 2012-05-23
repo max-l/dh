@@ -58,7 +58,16 @@ object DecisionManager {
           case Some(s) => Score(a.id, a.title, Some(s.score))
         }
 
-    new Ballot(decision.id, decision.title, resAlts)
+    val title = 
+      if(decision.title == "") {
+        val voter = users.lookup(voterId).get
+        voter.displayableName + "'s decision " + decision.creationTime
+      }
+      else 
+        decision.title
+
+
+    new Ballot(decision.id, title, resAlts)
   }
   
   def vote(decisionId: String, alternativeId: Long, voterId: Long, score: Int) = inTransaction {

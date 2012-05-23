@@ -5,8 +5,15 @@ function createDecisionView(rootElement, templates) {
     	el: rootElement,
         events: {
             "blur input[name=title]" : function(e) {
-    	        this.model.set('title', $(e.currentTarget).val())
+    	        var title = $(e.currentTarget).val();
+    	        this.model.set('title', title)
     	        this.model.save()
+    	        var btn = $(this.el).find('#inviteParticipants');
+                if(title == "")
+                  btn.attr('disabled', true)
+                else 
+                  btn.removeAttr('disabled')
+              
             },
             "click #toggleEndsWhenComplete" : "toggleEndsWhenComplete",
             "click #toggleEndsAt" : "toggleEndsAt"
@@ -50,7 +57,7 @@ function createDecisionView(rootElement, templates) {
               el.find('#endTime').attr('class', 'collapse in')
               this.toggleTimeWidget('hide')
             }
-            
+
             var zis = this;
             var dateTimePickerOptions = {
                 onChange: function(dt) {

@@ -137,7 +137,8 @@ case class Decision(
   resultsPrivateUntilEnd: Boolean = true,
   votesAreAnonymous: Boolean = true,
   weekActivity: Int = 0,
-  allTimeActivity: Int = 0) extends KeyedEntity[String] {
+  allTimeActivity: Int = 0,
+  creationTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends KeyedEntity[String] {
 
   def resultsCanBeDisplayed = 
     if(! resultsPrivateUntilEnd)

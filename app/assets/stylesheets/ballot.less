@@ -1,0 +1,75 @@
+
+.avballot {
+  float: left;
+  margin: 30px;
+  padding: 7px;
+  background-color: white;
+  border-radius: 2px;
+  
+  ul {
+    list-style:none;
+    margin: 0 0 0 0;
+  }
+  
+  h2 {
+    font-size: 18px;
+  }
+
+  p {
+    font-size: 12px;
+    
+  }
+  
+  div:first-child {
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    border-top-style: solid;
+    border-right-style: solid;
+    border-left-style: solid;
+    padding: 5px;
+  }
+
+  li {
+    border-top-style: solid;
+    padding: 5px;
+    position: relative;
+    
+    span {
+      font-size:15px;
+    }
+    
+    *:last-child {
+       position: absolute;
+       right: 0px;
+       top: 0px;
+       
+       /*For Score voting ballot : */
+       a {
+         position: relative;
+       }       
+     }
+     
+     div a.btn { /*unchecked*/
+       color: grey;
+       font-weight: light;
+     }
+          
+     /*For Approval voting ballot : */
+     a.btn {     /*unchecked*/
+       color: transparent;
+     }
+  }
+  
+  > *:last-child {
+    border-bottom-style: solid;
+    border-right-style: solid;
+    border-left-style: solid;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;       
+  }
+  
+  a.btn.active  { /*checked*/
+    font-weight: bold;
+    color: black;
+  }
+}
