@@ -1,74 +1,32 @@
-@(insideFbCanvas: Boolean, isRegistered: Boolean, jsonAppRequestInfo: String, jsonDecisionIds: String, decisionTitle: String)
-
+@(decisionId: String)
 <!DOCTYPE html>
-
-  @js(p: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
-
-  @css(p: String) = {<link  href='@routes.Assets.at("stylesheets/" + p)' rel="stylesheet"/>}
-
 <html>
   <head>
     @css("bootstrap.css")
-    @handlebars.ballotView()
-    
+    @css("ballot.css")
 
-     <script id="invitationForUnauthorizedTemplate" type="text/x-handlebars-template">
-       <div class="alert alert-info">
-         <h4>
-           Hi, you have been invited by 
-            <img src='https://graph.facebook.com/{{from.id}}/picture'/>
-            <a target='blank' href='https://facebook.com/{{from.id}}'>{{from.name}}</a> <br>
-            to vote on {{decisionTitle}}
-         </h4>
-           <a id='authorizeApp' class='btn'>Accept</a>
-           <a class='btn'>Dismiss</a>
-       </div>
-     </script>
-    
+    @handlebars.ballotView()
+
   </head>
 
   <body>
 
-        <div id='mainPanel'>
-          <div id='infoPanel'></div>
-          <div id='voteTab'></div>
-        </div>
+    <div id='mainPanel'>
+      <div id='ballotPanel'></div>
+    </div>
 
+    @javaScriptLibs()
 
-    @js("jquery-1.7.1.min.js")
-    @js("underscore.js")
-    @js("backbone.js")
-    @js("bootstrap.js")
-    @js("handlebars-1.0.0.beta.6.js")
     @js("handlebarsHelpers.js")
-
-    <script>
-      var handlebarsTemplates = $("script[type='text/x-handlebars-template']");
-      Templates = {};
-
-      handlebarsTemplates.each(function(i, templateElement) {
-        var t0 = $(templateElement);
-        var t = Handlebars.compile(t0.html());
-        Templates[t0.attr('id')] = t
-      })
-
-      initHandlebarsHelpers(Templates)
-    </script>
 
     @js("votePanel.js")
     @js("participantsTab.js")
     @js("initFacebook.js")
-    @js("votePanel.js")
+
+    @js("voterScreen.js")
 
     <script>
-     initializeApp(
-       @insideFbCanvas,
-       @isRegistered,
-       @Html(jsonAppRequestInfo), 
-       @Html(jsonDecisionIds),
-       @Html(decisionTitle)
-     )
+      initializeApp('@decisionId')
     </script>
-
   </body>
 <html>

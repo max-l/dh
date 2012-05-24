@@ -1,5 +1,17 @@
-function initHandlebarsHelpers(compiledTemplates) { 
 
+!function() { 
+
+    var handlebarsTemplates = $("script[type='text/x-handlebars-template']");
+    Templates = {};
+
+    handlebarsTemplates.each(function(i, templateElement) {
+      var t0 = $(templateElement);
+      var t = Handlebars.compile(t0.html());
+      Templates[t0.attr('id')] = t
+    })
+
+    var compiledTemplates = Templates;
+      
     Handlebars.registerHelper('applyTemplate', function(subTemplateId,ctx){
 
     	var subTemplate = compiledTemplates[subTemplateId];
@@ -20,4 +32,4 @@ function initHandlebarsHelpers(compiledTemplates) {
         return options.inverse(this);
       }
     });
-}
+}()
