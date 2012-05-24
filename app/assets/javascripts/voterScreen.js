@@ -9,8 +9,20 @@ function initializeApp(decisionId) {
         },
         render: function() {
           
-          var vp = createBallotView($('#ballotPanel'), Templates)
-          return vp
+          var bv = createBallotView($('#ballotPanel'), Templates);
+          
+          var B = Backbone.Model.extend({
+            url: "/ballot/" + decisionId
+          });
+          
+          var ballot = new B();
+          
+          bv.setModel(ballot);
+          ballot.fetch();
+          
+          return bv
         }
     });
+    
+    new VoterAppView()
 }

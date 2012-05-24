@@ -10,6 +10,7 @@ import com.decision_hub.Util._
 import com.decision_hub.FacebookProtocol._
 import com.codahale.jerkson.Json._
 import html.adminScreen
+import html.voterScreen
 
 
 
@@ -34,6 +35,10 @@ object MainPage extends BaseDecisionHubController {
       Ok(html.adminScreen(decisionId))
     else
       Redirect("/")
+  }
+  
+  def voterScreen(decisionId: String) = Action { req =>
+    Ok(html.voterScreen(decisionId))
   }
 
   def facebookCanvasUrl = MaybeAuthenticated(expect[FBClickOnApplication]) { sess => implicit request =>
