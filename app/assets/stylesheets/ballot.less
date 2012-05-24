@@ -1,4 +1,43 @@
 
+
+
+.rvElectionResults {
+  border-radius: 4px;
+  border-style: solid;
+  border-color: black;
+  padding: 25px;
+  
+  tr {
+    width: 100%;
+  }
+  
+  tr td:first-child {
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .progress {
+    position: relative;
+  }
+  
+  tr td:nth-child(3) {
+    width: 200px;
+    .bar {
+        position: absolute;
+        right: 0px;
+     }
+  }
+  
+  tr td:nth-child(4) {
+    width: 200px;
+    .bar {
+        position: absolute;
+        left: 0px;
+     }    
+  }  
+}
+
+
 .avballot {
   float: left;
   margin: 30px;

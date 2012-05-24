@@ -91,11 +91,12 @@ case class User(
    facebookId: Option[Long] = None,
    facebookAuthorized: Boolean = false,
    email: Option[String] = None,
-   passwordHash: Option[String] = None) extends DecisionHubEntity {
+   passwordHash: Option[String] = None,
+   anonymousId: Option[String] = None) extends DecisionHubEntity {
 
   override def toString = 
     Seq(firstName, lastName, nickName, facebookId).mkString("User(", ",", ")")
-   
+
   private def validateDisplayableName = 
     nickName orElse 
     Seq(firstName, lastName).flatten.headOption orElse
@@ -124,6 +125,10 @@ case class User(
     new ParticipantDisplay(
         displayableName, facebookId, true, this.email)
 }
+
+
+
+case class LoginToken(guid: String, participationId: Long)
 
 case class Decision(
   ownerId: Long,  
@@ -187,6 +192,7 @@ trait DisplayableUser {
 case class DecisionParticipation(
   decisionId: String,
   voterId: Long,
+  priviledges: Int, // 0: None, 1: Can Invite, 2: Owner
   hasVoted: Int = 0,
   abstained: Int = 0,
   lastModifTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends DecisionHubEntity with DisplayableUser {
@@ -209,7 +215,6 @@ case class ParticipationInvitation(
     new ParticipantDisplay(u.displayableName, u.facebookId, false, u.email) 
 }
 
-  
 case class Vote(
   decisionId: String, 
   alternativeId: Long, 

@@ -213,10 +213,10 @@ object TestData {
        Schema.decisionAlternatives.where(_.decisionId === d1.id).toSeq.sortBy(_.title)
      
      val v1 = Map(
-         a1.id -> 3,
+         a1.id -> 2,
          a2.id -> 0,
-         a3.id -> 1,
-         a4.id -> 4
+         a3.id -> -1,
+         a4.id -> -2
      )
      
      //DecisionManager.vote(nancy, d1, v1)
@@ -227,9 +227,9 @@ object TestData {
      
      val v2 = Map(
          a1.id -> 0,
-         a2.id -> 2,
-         a3.id -> 2,
-         a4.id -> 4
+         a2.id -> -2,
+         a3.id -> 1,
+         a4.id -> -2
      )
      
      //DecisionManager.vote(bob, d1, v2)

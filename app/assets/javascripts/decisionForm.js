@@ -16,7 +16,11 @@ function createDecisionView(rootElement, templates) {
               
             },
             "click #toggleEndsWhenComplete" : "toggleEndsWhenComplete",
-            "click #toggleEndsAt" : "toggleEndsAt"
+            "click #toggleEndsAt" : "toggleEndsAt",
+            "click #sendEmailInvitations" : function(e) {
+    	        var emailInvitations = $("#emailInvitations").val();
+                console.log(emailInvitations)
+            }
         },
         initialize: function() {},
         toggleTimeWidget: function(showOrHide) {

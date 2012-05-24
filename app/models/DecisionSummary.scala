@@ -10,6 +10,16 @@ import java.util.Calendar
 case class Score(alternativeId : Long, title: String, currentScore: Option[Int])
 case class Ballot(decisionId: String, decisionTitle: String, scores: Seq[Score])
 
+case class FinalScore(title: String, score: Int, percent: Int)
+
+case class DecisionPublicView(
+    title: String, 
+    owner: ParticipantDisplay,
+    ownerId: Long,
+    numberOfVoters: Long,
+    numberOfVotesExercised: Long,
+    results: Option[Seq[FinalScore]])
+    
 case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstentions: Int, numberOfVotesExercised: Int, alternativeSummaries: Seq[AlternativeSummary]) {
   
   def title = decision.title

@@ -34,6 +34,12 @@ object JSonRestApi extends BaseDecisionHubController {
     DecisionManager.getDecision(decisionId).
       map(js(_)).getOrElse(NotFound)
   }
+  
+  
+  def getDecisionPublicView(decisionId: String) = Action { req =>
+
+      js(DecisionManager.decisionPubicView(decisionId))
+  }
 
   def getAlternatives(decisionId: String) = Action { r =>
     println(r.body)

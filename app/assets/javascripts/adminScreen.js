@@ -55,9 +55,18 @@ function initializeApp(decisionId) {
         	this.model = decisionHubAdminApp;
         	this.decisionView().setModel(decisionHubAdminApp.currentDecision());
         	this.participantView().setModel(decisionHubAdminApp.currentDecision().getFBParticipants());
-        	
+
         	decisionHubAdminApp.currentDecision().fetch()
         	decisionHubAdminApp.currentDecision().getFBParticipants().fetch()
+
+        	var DVModel = Backbone.Model.extend({
+        		url: '/decision/' + decisionId
+        	});
+        	var dv = new DVModel()
+        	
+        	var dvp = createDecisionViewPanel($('#decisionViewPanel'))
+        	dvp.setModel(dv)
+        	dv.fetch()
         },
         render: function() {
             $(this.el).html(Templates.decisionEditorTemplate())

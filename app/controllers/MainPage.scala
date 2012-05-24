@@ -26,17 +26,17 @@ object MainPage extends BaseDecisionHubController {
 
     val d = DecisionManager.newDecision
 
-    Redirect("/decision/" + d.id)
+    Redirect(routes.MainPage.decisionAdmin(d.id))
   }
 
-  def decision(decisionId: String) = Action { req =>
+  def decisionAdmin(decisionId: String) = Action { req =>
 
     if(DecisionManager.decisionExists(decisionId)) 
       Ok(html.adminScreen(decisionId))
     else
-      Redirect("/")
+      Redirect(routes.MainPage.home)
   }
-  
+
   def voterScreen(decisionId: String) = Action { req =>
     Ok(html.voterScreen(decisionId))
   }

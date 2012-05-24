@@ -5,7 +5,7 @@
     @css("bootstrap.css")
   </head>
   <body>
-    <div class="container">
+    <div id='mainPanel' class="container">
 
       <div class="row">
         <div class="hero-unit">
@@ -14,9 +14,35 @@
              a method that yields the most satisfactory outcome for all participants and that
              and where intelligence and insight of each member's participant is best put to contribution.
           </p>
-          <p><a href='/newDecision' id='createNewDecision' class="btn btn-primary btn-large">Create Decision</a></p>
+          <p><a id='createNewDecision' class="btn btn-primary btn-large">Create Decision</a></p>
         </div>
       </div>
+
+
+      <div class="modal hide" id="loginDialog">
+      
+        <div class="modal-header">
+          <button class="close" data-dismiss="modal">×</button>
+          <h3>Login</h3>
+        </div>
+        <div class="modal-body">
+          <div id='modalDialogMessage'></div>          
+          <a id='loginWithFacebook' class="btn">Login with Facebook</a><br>
+          <input id='emailAddress' type='text'><br>
+          Name (Insecure mode): <input id='nickName' type='text'>
+        </div>
+        <div class="modal-footer">
+          <a id='cancel' class="btn">Close</a>
+          <a class="btn btn-primary">Next</a>
+        </div>
+        
+      </div>
+
     </div>
+
+    @javaScriptLibs()
+    @js("initFacebook.js")
+    @js("login.js")
+
   </body>
 <html>

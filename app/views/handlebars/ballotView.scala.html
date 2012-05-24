@@ -40,3 +40,49 @@
       <a class='btn'>Dismiss</a>
   </div>
 </script>
+
+
+<!-- 
+    title: String, 
+    owner: ParticipantDisplay,
+    ownerId: Long,
+    numberOfVoters: Long,
+    numberOfVotesExercised: Long,
+    results: Option[Seq[FinalScore]]
+-->
+
+<script id="decisionPanelTemplate" type="text/x-handlebars-template">
+  <div class='rvElectionResults'>
+     <div>
+       <h2>Decision : {{title}}</h2><br>
+       {{numberOfVoters}} participants<br>
+       {{numberOfVotesExercised}} have voted<br>
+     </div>
+     <div>
+      {{#if results}}
+      
+           <table>
+             {{# each results}}
+                <tr>
+                  <td>{{title}}</td>
+                  <td>{{score}}</td>
+                  <td>
+                    <div class="progress">
+                       <div class="bar" style="width: {{negPercent}}%; background-image: none;background-color: #{{negColorCode}};"></div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="progress">
+                       <div class="bar" style="width: {{posPercent}}%; background-image: none;background-color: #{{posColorCode}};"></div>
+                    </div>                    
+                  </td>
+                <tr>
+             {{/ each}}
+           </table>
+         
+       {{else}}
+         <h2>Decision in progress</h2>
+       {{/if}}
+     </div>
+  </div>
+</script>

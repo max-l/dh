@@ -7,6 +7,7 @@
 
     @css("bootstrap.css")
     @css("timepicker.css")
+    @css("ballot.css")
     
     @handlebars.adminScreen()
     @handlebars.ballotView()
@@ -15,7 +16,10 @@
   <body>
     <div class="container">
       <div class="row">
-        <div id='mainPanel'></div>
+        <div id='mainPanel'></div>        
+      </div>
+      <div class="row">
+        <div id='decisionViewPanel'></div>
       </div>
     </div>
 
@@ -30,7 +34,9 @@
     @js("dynList.js")
     @js("participantsTab.js")
     @js("initFacebook.js")
+    @js("rainbowvis.js")
     @js("adminScreen.js")
+    @js("decisionPanel.js")
 
     <script>initializeApp('@decisionId')</script>
 

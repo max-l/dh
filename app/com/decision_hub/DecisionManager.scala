@@ -140,7 +140,7 @@ object DecisionManager {
           decisionId = r.decisionId,
           facebookAppRequestId = r.request,
           invitedUserId = u._1,
-          invitingUserId = invitingUserId)    
+          invitingUserId = invitingUserId)
 
     logger.debug("invitationsToInsert : " + invitationsToInsert)
 
@@ -149,7 +149,7 @@ object DecisionManager {
     // automatic acceptation : 
     val dps = 
       for(i <- invitationsToInsert)
-        yield DecisionParticipation(i.decisionId, i.invitedUserId)
+        yield DecisionParticipation(i.decisionId, i.invitedUserId, 0)
     
     decisionParticipations.insert(dps)
 
@@ -213,17 +213,14 @@ object DecisionManager {
   }
   
   def getBallotList(userId: Long) = transaction {
-    println("123---1")
-    //getBallot
+
     val ds = 
       from(decisionParticipations, decisions)((dp, d) =>
         where(dp.voterId === userId and dp.decisionId === d.id)
         select(d)
         orderBy(dp.lastModifTime desc)
       ).page(0, 10).toList
-    
-    println("123---2> " + ds)
-    
+
     for(d <- ds)
       yield getBallot(d, userId)
   }
@@ -243,7 +240,58 @@ object DecisionManager {
     
   def lookupFacebookUser(fbId: Long) = inTransaction {
     Schema.users.where(_.facebookId === fbId).headOption
-  }    
+  }
+
+  def decisionPubicView(decisionId: String) = inTransaction {
+
+    val d = decisions.lookup(decisionId).get
+    val owner = users.lookup(d.ownerId).get
+
+    val numParticipants: Long = 
+      from(decisionParticipations)(dp =>
+        where(dp.decisionId === decisionId)
+        compute(count())
+      )
+      
+    val numVoted = 
+      from(votes)(v =>
+        where(v.decisionId === decisionId)
+        compute(countDistinct(v.voterId))
+      ).toInt
+
+    val alts = 
+      if(false) //d.resultsCanBeDisplayed)
+        None
+      else Some(
+        join(decisionAlternatives, votes.leftOuter)((a,v) => 
+          where(a.decisionId === decisionId)
+          groupBy(a.title)
+          compute(sum(v.map(_.score)))
+          on(a.id === v.map(_.alternativeId))
+        ) map { t =>
+          val minScore = numVoted * -2
+          val maxScore = numVoted *  2
+          val score = t.measures.getOrElse(minScore)
+          println("s: " + score)
+          println("max: " + maxScore)
+          println("min: " + minScore)
+          val percent =
+            if(maxScore == 0) 0
+            else ((score + maxScore  : Double) / (maxScore * 2  : Double)) * 100
+          println("p: " + percent)
+          FinalScore(t.key, score, percent.toInt)
+        }
+      )
+
+    DecisionPublicView(
+      title = d.title, 
+      owner = owner.display,
+      ownerId = d.ownerId,
+      numberOfVoters = numParticipants,
+      numberOfVotesExercised = numVoted,
+      results = alts.map(_.toSeq))
+  }
+  
     
   //===========================================================================================
 /*
