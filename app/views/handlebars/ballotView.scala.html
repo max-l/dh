@@ -60,30 +60,29 @@
      </div>
      <div>
       {{#if results}}
-      
          <table>
              <tr>
                <td></td>
                <td></td>
                <td>
-                 <div class="barzContainer">
-                    <div class="barz" style="width:100%;"></div>
-                 </div>
+                 <div class="scoreGradientBar"></div>
                </td>
              </tr>
            {{# each results}}
                 <tr>
                   <td>{{title}}</td>
-                  <td>{{score}}</td>
                   <td>
                     <div class="scoreBar">
-                       <div class="scoreTic" style="margin-left:{{pos}}%; background-color:{{rgbColor}};"></div>
+                       <div class="scoreBadge" style="background-color:{{rgbColor}}; color:{{scoreColor}};">{{score}}</div></td>
+                    </div>
+                  <td>
+                    <div class="scoreBar">
+                       <div class="scoreTic" style="margin-left:{{pos}}%; background-color:{{rgbColor}}; color:{{scoreColor}};"></div>
                     </div>
                   </td>
                 </tr>
           {{/ each}}
          </table>
-         
        {{else}}
          <h2>Decision in progress</h2>
        {{/if}}

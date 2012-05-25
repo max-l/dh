@@ -1,17 +1,19 @@
 
 GET      /                                      controllers.MainPage.home
 GET      /newDecision                           controllers.MainPage.newDecision
-GET      /decision/:id                          controllers.MainPage.decision(id: String)
+GET      /decisionAdmin/:id                     controllers.MainPage.decisionAdmin(id: String)
 POST     /facebookCanvasUrl/                    controllers.MainPage.facebookCanvasUrl
+GET      /vote/:did                             controllers.MainPage.voterScreen(did: String)
 
 
 GET      /dec/:id                               controllers.JSonRestApi.getDecision(id: String)
+GET      /decision/:id                          controllers.JSonRestApi.getDecisionPublicView(id: String)
 PUT      /dec/:id                               controllers.JSonRestApi.saveDecision(id: String)
 GET      /dec/alternatives/:did                 controllers.JSonRestApi.getAlternatives(did: String)
 POST     /dec/alternatives/:did                 controllers.JSonRestApi.createAlternative(did: String)
 PUT      /dec/alternatives/:did/:altId          controllers.JSonRestApi.updateAlternative(did: String, altId: Long)
 DELETE   /dec/alternatives/:did/:altId          controllers.JSonRestApi.deleteAlternative(did: String, altId: Long)
-POST     /loginWithFacebookToken                controllers.JSonRestApi.loginWithFacebookToken
+POST     /loginWithFacebookToken                controllers.JSonRestApi.loginWithFacebookToken 
 
 POST     /dec/recordInvitationList              controllers.JSonRestApi.recordInvitationList
 GET      /dec/participants/:decisionId          controllers.JSonRestApi.getParticipants(decisionId: String)

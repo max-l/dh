@@ -267,18 +267,15 @@ object DecisionManager {
           where(a.decisionId === decisionId)
           groupBy(a.title)
           compute(sum(v.map(_.score)))
+          orderBy(nvl(sum(v.map(_.score)),Int.MinValue) desc)
           on(a.id === v.map(_.alternativeId))
         ) map { t =>
           val minScore = numVoted * -2
           val maxScore = numVoted *  2
           val score = t.measures.getOrElse(minScore)
-          println("s: " + score)
-          println("max: " + maxScore)
-          println("min: " + minScore)
           val percent =
             if(maxScore == 0) 0
             else ((score + maxScore  : Double) / (maxScore * 2  : Double)) * 100
-          println("p: " + percent)
           FinalScore(t.key, score, percent.toInt)
         }
       )
