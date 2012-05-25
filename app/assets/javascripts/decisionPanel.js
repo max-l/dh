@@ -10,13 +10,13 @@ function interpolateColors(x1, x2, time) {
 
 function interpolateColorsR(x1, x2, min, max, n) {
 	var p = max - min
-	var time = n / p;
+	var time = 1 - (n / p);
 	
 	return interpolateColors(x1, x2, time)
 }
 
 function interpolateColorsRString(x1, x2, min, max, n) {
-	var c = interpolateColorsR(x2, x1, min, max, n)
+	var c = interpolateColorsR(x1, x2, min, max, n)
 	
 	return "rgb(" + c.r + "," + c.g + "," + c.b + ")"
 }
@@ -38,13 +38,15 @@ function createDecisionViewPanel(rootElement) {
         	var z1 = {r: 255, g:9,   b:5}
         	var z2 = {r: 255, g:244, b:94}
         	var z3 = {r: 45,  g:183, b:14}
+        	
+        	//#ff0905 0%, #fff45e 45%, #fff45e 55%, #2db70e 100%
 
         	_.each(decisionPublicDisplay.results, function(r) {
 
         		if(r.percent <= 45)
         		  r.rgbColor = interpolateColorsRString(z1, z2, 0, 45, r.percent)
         		else if(r.percent <= 55)
-        		  r.rgbColor =  "rgb(255,244,94)" //interpolateColorsRString(z2, z2, 0, 55, r.percent)
+        		  r.rgbColor =  "rgb(255,244,94)"
         		else
         		  r.rgbColor = interpolateColorsRString(z2, z3, 0, 100, r.percent)
 
