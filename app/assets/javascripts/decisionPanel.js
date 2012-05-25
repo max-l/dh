@@ -1,23 +1,4 @@
 
-
-function interpolateColors000(x1, x2, percent) {
-	var red1 = x1 >> 16;
-	var green1 = (x1 >> 8) & 0xFF;
-	var blue1  = x1 & 0xFF;
-
-	var red2 = x2 >> 16;
-	var green2 = (x2 >> 8) & 0xFF;
-	var blue2  = x2 & 0xFF;
-
-	var time = percent; //0.3 // This should be between 0 and 1
-
-	return {
-		r:time * red1 + (1-time) * red2,
-	    g:time * green1 + (1-time) * green2,
-	    b:time * blue1 + (1-time) * blue2
-	}
-}
-
 function interpolateColors(x1, x2, time) {
 	
 	return {
@@ -32,6 +13,12 @@ function interpolateColorsR(x1, x2, min, max, n) {
 	var time = n / p;
 	
 	return interpolateColors(x1, x2, time)
+}
+
+function interpolateColorsRString(x1, x2, min, max, n) {
+	var c = interpolateColorsR(x2, x1, min, max, n)
+	
+	return "rgb(" + c.r + "," + c.g + "," + c.b + ")"
 }
 
 
@@ -52,31 +39,21 @@ function createDecisionViewPanel(rootElement) {
         	var z2 = {r: 255, g:244, b:94}
         	var z3 = {r: 45,  g:183, b:14}
 
-        	var c1 = 'ff0905'; // 0%   255,9,5 
-        	var c2 = 'fff45e'; // 45%  255,244,94
-        	var c3 = 'fff45e'; // 55%
-        	var c4 = '2db70e'; // 100% 45,183,14
         	_.each(decisionPublicDisplay.results, function(r) {
-        		
-        	var r1 = new Rainbow(c1, c2);
-        	r1.setNumberRange(0, 45);
-        	var r2 = new Rainbow(c2, c3);
-        	r2.setNumberRange(45, 55);
-        	var r3 = new Rainbow(c3, c4);
-        	r3.setNumberRange(55, 100);
-        	
-        		if(r.percent <= 45) {
-        		    //r.color = r1.colorAt(r.percent)
-        			r.color = interpolateColorsR(z1, z2, 0, 45, r.percent)
-        		}
-        		else if(r.percent <= 55) {
-        		  r.color = interpolateColorsR(z2, z2, 0, 55, r.percent)
-        		}
-        		else {
-        		  r.color = interpolateColorsR(z2, z3, 0, 100, r.percent)
-        		}
+
+        		if(r.percent <= 45)
+        		  r.rgbColor = interpolateColorsRString(z1, z2, 0, 45, r.percent)
+        		else if(r.percent <= 55)
+        		  r.rgbColor =  "rgb(255,244,94)" //interpolateColorsRString(z2, z2, 0, 55, r.percent)
+        		else
+        		  r.rgbColor = interpolateColorsRString(z2, z3, 0, 100, r.percent)
+
+        		if(r.percent > 95)
+        		  r.pos = 95
+        		else
+        		  r.pos = r.percent
         	})
-        	
+
             $(this.el).html(Templates.decisionPanelTemplate(decisionPublicDisplay));
 
             return this;
