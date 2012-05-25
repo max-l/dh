@@ -61,24 +61,28 @@
      <div>
       {{#if results}}
       
-           <table>
-             {{# each results}}
+         <table>
+             <tr>
+               <td></td>
+               <td></td>
+               <td>
+                 <div class="barzContainer">
+                    <div class="barz" style="width:100%;"></div>
+                 </div>
+               </td>
+             </tr>
+           {{# each results}}
                 <tr>
                   <td>{{title}}</td>
                   <td>{{score}}</td>
                   <td>
-                    <div class="progress">
-                       <div class="bar" style="width: {{negPercent}}%; background-image: none;background-color: #{{negColorCode}};"></div>
+                    <div class="scoreBar">
+                       <div class="scoreTic" style="margin-left:{{percent}}%; background-color:rgb({{color.r}},{{color.g}},{{color.b}});"></div>
                     </div>
                   </td>
-                  <td>
-                    <div class="progress">
-                       <div class="bar" style="width: {{posPercent}}%; background-image: none;background-color: #{{posColorCode}};"></div>
-                    </div>                    
-                  </td>
-                <tr>
-             {{/ each}}
-           </table>
+                </tr>
+          {{/ each}}
+         </table>
          
        {{else}}
          <h2>Decision in progress</h2>
