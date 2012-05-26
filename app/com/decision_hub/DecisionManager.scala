@@ -230,7 +230,6 @@ object DecisionManager {
       where { 
         val fbId = u.facebookId.~
 
-        println(fbId)
         val r = fbId.in(fbIds)
 
         r
@@ -263,6 +262,7 @@ object DecisionManager {
       if(false) //d.resultsCanBeDisplayed)
         None
       else Some(
+        // participants that have not voted (no rows in votes table, don't contribute to totals)
         join(decisionAlternatives, votes.leftOuter)((a,v) => 
           where(a.decisionId === decisionId)
           groupBy(a.title)

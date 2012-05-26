@@ -12,7 +12,21 @@ import com.codahale.jerkson.Json._
 import html.adminScreen
 import html.voterScreen
 
-
+/**
+ * 
+ * Participant View :
+ *
+ *  Tab1: DecisionPublicView
+ *  Tab2: BallotView
+ *  Tab3: AdminView (if isOwner)
+ *
+ * Creation Wizard
+ *  1: AdminView / DecisionForm  (click next : Invite participants)
+ *  2: AdminView / ParticipantTab (click next : Start Voting)
+ *  3: BallotView (optional: click : I don't want to vote on this..., click finish)
+ *  4: DecisionPublicView
+ *  
+ */
 
 case class DecisionInvitationInfo(decisionTitle: String, appReqInfo: FBAppRequestInfo)
 
@@ -64,8 +78,10 @@ object MainPage extends BaseDecisionHubController {
         val appReqId = extractRequestIds(request.queryString, "request_ids").headOption
         DecisionManager.respondToAppRequestClick(appReqId, fbUserId) match {
           case Some(u) => AuthenticationSuccess(Ok(html.fbVoterScreen(None)), new DecisionHubSession(u, request))
-          // THis case is only possible with failure of POST /recordInvitationList 
-          case None => Redirect("/")
+          case None => {
+            logger.error("Registered FB user not in the DB : " + fbUserId)
+            Redirect(routes.MainPage.home)
+          }
         }
     }
   }

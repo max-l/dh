@@ -41,8 +41,6 @@ function createDecisionViewPanel(rootElement) {
         	var z1 = rgbColor(255, 9,   5)
         	var z2 = rgbColor(255, 244, 94)
         	var z3 = rgbColor(45,  183, 14)
-        	var black = rgbColor(0,  0, 0)
-        	var white = rgbColor(255, 255, 255)
 
         	_.each(decisionPublicDisplay.results, function(r) {
 

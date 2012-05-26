@@ -1,6 +1,3 @@
-    DynListElement = Backbone.Model.extend({
-        //defaults: function() {return {id:null}}
-    });
 
     DynListElementView = Backbone.View.extend({
         events: {
@@ -33,10 +30,6 @@
         }
     });
 
-    DynList = Backbone.Collection.extend({
-        model: DynListElement
-    });
-
     DynListView = Backbone.View.extend({
 
         render: function() {
@@ -57,15 +50,12 @@
                 zis.createNewElement(zis.model, text);
                 i.val('');
             });
-
-            //this.model.fetch();
         },
     	setModel : function(list) {
         	this.model = list;
             this.model.on('add', this.addOne, this);
             this.model.on('all', this.render, this);
             this.model.on('reset', this.addAll, this);
-            //this.model.on('change', this.render, this);
         },
         addAll: function() {
         	var ul = this.$("ul");
