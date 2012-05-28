@@ -3,6 +3,9 @@
 <html>
   <head>
     @css("bootstrap.css")
+    @css("ballot.css")
+    @handlebars.adminScreen()
+    @handlebars.ballotView()    
   </head>
   <body>
     <div id='mainPanel' class="container">
@@ -43,6 +46,11 @@
     @javaScriptLibs()
     @js("initFacebook.js")
     @js("login.js")
+    @js("handlebarsHelpers.js")
+    
+    @js("dynList.js")
+    
+    @js("CreateDecisionWizard.js")
 
   </body>
 <html>

@@ -50,6 +50,8 @@
                 zis.createNewElement(zis.model, text);
                 i.val('');
             });
+            
+            return this.el
         },
     	setModel : function(list) {
         	this.model = list;

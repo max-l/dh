@@ -131,7 +131,7 @@ case class User(
 case class LoginToken(guid: String, participationId: Long)
 
 case class Decision(
-  ownerId: Long,  
+  ownerId: Long = 0L,
   title: String,
   id: String = Util.newGuid,
   description: Option[String] = None,

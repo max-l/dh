@@ -84,3 +84,50 @@
     {{# ifNot accepted}} <i>(Unconfirmed)</i> {{/ ifNot}}
   </div>
 </script>
+
+<script id="createDecisionWizardTemplate" type="text/x-handlebars-template">
+
+      <div id="createDecisionWizard" class="modal hide">
+        <div class="modal-header">
+          <button id='closeWizard' class="close" data-dismiss="modal">×</button>
+          <h3>Create Decision</h3></div>
+        <div class="modal-body">
+
+            <div class="tabbable">
+              <ul class="nav nav-tabs">
+                <li class="active">
+                  <a href="#decisionTitle" data-toggle="tab">Decision Title</a></li>
+                <li>
+                  <a href="#choices" data-toggle="tab">Choices</a></li>
+                <li>
+                  <a href="#participants" data-toggle="tab">Participants</a></li>
+                <li>
+                  <a href="#finish" data-toggle="tab">Finish</a></li>                  
+              </ul>
+              <div class="tab-content">
+                <div class="wizardStep tab-pane active" id="decisionTitle">
+                  <h2>Enter the title of the decision</h2>
+                  <div>
+                    <input name='title' type="text" placeholder="ex: Who should we electo for the master of the Universe ?"/>
+                  </div>
+                  <a id='nextChoices' class='btn'>Next</a>
+                </div>
+                <div class="tab-pane" id="choices">
+                  <h2>Enter choices for the decision</h2>
+                  <div id='choiceList'></div>
+                  <a id='nextParticipants' class='btn'>Next</a></div>
+                <div class="tab-pane" id="participants">
+                  <h2>Invite Participants to vote on the decision</h2>
+                  <div id='participantsList'></div>
+                  <a id='nextFinish' class='btn'>Next</a></div>
+                <div class="tab-pane" id="finish">
+                  <h2>You're done</h2>
+                  <a id='startVoting' class='btn'>Start Voting</a></div>
+              </div>
+            </div>
+
+        </div>
+        <div class="modal-footer"></div>
+      </div>
+
+</script>

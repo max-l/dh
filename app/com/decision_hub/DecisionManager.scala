@@ -17,6 +17,10 @@ object DecisionManager {
     decisions.insert(Decision(0L, ""))
   }
   
+  def newDecision(d: Decision) = inTransaction {
+    decisions.insert(d)
+  }  
+  
   def decisionExists(dId: String) = inTransaction {
     decisions.lookup(dId).isDefined
   }
@@ -88,6 +92,16 @@ object DecisionManager {
     
     decisionAlternatives.insert(DecisionAlternative(decisionId, title))
   }
+  
+  def createAlternatives(decisionId: String, titles: Seq[String]) = inTransaction {
+    
+    val alts = titles.map { t =>
+       val a = DecisionAlternative(decisionId, t)
+       decisionAlternatives.insert(a).id
+       a
+    }
+    alts
+  }  
   
   def updateAlternative(decisionId: String, alternativeId: Long, title: String) = inTransaction {
 

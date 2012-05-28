@@ -1,0 +1,34 @@
+@(decisionId: String)
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    @css("bootstrap.css")
+    @css("ballot.css")
+
+    @handlebars.ballotView()
+    @handlebars.adminScreen()
+
+
+  </head>
+
+  <body>
+    <div id='mainPanel'>
+    </div>
+
+    @javaScriptLibs()
+
+    @js("handlebarsHelpers.js")
+
+    @js("ballotView.js")
+    @js("participantsTab.js")
+    @js("initFacebook.js")
+
+    @js("voterScreen.js")
+
+    <script>
+      initializeApp('@decisionId')
+    </script>
+  </body>
+</html>

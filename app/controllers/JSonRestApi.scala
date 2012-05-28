@@ -28,6 +28,15 @@ object JSonRestApi extends BaseDecisionHubController {
     else
       NotFound
   }
+  
+  def createDecision = Action(BodyParsers.parse.json) { r =>
+    
+    val title = ((r.body) \ "title").as[String]
+    
+    val d = DecisionManager.newDecision(Decision(0L, title))
+    
+    js(Map("id" -> d.id))
+  }
 
   def getDecision(decisionId: String) = Action { req =>
 
@@ -55,7 +64,38 @@ object JSonRestApi extends BaseDecisionHubController {
 
     js(Map("id" -> a.id))
   }
+  
+  def createAlternatives(decisionId: String) = Action(BodyParsers.parse.json) { r =>
+    //TODO: verify if admin
+    //TODO: validate title
+    
+    val titles = ((r.body) \\ "title")
+    println(titles)
+    val z = titles.map(_.as[String])
+    println(z)    
+    val a = DecisionManager.createAlternatives(decisionId, z)
+    
+    println("z1: " + a)
+    
+    println("z1s: " + a.size)
+    val a2 = a.map(_.id)
 
+    println("z2: " + a2)
+    println("z2s: " + a2.size)
+    js(a2)
+  }  
+/*  
+  def createAlternatives(decisionId: String) = Action(BodyParsers.parse.json) { r =>
+    //TODO: verify if admin
+    //TODO: validate title
+    
+    val alts = ((r.body) \ "title").as[Seq[String]]
+    
+    //val a = DecisionManager.createAlternatives(decisionId, alts)
+
+    js(Map("id" -> a.id))
+  }
+*/
   def updateAlternative(decisionId: String, altId: Long) = Action(BodyParsers.parse.json) { r =>
     println("UPDATE : " + r.body)
     //TODO: verify if admin
