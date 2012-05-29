@@ -10,40 +10,7 @@
  *   tab3: AdminView (DecisionForm + ParticipantsView(editable=true)) (if owner)
  */
 
-CollectionZ = Backbone.Collection.extend({
-	model: Backbone.Model,
-	sync: function() {return false},
-    initialize: function() {
-    	this.superCreate = this.create
-    	this.create = function(o, atts) {
-    		if(this.model.extend)
-    		  o = new this.model(o, atts);
-    		o.sync = this.sync;
-    		this.superCreate(o)
-    	}
-    },
-    persist: function(bulkSaveUrl, url) {
-	    var zis = this;
-        $.ajax({
-          type: 'POST', url: bulkSaveUrl,
-          data: JSON.stringify(this.toJSON()),
-          success: function(newIds) {
-  		      zis.sync = Backbone.sync;
-  		      zis.url = url;
-  		      var c = 0;
-		      zis.forEach(function(m) {
-        		  m.sync = Backbone.sync;
-        		  m.id = newIds[c];
-        		  c = c + 1
-        	  });
-          },
-          error: function() {},
-          contentType: "application/json; charset=utf-8",
-          dataType: 'json'
-        })
-   }    
-})
-        
+
 CreateDecisionWizard = function() {
 
 	
@@ -57,9 +24,6 @@ CreateDecisionWizard = function() {
 	         trigger: 'manual',
 	         content: content
           })
-
-          //pop.show = function() {pop.popover('show')}
-		  //pop.hide = function() {pop.popover('hide')}
           return pop.data('popover')
         })
 	}
@@ -68,77 +32,13 @@ CreateDecisionWizard = function() {
 		return title.length > 3
 	}
 
-    var _createChoicesListView = function() {
-
-            ChoiceView = Backbone.View.extend({
-                events: {
-                    "click i.icon-remove": function() {
-        	            this.model.destroy();
-        	        },
-                    "blur input" : function(e) {
-                    	var txt = $(e.currentTarget).val();
-                        if(txt != this.model.get('title')) {
-                          this.model.set('title', txt);
-                          this.model.save()
-                        }
-                    }
-                },
-    	    	initialize: function() {
-                    this.model.bind('change', this.render, this);
-                    this.model.bind('destroy', this.remove, this)
-    	        },
-    	        render: function() {
-    	            $(this.el).html(Templates.choiceTemplate(this.model.toJSON()));
-    	            return this;
-    	        },
-    	        remove: function() {
-    	            $(this.el).remove();
-    	        }
-            });
-
-            ChoicesListView = DynListView.extend({
-              model: new CollectionZ(),
-              initialize: function() {
-                this.model.on('add', this.addOne, this);
-                this.model.on('reset', this.addAll, this);
-              },
-              addAll: function() {
-              	var ul = this.$("ul");
-              	ul.empty();
-              	this.model.each(this.addOne, this);
-              },
-              addOne: function(listElementModel) {
-                  var view = new ChoiceView({model: listElementModel});
-                  var ul = this.$("ul");
-                  ul.prepend(view.render().el);
-              },
-              render: function() {
-            	$(this.el).html(
-            	  $('<input type="text" placeholder="Enter choices"></input><ul></ul>')
-            	)
-            	return this
-              },
-              events: {
-            	"keypress input:first-child" : function(e) {
-                   if (e.keyCode != 13) return;
-                   var text = this._textInput().val();
-                   if(! text) return;
-                   this.model.create({title: text})
-                   this._textInput().val('');
-                 }  
-              },
-              _textInput: _.once(function() {
-            	  return this.$("input:first-child")
-              })
-            });
-
-            return new ChoicesListView()
-    }
-
     var V = Backbone.View.extend({
     	_titleWarning: createPopup('', "Enter a meaningful title", 'input[name=title]'),
-        _choicesWarning: createPopup('', "An vote with a single choice isn't a choice !", '#choiceList input:first-child'),
-        _choicesListView: _createChoicesListView(),
+        _choicesWarning: createPopup('', "Give electors more than one choice !", '#choiceList input:first-child'),
+        _choicesListView: new EditableListView({
+        	collectionModel: new InitiallyTransientCollection(),
+            elementFieldName: 'title'
+        }),
     	events: {
         	"click #nextChoices" : function() {
     	        if(validateTitle($('input[name=title]').val()))
@@ -185,15 +85,9 @@ CreateDecisionWizard = function() {
     	initialize: function() {
         	var v = this.render()
         	$('body').append(v)
-        	//this.delegateEvents();
         	$('#createDecisionWizard').modal('show')
         	var zis = this;
-        	
-        	zis._choicesListView.model.on('add', function(){
-        		
-        		var w = zis._choicesListView.model.length
-        		debugger;
-        		
+        	zis._choicesListView.model.on('add', function() {
         		if(zis._choicesListView.model.length > 1)
         			zis._choicesWarning().hide()
         	},this)
