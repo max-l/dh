@@ -43,19 +43,21 @@ object JSonRestApi extends BaseDecisionHubController {
     DecisionManager.getDecision(decisionId).
       map(js(_)).getOrElse(NotFound)
   }
-  
-  
-  def getDecisionPublicView(decisionId: String) = Action { req =>
 
-      js(DecisionManager.decisionPubicView(decisionId))
+  def getDecisionPublicView(decisionId: String) = IsAuthenticated { session => req =>
+    js(DecisionManager.decisionPubicView(decisionId, session.userId))
   }
 
   def getAlternatives(decisionId: String) = Action { r =>
-    println(r.body)
 
     js(DecisionManager.getAlternatives(decisionId))
   }
 
+  def submitVote(decisionId: String) = IsAuthenticated { session => req =>
+    DecisionManager.voteIsComplete(decisionId, session.userId)
+    Ok
+  }
+  
   def createAlternative(decisionId: String) = Action(BodyParsers.parse.json) { r =>
     //TODO: verify if admin
     //TODO: validate title

@@ -15,6 +15,8 @@ case class FinalScore(title: String, score: Int, percent: Int)
 case class DecisionPublicView(
     title: String, 
     owner: ParticipantDisplay,
+    viewerCanVote: Boolean,
+    viewerHasVoted: Boolean,
     ownerId: Long,
     numberOfVoters: Long,
     numberOfVotesExercised: Long,

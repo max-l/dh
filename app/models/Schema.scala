@@ -193,7 +193,7 @@ case class DecisionParticipation(
   decisionId: String,
   voterId: Long,
   priviledges: Int, // 0: None, 1: Can Invite, 2: Owner
-  hasVoted: Int = 0,
+  completedOn: Option[Timestamp] = None,
   abstained: Int = 0,
   lastModifTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends DecisionHubEntity with DisplayableUser {
   

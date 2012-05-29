@@ -23,6 +23,15 @@ Decision = Backbone.Model.extend({
     })
 });
 
+DecisionPublicInfo = Backbone.Model.extend({
+	url: function() {return '/decision/' + this.id}
+});
+
+
+BallotModel = Backbone.Model.extend({
+    url: function() {return '/ballot/' + this.id}
+});
+
 InitiallyTransientCollection = Backbone.Collection.extend({
 	model: Backbone.Model,
 	sync: function() {return false},

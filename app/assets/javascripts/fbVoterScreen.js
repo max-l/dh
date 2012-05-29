@@ -21,9 +21,12 @@ function createBallotListView(rootElement, templates) {
             var ul = $(this.el);
             var ballotDiv = $('<div></div>');
             ul.append(ballotDiv)
-            var bv = createBallotView(ballotDiv, templates)
-            bv.setModel(ballot)
-            ballotDiv.append(bv.render())
+            
+            //var bv = createBallotView(ballotDiv, templates)
+            //bv.setModel(ballot)
+            
+            var dv = new DecisionWidget(ballot.get('decisionId'))
+            ballotDiv.append(dv.render().el)
         }
     });
 

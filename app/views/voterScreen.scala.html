@@ -7,14 +7,11 @@
     @css("bootstrap.css")
     @css("ballot.css")
 
-    @handlebars.ballotView()
+    @handlebars.templates()
 
   </head>
 
   <body>
-    <div id='mainPanel'>
-      <div id='ballotPanel'></div>
-    </div>
 
     @javaScriptLibs()
 
@@ -24,10 +21,11 @@
     @js("participantsTab.js")
     @js("initFacebook.js")
 
-    @js("voterScreen.js")
+    @js("DecisionWidget.js")
 
     <script>
-      initializeApp('@decisionId')
+      var w = new DecisionWidget('@decisionId');
+      $('body').append(w.render().el)
     </script>
   </body>
 </html>

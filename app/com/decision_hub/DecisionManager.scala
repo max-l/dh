@@ -93,6 +93,14 @@ object DecisionManager {
     decisionAlternatives.insert(DecisionAlternative(decisionId, title))
   }
   
+  def voteIsComplete(decisionId: String, voterId: Long) = transaction {
+
+    if(update(Schema.decisionParticipations)(dp =>
+        where(dp.decisionId === decisionId and dp.voterId === voterId)
+        set(dp.completedOn := Some(new Timestamp(System.currentTimeMillis)))
+    ) != 1) sys.error("Could not mark vote as complete " + decisionId + "," + voterId)
+  }
+    
   def createAlternatives(decisionId: String, titles: Seq[String]) = inTransaction {
     
     val alts = titles.map { t =>
@@ -255,7 +263,7 @@ object DecisionManager {
     Schema.users.where(_.facebookId === fbId).headOption
   }
 
-  def decisionPubicView(decisionId: String) = inTransaction {
+  def decisionPubicView(decisionId: String, currentUserId: Long) = inTransaction {
 
     val d = decisions.lookup(decisionId).get
     val owner = users.lookup(d.ownerId).get
@@ -269,6 +277,18 @@ object DecisionManager {
     val numVoted = 
       from(votes)(v =>
         where(v.decisionId === decisionId)
+        compute(countDistinct(v.voterId))
+      ).toInt
+
+    val viewerIsParticipant = 
+      (from(decisionParticipations)(dp =>
+        where(dp.decisionId === decisionId and dp.voterId === currentUserId)
+        compute(count())
+      ): Long) > 0
+
+    val currentUserVotes = 
+      from(votes)(v =>
+        where(v.decisionId === decisionId and v.voterId === currentUserId)
         compute(countDistinct(v.voterId))
       ).toInt
 
@@ -298,6 +318,8 @@ object DecisionManager {
       title = d.title, 
       owner = owner.display,
       ownerId = d.ownerId,
+      viewerCanVote = viewerIsParticipant,
+      viewerHasVoted = currentUserVotes > 0,
       numberOfVoters = numParticipants,
       numberOfVotesExercised = numVoted,
       results = alts.map(_.toSeq))

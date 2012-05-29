@@ -12,46 +12,11 @@ import java.net.URLEncoder
 
 object TestData {
 
-  
-  def vote(voter: User, decision: Decision, scores: Map[Long,Int]): Unit = 
-    vote(voter.id, decision.id, scores)
-  
-  
-  def vote(voterId: Long, decisionId: String, scores: Map[Long,Int]): Unit = inTransaction {
-
-    if(scores.isEmpty)
-      sys.error("empty vote.")
-    
-    val numRows = 
-      update(decisionParticipations)(p => 
-        where(p.decisionId === decisionId and p.voterId === voterId)
-        set(p.hasVoted := 1)
-      )
-    
-    val isParticipant = numRows == 1
-    
-    if(! isParticipant)
-      sys.error("not participant !")
-      
-    val d = decisions.lookup(decisionId).get
-    
-    if(scores.values.filter(_ > d.voteRange) != Nil)
-      sys.error("votes higher than allowable range submited: " + scores.mkString)
-    
-    votes.deleteWhere(v => v.decisionId === decisionId and v.voterId === voterId)
-
-    val toInsert = 
-      for( (alternativeId, score) <- scores)
-        yield Vote(decisionId, alternativeId, voterId, score)
-
-    votes.insert(toInsert.toList)
-  }
-
   def participationSummaries(decisionIds: Seq[String]) =
     from(decisionParticipations)(dp =>
       where(dp.decisionId.in(decisionIds))
       groupBy(dp.decisionId)
-      compute(count, nvl(sum(dp.abstained),0), nvl(sum(dp.hasVoted),0))
+      compute(count, nvl(sum(dp.abstained),0), 1)
     )
 
   def alternativeSummary(decisionIds: Seq[String]) = 
