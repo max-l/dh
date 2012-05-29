@@ -12,8 +12,6 @@
 
 
 CreateDecisionWizard = function() {
-
-	
 	
 	var createPopup = function (title, content, selector) {
 		return _.once(function() {
@@ -31,9 +29,11 @@ CreateDecisionWizard = function() {
 	var validateTitle = function(title) {
 		return title.length > 3
 	}
+	
+	var TITLE_SELECTOR = 'input[name=title]';
 
     var V = Backbone.View.extend({
-    	_titleWarning: createPopup('', "Enter a meaningful title", 'input[name=title]'),
+    	_titleWarning: createPopup('', "Enter a meaningful title", TITLE_SELECTOR),
         _choicesWarning: createPopup('', "Give electors more than one choice !", '#choiceList input:first-child'),
         _choicesListView: new EditableListView({
         	collectionModel: new InitiallyTransientCollection(),
@@ -41,10 +41,14 @@ CreateDecisionWizard = function() {
         }),
     	events: {
         	"click #nextChoices" : function() {
-    	        if(validateTitle($('input[name=title]').val()))
+    	        if(validateTitle($(TITLE_SELECTOR).val()))
     	          this.enableOrDisable('a[href=#choices]', true)
     	        else
     			  this._titleWarning().show()
+            },
+            'keypress input[name=title]' : function(e) {
+                if (e.keyCode != 13) return;
+                this.$('#nextChoices').trigger('click')
             },
         	"click #nextParticipants" : function() {
             	//FB's apprequest model requires to have a persisted Decision b4 
@@ -60,18 +64,29 @@ CreateDecisionWizard = function() {
                 		  success: function() {
                 		      decision.sync = Backbone.sync;
                 	          zis._choicesListView.model.persist("/dec/bulkalternatives/" + decision.id, '/dec/alternatives/'+ decision.id)
+                	          zis._participantView = new ParticipantsView(decision.id, "You are invited to vote on " + decision.get('title'));
+                	          zis.$('#participantsList').html(zis._participantView.render().el);
+                	          // we enable the next 2 tabs : 
                 	          zis.enableOrDisable('a[href=#participants]', true)
+                	          zis.$('a[href=#finish]').prop('disabled', false)
                 	      }
                 	  })
                   }
                   else zis.enableOrDisable('a[href=#participants]', true)
             	}
             },
-        	"click #nextFinish" : function() {
+        	"click #nextFinish" : function(btn) {
+            	this.$("a[href=#finish]").trigger('click')
+            },
+            "click #startVoting": function() {
             	$(this.el).modal('hide')
             	$(this.el).remove()
             },
-            "keyup input[name=title]" : function(e) { 
+            "click #gotoDecisionWidget": function() {
+            	$(this.el).modal('hide')
+            	$(this.el).remove()
+            },
+            'keyup input[name=title]' : function(e) { 
     	        if(validateTitle($(e.currentTarget).val()))
     	           this._titleWarning().hide()
             },
@@ -102,6 +117,8 @@ CreateDecisionWizard = function() {
     		e.html($(Templates.createDecisionWizardTemplate()))
 
     		e.find('#choiceList').html(this._choicesListView.render().el)
+    		
+    		//this.$(TITLE_SELECTOR)[0].selectionStart = 0; //focus();
 
     		return e
     	},

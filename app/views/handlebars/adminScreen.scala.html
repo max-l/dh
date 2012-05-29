@@ -102,27 +102,32 @@
                 <li>
                   <a href="#participants" data-toggle="tab">Participants</a></li>
                 <li>
-                  <a href="#finish" data-toggle="tab">Finish</a></li>                  
+                  <a href="#finish" data-toggle="tab">Finish</a></li>
               </ul>
               <div class="tab-content">
                 <div class="wizardStep tab-pane active" id="decisionTitle">
                   <h2>Enter the title of the decision</h2>
                   <div>
-                    <input name='title' type="text" placeholder="ex: Who should we electo for the master of the Universe ?"/>
+                    <input name='title' type="text" placeholder="ex: Who's the Master of the Universe ?"/>
                   </div>
                   <a id='nextChoices' class='btn'>Next</a>
                 </div>
                 <div class="tab-pane" id="choices">
                   <h2>Enter choices for the decision</h2>
                   <div id='choiceList'></div>
-                  <a id='nextParticipants' class='btn'>Next</a></div>
+                  <div><a id='nextParticipants' class='btn'>Next</a></div>
+                </div>
                 <div class="tab-pane" id="participants">
                   <h2>Invite Participants to vote on the decision</h2>
                   <div id='participantsList'></div>
                   <a id='nextFinish' class='btn'>Next</a></div>
                 <div class="tab-pane" id="finish">
                   <h2>You're done</h2>
-                  <a id='startVoting' class='btn'>Start Voting</a></div>
+                  <div>
+                    <a id='startVoting' class='btn'>Allow voting to begin</a>
+                    <a id='gotoDecisionWidget' class='btn'>Make modifications to the election before voting can start</a>
+                  </div>
+                </div>
               </div>
             </div>
 
