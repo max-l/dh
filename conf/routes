@@ -24,7 +24,7 @@ GET      /ballot/:did                           controllers.JSonRestApi.getBallo
 GET      /vote/:did/:altId/:score               controllers.JSonRestApi.vote(did: String, altId: Long, score: Int)
 GET      /submitVote/:did                       controllers.JSonRestApi.submitVote(did: String)
 
-GET      /fbballots                             controllers.JSonRestApi.getBallotList
+GET      /myDecisionIds                         controllers.JSonRestApi.myDecisionIds
 
 
 

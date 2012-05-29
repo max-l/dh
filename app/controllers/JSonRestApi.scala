@@ -141,8 +141,8 @@ object JSonRestApi extends BaseDecisionHubController {
     Ok
   }
   
-  def getBallotList = IsAuthenticated { session => request =>
-    js(DecisionManager.getBallotList(session.userId))
+  def myDecisionIds = IsAuthenticated { session => request =>
+    js(DecisionManager.decisionIdsOf(session.userId))
   }
   
   def loginWithFacebookToken = MaybeAuthenticated(expectJson[FBAuthResponse]) { session => implicit request =>

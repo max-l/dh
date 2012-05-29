@@ -1,38 +1,5 @@
 
 
-function createBallotListView(rootElement, templates) {
-     var V = Backbone.View.extend({
-    	el: rootElement,
-        loggedInFacebook: function(meResp, fbAuthResponse) {},
-        ready: function() {},
-        loggedOutFacebook: function() {},
-        initialize: function() {},
-    	setModel : function(list) {
-        	this.model = list;
-            this.model.on('add', this.addOne, this);
-            this.model.on('all', this.render, this);
-            this.model.on('reset', this.addAll, this);
-        },
-        addAll: function() {
-        	var ul = $(this.el);
-        	this.model.each(this.addOne, this);
-        },
-        addOne: function(ballot) {
-            var ul = $(this.el);
-            var ballotDiv = $('<div></div>');
-            ul.append(ballotDiv)
-            
-            //var bv = createBallotView(ballotDiv, templates)
-            //bv.setModel(ballot)
-            
-            var dv = new DecisionWidget(ballot.get('decisionId'))
-            ballotDiv.append(dv.render().el)
-        }
-    });
-
-    return new V()
- }
-
 function initializeApp(invitationInfoWhenUnAuthorized) {
 
     VoterAppView = Backbone.View.extend({
@@ -43,19 +10,9 @@ function initializeApp(invitationInfoWhenUnAuthorized) {
         },
         render: function() {
 
-          var BallotList = Backbone.Collection.extend({
-              model: Backbone.Model,
-              url: "/fbballots"
-          });
-
-          var bl = new BallotList();
-          var ballotList = $('<div></div>');
-          $(this.el).html(ballotList);
-
-          bv = createBallotListView(ballotList, Templates);
-          bv.setModel(bl);
-          bv.render()
-          bl.fetch()
+          var bv = new DecisionWidgetList();
+          $(this.el).html(bv.render().el);
+          bv.model.fetch()
         },
         ready: function() {},
         loggedInFacebook: function(meResp, fbAuthResponse) {},

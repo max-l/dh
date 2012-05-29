@@ -234,7 +234,7 @@ object DecisionManager {
     u
   }
   
-  def getBallotList(userId: Long) = transaction {
+  def decisionIdsOf(userId: Long) = transaction {
 
     val ds = 
       from(decisionParticipations, decisions)((dp, d) =>
@@ -243,8 +243,8 @@ object DecisionManager {
         orderBy(dp.lastModifTime desc)
       ).page(0, 10).toList
 
-    for(d <- ds)
-      yield getBallot(d, userId)
+      for(d <- ds)
+         yield Map("decisionId" -> d.id)
   }
   
   def usersByFbId(fbIds: Traversable[Long]) =

@@ -32,6 +32,11 @@ BallotModel = Backbone.Model.extend({
     url: function() {return '/ballot/' + this.id}
 });
 
+MyDecisionIds = Backbone.Collection.extend({
+    model: Backbone.Model,
+    url: "/myDecisionIds"
+});
+
 InitiallyTransientCollection = Backbone.Collection.extend({
 	model: Backbone.Model,
 	sync: function() {return false},
