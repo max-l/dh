@@ -13,17 +13,39 @@
 
 CreateDecisionWizard = function() {
 	
-	var createPopup = function (title, content, selector) {
-		return _.once(function() {
+	var popups = new Array();
+	
+	var createPopup = function (el, title, content, selector) {
+
+		  var create = function() {
+    		  var i = $(el).find(selector);
+    		  var pop = i.popover({
+    		     placement:'right',
+    		     title: title,
+    	         trigger: 'manual',
+    	         content: content,
+    		     template: '<div class="popover"><div class="arrow"></div><div class="popover-inner"><div class="popover-content"><p></p></div></div></div>'
+              })
+             return pop
+    	 }
 		  
-		  var pop = $(this.el).find(selector).popover({
-		     placement:'right',
-		     title: title,
-	         trigger: 'manual',
-	         content: content
-          })
-          return pop.data('popover')
-        })
+         return {
+        	  show: function() {
+        	    this.pop = create()
+        	    this.p = this.pop.data('popover');
+                popups.push(this)
+        	    this.p.show()
+        	  },
+        	  hide: function() {
+        		this.p.hide()
+        		popups = _.without(popups, this)
+        		this.pop.removeData()
+        	  }
+         }
+	}
+	
+	var hideWarnings = function() {
+	    _.forEach(popups, function(w){ w.hide()})
 	}
 	
 	var validateTitle = function(title) {
@@ -33,18 +55,19 @@ CreateDecisionWizard = function() {
 	var TITLE_SELECTOR = 'input[name=title]';
 
     var V = Backbone.View.extend({
-    	_titleWarning: createPopup('', "Enter a meaningful title", TITLE_SELECTOR),
-        _choicesWarning: createPopup('', "Give electors more than one choice !", '#choiceList input:first-child'),
         _choicesListView: new EditableListView({
         	collectionModel: new InitiallyTransientCollection(),
             elementFieldName: 'title'
         }),
     	events: {
+    	    "click [href=#decisionTitle]": function() {
+    	       hideWarnings()
+            },
         	"click #nextChoices" : function() {
     	        if(validateTitle($(TITLE_SELECTOR).val()))
     	          this.enableOrDisable('a[href=#choices]', true)
     	        else
-    			  this._titleWarning().show()
+    			  this._titleWarning.show()
             },
             'keypress input[name=title]' : function(e) {
                 if (e.keyCode != 13) return;
@@ -55,7 +78,7 @@ CreateDecisionWizard = function() {
             	//any invitation is sent so now is the time to save :
             	
             	if(this._choicesListView.model.length < 2)
-            		this._choicesWarning().show()
+            		this._choicesWarning.show()
             	else {
             	  var decision = this.model;
             	  var zis = this;
@@ -90,14 +113,14 @@ CreateDecisionWizard = function() {
             	var t = $(e.currentTarget).val();
                 this.model.set('title', t);
     	        if(validateTitle(t))
-    	           this._titleWarning().hide()
+    	           hideWarnings()
             },
             'blur input[name=title]' : function() {
                 if(! this.model.isNew())
                 	this.model.save()
             },
             "click #closeWizard": function() {
-            	this._titleWarning().hide()
+            	hideWarnings()
             }
         },
     	model: new Decision({
@@ -106,14 +129,25 @@ CreateDecisionWizard = function() {
     	initialize: function() {
         	var v = this.render()
         	$('body').append(v)
+        	
+        	
+    	    this._titleWarning = createPopup(this.el,'', "Enter a meaningful title", TITLE_SELECTOR),
+        	this._choicesWarning = createPopup(this.el,'', "Give voters at least two choices !", '#choiceList input:first-child'),
+        	this._duplicateChoiceWarning = createPopup(this.el,'', "This choice already exists", '#choiceList input:first-child'),
+        
         	this.modal = $('#createDecisionWizard').modal({backdrop: 'static'}).data('modal')
         	var zis = this;
         	
         	this.modal.show()
         	
+        	this._choicesListView.duplicateHandler = function(isDuplicate, text) {
+        		if(isDuplicate) zis._duplicateChoiceWarning.show()
+        		else hideWarnings()
+        	}
+        	
         	zis._choicesListView.model.on('add', function() {
         		if(zis._choicesListView.model.length > 1)
-        			zis._choicesWarning().hide()
+        			hideWarnings()
         	},this)
 
 

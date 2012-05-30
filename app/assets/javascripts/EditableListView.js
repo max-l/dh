@@ -5,13 +5,17 @@
  *   elementModel : the Backbone.Model for elements
  *   elementFieldName : the field name (of the element model) that this choice lists edits
  * }
+ * 
+ * this.duplicateHandler = function(text) {
+ *    text is a dupicate...
+ * }
  */ 
 
 EditableListView = function(options) {
 
     var _collectionModel = options.collectionModel || Backbone.Collection;
     var _elementFieldName = options.elementFieldName 
-    var _newChoiceCreationFieldHtml = options.newChoiceCreationFieldHtml || '<input type="text" placeholder="Enter choices"></input>';
+    var _newChoiceCreationFieldHtml = options.newChoiceCreationFieldHtml || '<input type="text" placeholder="Enter choice, and press enter"></input>';
     var _choiceTemplate = options.choiceTemplate || Templates.choiceTemplate;
 
     if(! _elementFieldName) throw new Error('missing elementFieldName option');
@@ -65,14 +69,39 @@ EditableListView = function(options) {
     	$(this.el).html($(_newChoiceCreationFieldHtml))
     	this._textInput = this.$("input:first-child");
     	var zis = this;
+    	
+    	var duplicateText = null;
+    	
+    	this._textInput.keyup(function(e) {
+    		var text = zis._textInput.val();
+    		if(zis.duplicateHandler && duplicateText && duplicateText != text) {
+    	    	zis.duplicateHandler(false)
+    	    	duplicateText = null
+    	    }
+    	})
+    	
     	this._textInput.keypress(function(e) {
+    	   
            if (e.keyCode != 13) return;
            var text = zis._textInput.val();
            if(! text) return;
-           var newObject = {};
-           newObject[_elementFieldName] = text
-           zis.model.create(newObject)
-           zis._textInput.val('');
+           
+           var duplicate =
+               zis.model.find(function(i) {
+            	   return i.get(_elementFieldName) == text
+               });
+
+           if(zis.duplicateHandler && duplicate) {
+        	   duplicateText = text
+        	   zis.duplicateHandler(true, text)
+           }
+           else {
+        	   duplicateText = null
+               var newObject = {};
+               newObject[_elementFieldName] = text
+               zis.model.create(newObject)
+               zis._textInput.val('');
+           }
          })
 
     	$(this.el).append($('<ul></ul>'))
