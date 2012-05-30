@@ -1,35 +1,15 @@
 @(invitationInfoWhenUnAuthorized: Option[DecisionInvitationInfo])
-<!DOCTYPE html>
-<html>
-  <head>
-  
-    <link rel="stylesheet" href="@routes.Assets.at("javascripts/jquery-custom/themes/ui-lightness/jquery-ui-1.8.18.custom.css")">
-    @css("bootstrap.css")
-    @css("timepicker.css")
-    @css("ballot.css")
+@import com.codahale.jerkson.Json._
 
-    @handlebars.templates()
 
-  </head>
+@main {
+   <div id='mainPanel'>
+     <div id='ballotList'></div>
+   </div>
 
-  <body>
+  @js("fbVoterScreen.js")
+} {
 
-     <div id='mainPanel'>
-       <div id='ballotList'></div>
-     </div>
+  initializeApp(@Html(invitationInfoWhenUnAuthorized.map(generate(_)).getOrElse("null")))
+}
 
-    @javaScriptLibs()
-
-    @js("handlebarsHelpers.js")
-
-    @js("initFacebook.js")
-
-    @js("fbVoterScreen.js")
-
-    <script>
-      @import com.codahale.jerkson.Json._
-      
-      initializeApp(@Html(invitationInfoWhenUnAuthorized.map(generate(_)).getOrElse("null")))
-    </script>
-  </body>
-<html>

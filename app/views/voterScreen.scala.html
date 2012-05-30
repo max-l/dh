@@ -15,14 +15,6 @@
 
     @javaScriptLibs()
 
-    @js("handlebarsHelpers.js")
-
-    @js("ballotView.js")
-    @js("participantsTab.js")
-    @js("initFacebook.js")
-
-    @js("DecisionWidget.js")
-
     <script>
       var w = new DecisionWidget('@decisionId');
       $('body').append(w.render().el)

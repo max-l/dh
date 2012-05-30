@@ -1,12 +1,7 @@
 @()
-<!DOCTYPE html>
-<html>
-  <head>
-    @css("bootstrap.css")
-    @css("ballot.css")
-    @handlebars.templates()
-  </head>
-  <body>
+
+@main {
+
     <div id='mainPanel' class="container">
 
       <div class="row">
@@ -22,7 +17,7 @@
 
 
       <div class="modal hide" id="loginDialog">
-      
+
         <div class="modal-header">
           <button class="close" data-dismiss="modal">×</button>
           <h3>Login</h3>
@@ -37,19 +32,11 @@
           <a id='cancel' class="btn">Close</a>
           <a class="btn btn-primary">Next</a>
         </div>
-        
       </div>
 
     </div>
+} {
 
-    @javaScriptLibs()
-    @js("initFacebook.js")
-    @js("login.js")
-    @js("handlebarsHelpers.js")
-    
-    @js("dynList.js")
-    
-    @js("CreateDecisionWizard.js")
+  new CreateDecisionWizard()
 
-  </body>
-<html>
+}

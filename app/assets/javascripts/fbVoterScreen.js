@@ -12,7 +12,9 @@ function initializeApp(invitationInfoWhenUnAuthorized) {
 
           var bv = new DecisionWidgetList();
           $(this.el).html(bv.render().el);
-          bv.model.fetch()
+          bv.model.fetch();
+          
+          return this
         },
         ready: function() {},
         loggedInFacebook: function(meResp, fbAuthResponse) {},

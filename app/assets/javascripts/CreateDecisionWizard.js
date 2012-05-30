@@ -59,6 +59,7 @@ CreateDecisionWizard = function() {
             	else {
             	  var decision = this.model;
             	  var zis = this;
+            	  debugger;
             	  if(decision.isNew()) {
                 	  decision.save(null, {
                 		  success: function() {
@@ -79,16 +80,22 @@ CreateDecisionWizard = function() {
             	this.$("a[href=#finish]").trigger('click')
             },
             "click #startVoting": function() {
-            	$(this.el).modal('hide')
+            	this.modal.hide()
             	$(this.el).remove()
             },
             "click #gotoDecisionWidget": function() {
-            	$(this.el).modal('hide')
+            	this.modal.hide()
             	$(this.el).remove()
             },
-            'keyup input[name=title]' : function(e) { 
-    	        if(validateTitle($(e.currentTarget).val()))
+            'keyup input[name=title]' : function(e) {
+            	var t = $(e.currentTarget).val();
+                this.model.set('title', t);
+    	        if(validateTitle(t))
     	           this._titleWarning().hide()
+            },
+            'blur input[name=title]' : function() {
+                if(! this.model.isNew())
+                	this.model.save()
             },
             "click #closeWizard": function() {
             	this._titleWarning().hide()
@@ -100,8 +107,11 @@ CreateDecisionWizard = function() {
     	initialize: function() {
         	var v = this.render()
         	$('body').append(v)
-        	$('#createDecisionWizard').modal('show')
+        	this.modal = $('#createDecisionWizard').modal({backdrop: 'static'}).data('modal')
         	var zis = this;
+        	
+        	this.modal.show()
+        	
         	zis._choicesListView.model.on('add', function() {
         		if(zis._choicesListView.model.length > 1)
         			zis._choicesWarning().hide()
@@ -130,4 +140,4 @@ CreateDecisionWizard = function() {
     	}
     })
     return new V()
-}()
+}

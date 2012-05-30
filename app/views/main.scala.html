@@ -1,0 +1,40 @@
+@(bodyContent: Html)(script: Html)
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/jquery-custom/themes/ui-lightness/jquery-ui-1.8.18.custom.css")">
+
+    @css("bootstrap.css")
+    @css("timepicker.css")
+    @css("ballot.css")
+
+   <style type="text/css">
+     .zscoreGradientBar {
+     }
+   </style>
+
+   <!--[if gte IE 9]>
+     <style type="text/css">
+       .barz {
+          filter: none;
+       }
+     </style>
+   <![endif]-->
+
+    @handlebars.templates()
+
+  </head>
+
+  <body>
+    @bodyContent
+
+    @javaScriptLibs()
+
+    <script>
+        @script
+    </script>
+
+  </body>
+</html>
