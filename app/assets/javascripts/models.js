@@ -1,8 +1,6 @@
 
 Decision = Backbone.Model.extend({
-    defaults: function() {
-        return {title: ""}
-    },
+    //defaults: function() {return {title: "", ownerId: 0, published: false}},
     choiceList: _.once(function() {
         var ChoiceList = Backbone.Collection.extend({
            model: Backbone.Model,
@@ -22,6 +20,14 @@ Decision = Backbone.Model.extend({
     	return new FBParticipantsList()
     })
 });
+
+ChoiceList = function(decisionId) {
+  var M = Backbone.Collection.extend({
+     model: Backbone.Model,
+     url: "/dec/alternatives/" + decisionId
+  })
+  return new M()
+}
 
 DecisionPublicInfo = Backbone.Model.extend({
 	url: function() {return '/decision/' + this.id}

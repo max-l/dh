@@ -10,7 +10,6 @@
 EditableListView = function(options) {
 
     var _collectionModel = options.collectionModel || Backbone.Collection;
-    var _elementModel = options.elementModel || Backbone.Model;
     var _elementFieldName = options.elementFieldName 
     var _newChoiceCreationFieldHtml = options.newChoiceCreationFieldHtml || '<input type="text" placeholder="Enter choices"></input>';
     var _choiceTemplate = options.choiceTemplate || Templates.choiceTemplate;
@@ -50,32 +49,35 @@ EditableListView = function(options) {
         this.model.on('reset', this.addAll, this);
       },
       addAll: function() {
+
       	var ul = this.$("ul");
       	ul.empty();
       	this.model.each(this.addOne, this);
       },
       addOne: function(listElementModel) {
+
           var view = new ChoiceView({model: listElementModel});
           var ul = this.$("ul");
           ul.prepend(view.render().el);
       },
       render: function() {
+
     	$(this.el).html($(_newChoiceCreationFieldHtml))
+    	this._textInput = this.$("input:first-child");
+    	var zis = this;
+    	this._textInput.keypress(function(e) {
+           if (e.keyCode != 13) return;
+           var text = zis._textInput.val();
+           if(! text) return;
+           var newObject = {};
+           newObject[_elementFieldName] = text
+           zis.model.create(newObject)
+           zis._textInput.val('');
+         })
+
     	$(this.el).append($('<ul></ul>'))
     	return this
-      },
-      events: {
-    	"keypress input:first-child" : function(e) {
-           if (e.keyCode != 13) return;
-           var text = this._textInput().val();
-           if(! text) return;
-           this.model.create({title: text})
-           this._textInput().val('');
-         }  
-      },
-      _textInput: _.once(function() {
-    	  return this.$("input:first-child")
-      })
+      }
     });
 
     return new V()

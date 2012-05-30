@@ -2,7 +2,10 @@
 <!DOCTYPE html>
 <html>
   <head>
+  
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/jquery-custom/themes/ui-lightness/jquery-ui-1.8.18.custom.css")">
     @css("bootstrap.css")
+    @css("timepicker.css")
     @css("ballot.css")
 
     @handlebars.templates()
@@ -19,8 +22,6 @@
 
     @js("handlebarsHelpers.js")
 
-    @js("ballotView.js")
-    @js("participantsTab.js")
     @js("initFacebook.js")
 
     @js("fbVoterScreen.js")

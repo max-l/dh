@@ -25,10 +25,16 @@ object DecisionManager {
     decisions.lookup(dId).isDefined
   }
   
-  def updateDecision(d: Decision) = inTransaction {
-    decisions.update(d)
+  def updateDecision(decision: Decision) = inTransaction {
+    assert {
+      update(decisions)(d =>
+        where(d.id === decision.id)
+        set(d.title := decision.title,
+        d.endsOn := decision.endsOn)
+      ) == 1
+    }
     true
-  } 
+  }
   
   def getDecision(decisionId: String) = inTransaction {  
     decisions.lookup(decisionId)

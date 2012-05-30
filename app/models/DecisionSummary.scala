@@ -32,7 +32,7 @@ case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstention
     val endedOn =
       endedByOwnerOn.orElse(endedByCompletionOn).orElse(endsOn.map(_.getTime))
 
-    if(decision.resultsPrivateUntilEnd && endedOn.isEmpty)
+    if(endedOn.isEmpty)
       Seq(("Results not yet public",1))
     else {
       for(a <- alternativeSummaries) 
@@ -95,8 +95,7 @@ case class DecisionPost(
       Left((d:Decision) => d.copy(
         title = title,
         description = description,
-        endsOn = endsOn,
-        resultsPrivateUntilEnd = resultsPrivateUntilEnd.getOrElse(false)
+        endsOn = endsOn
       ))
   }
 }

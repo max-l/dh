@@ -135,23 +135,14 @@ case class Decision(
   title: String,
   id: String = Util.newGuid,
   description: Option[String] = None,
-  published: Boolean = false,
   endsOn: Option[Timestamp] = None,// if None, ends when complete
   endedByCompletionOn: Option[Timestamp] = None,
   endedByOwnerOn: Option[Timestamp] = None,
-  resultsPrivateUntilEnd: Boolean = true,
-  votesAreAnonymous: Boolean = true,
-  weekActivity: Int = 0,
-  allTimeActivity: Int = 0,
-  creationTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends KeyedEntity[String] {
+  creationTime: Option[Timestamp] = Some(new Timestamp(System.currentTimeMillis))) extends KeyedEntity[String] {
 
   def resultsCanBeDisplayed = 
-    if(! resultsPrivateUntilEnd)
-      true 
-    else {
       endedByCompletionOn.orElse(endedByOwnerOn).isDefined ||
       endsOn.map(_.getTime > System.currentTimeMillis).getOrElse(false)
-    }
   
   def voteRange = 4
   

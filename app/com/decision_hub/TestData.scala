@@ -97,7 +97,7 @@ object TestData {
        else None
      
      val d =
-      Schema.decisions.insert(f(Decision(user.id, title, Util.newGuid, Some("bla bla"), anonymous)))
+      Schema.decisions.insert(f(Decision(user.id, title, Util.newGuid, Some("bla bla"))))
 
      for(a <- alternatives) {
 
@@ -115,10 +115,7 @@ object TestData {
 
         WS.url("https://graph.facebook.com/" + i).get.map { jsonResponse =>
 
-          val pi = parse[FBPublicUserInfo](jsonResponse.body)
-          transaction {
-            users.insert(User(Some(pi.first_name), Some(pi.last_name), None, Some(i), true))
-          }
+          (i, parse[FBPublicUserInfo](jsonResponse.body))
         }
       }
     }.await(1000 * 60).get
@@ -130,16 +127,22 @@ object TestData {
 
    def fakeData(testUserIds: Seq[Long]) = {
      
-     val users = fakeUsers(testUserIds)
+     val userInfosFromFB = fakeUsers(testUserIds)
 
+     // insert test users always in the same order, so that their PKs are always the same :
+     val users = transaction {
+       userInfosFromFB.sortBy(_._1).map { t =>
+            val (i, pi) = t
+            Schema.users.insert(User(Some(pi.first_name), Some(pi.last_name), None, Some(i), true))
+       }
+     }
 
      val bob = users.find(_.facebookId.get == bobFBId).get
 
      val nancy = users.find(_.facebookId.get == nancyFBId).get
      
      val d1 = 
-       fakeDecision(bob, "The big Decision", true, 
-           (d:Decision) => d.copy(resultsPrivateUntilEnd = false), 
+       fakeDecision(bob, "The big Decision", true, identity, 
        Seq(
          None -> "1this is the one !",
          None -> "2the only absolutely correct coice !",

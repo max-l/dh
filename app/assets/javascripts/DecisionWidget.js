@@ -156,7 +156,16 @@ DecisionWidget = function(decisionId) {
     			   dpvTab.html(p.render().el)
     		    }
     		})
+    		
+    		var dsv = new DecisionSettingsView(decisionId);
+    		var settingsTab = this.$('#settings')
 
+    		dsv.model.fetch({
+    			success: function() {
+ 			      settingsTab.html(dsv.render().el)
+ 		       }
+ 		    })
+ 		    
     		return this
     	}
     });
