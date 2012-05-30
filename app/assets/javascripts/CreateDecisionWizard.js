@@ -59,7 +59,6 @@ CreateDecisionWizard = function() {
             	else {
             	  var decision = this.model;
             	  var zis = this;
-            	  debugger;
             	  if(decision.isNew()) {
                 	  decision.save(null, {
                 		  success: function() {

@@ -1,24 +1,6 @@
 
 Decision = Backbone.Model.extend({
-    //defaults: function() {return {title: "", ownerId: 0, published: false}},
-    choiceList: _.once(function() {
-        var ChoiceList = Backbone.Collection.extend({
-           model: Backbone.Model,
-           url: "/dec/alternatives/" + this.id
-        });
-        return new ChoiceList({id: this.id})
-    }),
-    urlRoot: "/dec",
-    getFBParticipants: _.once(function() {
-        FBParticipant = Backbone.Model.extend({});
-
-        FBParticipantsList = Backbone.Collection.extend({
-            model: FBParticipant,
-            url: "/dec/participants/" + this.id
-        });
-
-    	return new FBParticipantsList()
-    })
+    urlRoot: "/dec"
 });
 
 ChoiceList = function(decisionId) {
@@ -38,6 +20,9 @@ BallotModel = Backbone.Model.extend({
     url: function() {return '/ballot/' + this.id}
 });
 
+/**
+ * [{decisionId:x1}, {decisionId:x2}, ...]
+ */
 MyDecisionIds = Backbone.Collection.extend({
     model: Backbone.Model,
     url: "/myDecisionIds"

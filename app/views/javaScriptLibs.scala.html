@@ -1,5 +1,7 @@
 @()
 
+@js(p: String) = {<script src='@routes.Assets.at("javascripts/" + p)'  type="text/javascript"></script>}
+
 @js("jquery-1.7.2.js")
 @js("underscore.js")
 @js("backbone.js")

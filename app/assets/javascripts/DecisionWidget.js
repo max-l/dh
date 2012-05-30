@@ -184,11 +184,11 @@ DecisionWidgetList = Backbone.View.extend({
     	var ul = $(this.el);
     	this.model.each(this.addOne, this);
     },
-    addOne: function(ballot) {
+    addOne: function(decisionIdModel) {
         var ul = $(this.el);
         var ballotDiv = $('<div></div>')
         ul.append(ballotDiv)
-        var dv = new DecisionWidget(ballot.get('decisionId'))
+        var dv = new DecisionWidget(decisionIdModel.get('decisionId'))
         ballotDiv.append(dv.render().el)
     }
 });

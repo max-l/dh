@@ -9,7 +9,6 @@ import com.decision_hub._
 import com.decision_hub.Util._
 import com.decision_hub.FacebookProtocol._
 import com.codahale.jerkson.Json._
-import html.adminScreen
 import html.voterScreen
 
 /**
@@ -36,20 +35,13 @@ object MainPage extends BaseDecisionHubController {
     Ok(html.home())
   }
 
+/*  
   def newDecision = Action { req =>
-
     val d = DecisionManager.newDecision
-
     Redirect(routes.MainPage.decisionAdmin(d.id))
   }
+  */
 
-  def decisionAdmin(decisionId: String) = Action { req =>
-
-    if(DecisionManager.decisionExists(decisionId)) 
-      Ok(html.adminScreen(decisionId))
-    else
-      Redirect(routes.MainPage.home)
-  }
 
   def voterScreen(decisionId: String) = Action { req =>
     Ok(html.voterScreen(decisionId))
