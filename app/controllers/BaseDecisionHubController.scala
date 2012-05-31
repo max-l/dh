@@ -5,7 +5,7 @@ import play.api.mvc._
 import play.api.Logger
 import com.decision_hub._
 import play.api.Play
-
+import org.squeryl.PrimitiveTypeMode._
 
 
 case class DecisionHubSession(userId: Long, dataInCookie: String, requestHeaders: RequestHeader) {
@@ -16,6 +16,13 @@ case class DecisionHubSession(userId: Long, dataInCookie: String, requestHeaders
 
 trait BaseDecisionHubController extends Controller with Secured[DecisionHubSession] {
 
+  implicit def string2Tok(t: String) =
+      transaction {
+    
+        Schema.pTokens.lookup(t).get
+      }
+    
+  
   val authenticatonTokenName = "authenticatonToken"
       
   val sslSessionIdHeaderName = 

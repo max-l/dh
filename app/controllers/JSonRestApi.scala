@@ -33,9 +33,9 @@ object JSonRestApi extends BaseDecisionHubController {
     
     val title = ((r.body) \ "title").as[String]
     
-    val d = DecisionManager.newDecision(Decision(0L, title))
+    val tok = DecisionManager.newDecision(Decision(0L, title), None)
     
-    js(Map("id" -> d.id))
+    js(Map("id" -> tok.id))
   }
 
   def getDecision(decisionId: String) = Action { req =>
@@ -44,8 +44,12 @@ object JSonRestApi extends BaseDecisionHubController {
       map(js(_)).getOrElse(NotFound)
   }
 
-  def getDecisionPublicView(decisionId: String) = IsAuthenticated { session => req =>
-    js(DecisionManager.decisionPubicView(decisionId, session.userId))
+  def getDecisionPublicView(decisionId: String) = MaybeAuthenticated { session => req =>
+    
+    //TODO: checl session.map(_.userId) with token
+    
+    //val tok = session.map( decisionId)
+    js(DecisionManager.decisionPubicView(decisionId))
   }
 
   def getAlternatives(decisionId: String) = Action { r =>
@@ -72,57 +76,31 @@ object JSonRestApi extends BaseDecisionHubController {
     //TODO: validate title
     
     val titles = ((r.body) \\ "title")
-    println(titles)
     val z = titles.map(_.as[String])
-    println(z)    
     val a = DecisionManager.createAlternatives(decisionId, z)
-    
-    println("z1: " + a)
-    
-    println("z1s: " + a.size)
     val a2 = a.map(_.id)
-
-    println("z2: " + a2)
-    println("z2s: " + a2.size)
     js(a2)
   }  
-/*  
-  def createAlternatives(decisionId: String) = Action(BodyParsers.parse.json) { r =>
-    //TODO: verify if admin
-    //TODO: validate title
-    
-    val alts = ((r.body) \ "title").as[Seq[String]]
-    
-    //val a = DecisionManager.createAlternatives(decisionId, alts)
 
-    js(Map("id" -> a.id))
-  }
-*/
   def updateAlternative(decisionId: String, altId: Long) = Action(BodyParsers.parse.json) { r =>
-    println("UPDATE : " + r.body)
-    //TODO: verify if admin
+
     val title = ((r.body) \ "title").as[String]
     DecisionManager.updateAlternative(decisionId, altId, title)
     Ok
   }
 
   def deleteAlternative(decisionId: String, altId: Long) = Action { r =>
-    println(r.body)
     DecisionManager.deleteAlternative(decisionId, altId)
     Ok
   }
   
-  def getParticipants(decisionId: String) = Action { r =>
-
-    val (i, p) = DecisionManager.participantAndInvitation(decisionId, 0, 1000)
-    
-    js(p)
+  def getParticipants(decisionId: String) = Action { r => 
+    js(DecisionManager.participants(decisionId, 0, 1000))
   }
 
+  def getBallot(decisionId: String) = MaybeAuthenticated { session => r =>
 
-  def getBallot(decisionId: String) = IsAuthenticated { session => r =>
-
-    js(DecisionManager.getBallot(decisionId, session.userId))
+    js(DecisionManager.getBallot(decisionId))
   }
 
   def vote(decisionId: String, altId: Long, score: Int) = IsAuthenticated { session => r =>
@@ -135,7 +113,7 @@ object JSonRestApi extends BaseDecisionHubController {
 
     val invitationRequest = request.body
 
-    DecisionManager.inviteVotersFromFacebook0(session.userId, invitationRequest)
+    FacebookParticipantManager.inviteVotersFromFacebook0(session.userId, invitationRequest)
 
     logger.info("Invited participants to decision " + invitationRequest.decisionId)
     Ok
@@ -156,7 +134,7 @@ object JSonRestApi extends BaseDecisionHubController {
 
           val fbUserId = java.lang.Long.parseLong((req \ "user_id").as[String])
 
-          DecisionManager.lookupFacebookUser(fbUserId) match {
+          FacebookParticipantManager.lookupFacebookUser(fbUserId) match {
             case Some(u) =>
               logger.debug("fb user %s authenticated.".format(fbUserId))
               AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
@@ -166,7 +144,7 @@ object JSonRestApi extends BaseDecisionHubController {
 
               FacebookProtocol.facebookOAuthManager.obtainMinimalInfo(request.body.accessToken) match {                
                 case Left(info) => transaction {
-                  val u = DecisionManager.authenticateOrCreateUser(info)
+                  val u = FacebookParticipantManager.authenticateOrCreateUser(info)
                   val ses = new DecisionHubSession(u, request)
                   AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
                 }

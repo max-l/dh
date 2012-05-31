@@ -149,7 +149,7 @@ DecisionWidget = function(decisionId) {
     		e.html($(Templates.decisionWidgetTemplate()));
     		var d = new DecisionPublicInfo({id: decisionId});
     		var dpvTab = this.$('#decisionPublicView');
-    		
+
     		d.fetch({
     			success: function() {
     			   var p = DecisionView(d);
@@ -174,21 +174,33 @@ DecisionWidget = function(decisionId) {
 }
 
 
-DecisionWidgetList = Backbone.View.extend({
-    model: new MyDecisionIds(),
-    initialize: function() {
-        this.model.on('add', this.addOne, this);
-        this.model.on('reset', this.addAll, this);
-    },
-    addAll: function() {
-    	var ul = $(this.el);
-    	this.model.each(this.addOne, this);
-    },
-    addOne: function(decisionIdModel) {
-        var ul = $(this.el);
-        var ballotDiv = $('<div></div>')
-        ul.append(ballotDiv)
-        var dv = new DecisionWidget(decisionIdModel.get('decisionId'))
-        ballotDiv.append(dv.render().el)
-    }
-});
+DecisionWidgetList = function(token) {
+
+    var V = Backbone.View.extend({
+        initialize: function() {
+    	    if(token) {
+    	        this.addOne(new Backbone.Model({decisionId: token}))
+    	        //add a dummy model : 
+    	        this.model = {fetch: function() {}}
+    	    }
+    	    else {
+    	      this.model = new MyDecisionIds();
+              this.model.on('add', this.addOne, this);
+              this.model.on('reset', this.addAll, this);
+    	    }
+        },
+        addAll: function() {
+        	var ul = $(this.el);
+        	this.model.each(this.addOne, this);
+        },
+        addOne: function(decisionIdModel) {
+            var ul = $(this.el);
+            var ballotDiv = $('<div></div>')
+            ul.append(ballotDiv)
+            var dv = new DecisionWidget(decisionIdModel.get('decisionId'))
+            ballotDiv.append(dv.render().el)
+        }
+    });
+    
+   return new V()
+}

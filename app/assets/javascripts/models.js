@@ -28,6 +28,21 @@ MyDecisionIds = Backbone.Collection.extend({
     url: "/myDecisionIds"
 });
 
+MySingleDecisionId = function(token) {
+
+    var M = Backbone.Collection.extend({
+    	sync: function() {return false},
+    	model: Backbone.Model.extend({sync: function() {return false}})
+    });
+
+    var m = new M();
+
+    m.create({decisionId: token})
+
+    return m
+}
+
+
 InitiallyTransientCollection = Backbone.Collection.extend({
 	model: Backbone.Model,
 	sync: function() {return false},

@@ -28,7 +28,7 @@ object TestData {
     ) map {t =>
       AlternativeSummary(t.key._1, t.key._2, t.key._3, t.measures.getOrElse(0))
     }
-  
+/*  
   def decisionDetails(decisionId: String, currentUser: Option[Long]) = inTransaction {
 
     val d = decisions.lookup(decisionId).get
@@ -59,12 +59,12 @@ object TestData {
         numberOfVotesExercised = pSum._3,
         alternativeSummaries = aSums.get(d.id).toSeq.flatten),
      DecisionManager.participants(decisionId, 0, 16),
-     DecisionManager.invitations(decisionId, 0, 16),
+     Nil,
      isCurrentUserParticipant,
      currentUser.map(_ == d.ownerId).getOrElse(false)
     )
   }
-  
+*/  
   def decisionSummaries(ds: Seq[Decision]) =
     if(ds == Nil)
       Nil 
@@ -107,6 +107,18 @@ object TestData {
      d
   }
   
+  
+   def fakeAnonDecision(title: String, alternatives : Seq[String]) = {
+     
+     val dGuid = Util.newGuid
+     val u = User(nickName = Some("Anon Owner of " + dGuid))
+     users.insert(u)
+     val d = Decision(u.id,title, id = dGuid)
+     val tok = DecisionManager.newDecision(d, Some(u.id))
+     DecisionManager.createAlternatives(tok, alternatives)
+     tok
+   }
+   
   case class FBPublicUserInfo(name: String, first_name: String, last_name: String)
   
   def fakeUsers(fbIds: Seq[Long]) =    
@@ -164,11 +176,11 @@ object TestData {
      //val bobDecisions = DecisionManager.decisionSummariesOf(bob.id, true)
 
 
-     DecisionManager.inviteVotersFromFacebook0(
+     FacebookParticipantManager.inviteVotersFromFacebook0(
          bob.id, 
          FBInvitationRequest(d1.id,-1L, Seq(FBFriendInfo(nancy.facebookId.get, nancy.displayableName))))
          
-     DecisionManager.inviteVotersFromFacebook0(
+     FacebookParticipantManager.inviteVotersFromFacebook0(
          bob.id,
          FBInvitationRequest(d1.id,-1L, Seq(FBFriendInfo(bob.facebookId.get, bob.displayableName))))
      
@@ -187,11 +199,12 @@ object TestData {
          a4.id -> -2
      )
      
-     //DecisionManager.vote(nancy, d1, v1)
-     DecisionManager.vote(d1.id, a1.id, nancy.id, v1(a1.id))
-     DecisionManager.vote(d1.id, a2.id, nancy.id, v1(a2.id))
-     DecisionManager.vote(d1.id, a3.id, nancy.id, v1(a3.id))
-     DecisionManager.vote(d1.id, a4.id, nancy.id, v1(a4.id))
+     val nancyTok = new PToken(Util.newGuid, d1.id, nancy.id)
+     pTokens.insert(nancyTok)
+     DecisionManager.vote(Schema.pTokens.lookup(nancyTok.id).get, a1.id, nancy.id, v1(a1.id))
+     DecisionManager.vote(nancyTok, a2.id, nancy.id, v1(a2.id))
+     DecisionManager.vote(nancyTok, a3.id, nancy.id, v1(a3.id))
+     DecisionManager.vote(nancyTok, a4.id, nancy.id, v1(a4.id))
      
      val v2 = Map(
          a1.id -> 0,
@@ -200,11 +213,12 @@ object TestData {
          a4.id -> -2
      )
      
-     //DecisionManager.vote(bob, d1, v2)
-     DecisionManager.vote(d1.id, a1.id, bob.id, v2(a1.id))
-     DecisionManager.vote(d1.id, a2.id, bob.id, v2(a2.id))
-     DecisionManager.vote(d1.id, a3.id, bob.id, v2(a3.id))
-     DecisionManager.vote(d1.id, a4.id, bob.id, v2(a4.id))
+     val bobTok = new PToken(Util.newGuid, d1.id, bob.id)
+     pTokens.insert(bobTok)
+     DecisionManager.vote(bobTok, a1.id, bob.id, v2(a1.id))
+     DecisionManager.vote(bobTok, a2.id, bob.id, v2(a2.id))
+     DecisionManager.vote(bobTok, a3.id, bob.id, v2(a3.id))
+     DecisionManager.vote(bobTok, a4.id, bob.id, v2(a4.id))
      
      val d1ToValidate = decisionSummaries(Seq(d1)).headOption.getOrElse(sys.error(d1+ " not found in db."))
 
@@ -221,6 +235,8 @@ object TestData {
 
      val allDecisions = decisions.where(s => 1 === 1).toList
      assertEquals(2, allDecisions.size)
+
+     fakeAnonDecision("Anon Decide", Seq("this", "that", "or that"))
 
      println("Success ! ")
    }

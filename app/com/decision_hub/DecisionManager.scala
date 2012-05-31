@@ -17,12 +17,18 @@ object DecisionManager {
     decisions.insert(Decision(0L, ""))
   }
   
-  def newDecision(d: Decision) = inTransaction {
-    decisions.insert(d)
+  def newDecision(d: Decision, ownerId: Option[Long]) = inTransaction {
+    val d0 =
+      ownerId.map(uid => decisions.insert(d.copy(ownerId = uid))).
+        getOrElse(decisions.insert(d))
+      
+    val t = new PToken(Util.newGuid, d0.id, ownerId.get)
+    pTokens.insert(t)
+    t
   }  
   
-  def decisionExists(dId: String) = inTransaction {
-    decisions.lookup(dId).isDefined
+  def decisionExists(tok: PToken) = inTransaction {
+    decisions.lookup(tok.decisionId).isDefined
   }
   
   def updateDecision(decision: Decision) = inTransaction {
@@ -36,23 +42,24 @@ object DecisionManager {
     true
   }
   
-  def getDecision(decisionId: String) = inTransaction {  
-    decisions.lookup(decisionId)
+  def getDecision(tok: PToken) = inTransaction {  
+    decisions.lookup(tok.decisionId)
   }
   
-  def getAlternatives(decisionId: String) = inTransaction {
-    decisionAlternatives.where(a => a.decisionId === decisionId).toList
+  def getAlternatives(tok: PToken) = inTransaction {
+    decisionAlternatives.where(a => a.decisionId === tok.decisionId).toList
   }
   
-  def getBallot(decisionId: String, voterId: Long): Ballot = inTransaction {
+  def getBallot(tok: PToken): Ballot = inTransaction {
 
-    val d = decisions.lookup(decisionId).get
+    val d = decisions.lookup(tok.decisionId).get
     
-    getBallot(d, voterId)
+    getBallot(d, tok)
   }
 
-  private def getBallot(decision: Decision, voterId: Long): Ballot = {
+  private def getBallot(decision: Decision, tok: PToken): Ballot = {
     
+    val voterId = tok.userId
     //if(!isParticipant(decisionId, voterId))
       //sys.error(voterId + " not participant in " + decisionId)
 
@@ -77,47 +84,55 @@ object DecisionManager {
         decision.title
 
 
-    new Ballot(decision.id, title, resAlts)
+    new Ballot(tok.id, title, resAlts)
   }
   
-  def vote(decisionId: String, alternativeId: Long, voterId: Long, score: Int) = inTransaction {
+  def vote(tok: PToken, alternativeId: Long, voterId: Long, score: Int) = inTransaction {
     
     //TODO: verify if participant
     
     val v = 
       update(votes)(v =>
-        where(v.decisionId === decisionId and v.alternativeId === alternativeId and v.voterId === voterId)
+        where(v.decisionId === tok.decisionId and v.alternativeId === alternativeId and v.voterId === voterId)
         set(v.score := score)
       )
       
     if(v < 1) 
-      votes.insert(new Vote(decisionId, alternativeId, voterId, score))
+      votes.insert(new Vote(tok.decisionId, alternativeId, voterId, score))
   }
 
-  def createAlternative(decisionId: String, title: String) = inTransaction {
+  def createAlternative(tok: PToken, title: String) = inTransaction {
     
-    decisionAlternatives.insert(DecisionAlternative(decisionId, title))
+    decisionAlternatives.insert(DecisionAlternative(tok.decisionId, title))
   }
   
-  def voteIsComplete(decisionId: String, voterId: Long) = transaction {
+  def addParticipant(tok: PToken, participantUserId: Long) = inTransaction {
+
+    val dp = DecisionParticipation(tok.decisionId, 0, 0)
+    
+    decisionParticipations.insert(dp)
+
+  }
+  
+  def voteIsComplete(tok: PToken, voterId: Long) = transaction {
 
     if(update(Schema.decisionParticipations)(dp =>
-        where(dp.decisionId === decisionId and dp.voterId === voterId)
+        where(dp.decisionId === tok.decisionId and dp.voterId === voterId)
         set(dp.completedOn := Some(new Timestamp(System.currentTimeMillis)))
-    ) != 1) sys.error("Could not mark vote as complete " + decisionId + "," + voterId)
+    ) != 1) sys.error("Could not mark vote as complete " + tok.decisionId + "," + voterId)
   }
     
-  def createAlternatives(decisionId: String, titles: Seq[String]) = inTransaction {
+  def createAlternatives(tok: PToken, titles: Seq[String]) = inTransaction {
     
     val alts = titles.map { t =>
-       val a = DecisionAlternative(decisionId, t)
+       val a = DecisionAlternative(tok.decisionId, t)
        decisionAlternatives.insert(a).id
        a
     }
     alts
   }  
   
-  def updateAlternative(decisionId: String, alternativeId: Long, title: String) = inTransaction {
+  def updateAlternative(tok: PToken, alternativeId: Long, title: String) = inTransaction {
 
     update(decisionAlternatives)(a =>
       where(a.id === alternativeId)
@@ -125,176 +140,63 @@ object DecisionManager {
     )
   }
   
-  def deleteAlternative(decisionId: String, alternativeId: Long) = inTransaction {
+  def deleteAlternative(tok: PToken, alternativeId: Long) = inTransaction {
 
     decisionAlternatives.deleteWhere(a => a.id === alternativeId)
   }  
   
-  def inviteVotersFromFacebook0(invitingUserId: Long, r: FBInvitationRequest) = inTransaction {
-
-    val recipientsFacebookIds = r.to.map(_.uid).toSet
-
-    val usersAlreadyInSystem = 
-      usersByFbId(recipientsFacebookIds).toMap
-
-    val fbUserIdsToInsert =
-      recipientsFacebookIds.diff(usersAlreadyInSystem.map(_._2.get).toSet)
-
-    val usersToInsert = 
-      for(fbInfo <- r.to if fbUserIdsToInsert.contains(fbInfo.uid))
-        yield User(nickName = Some(fbInfo.name), facebookId = Some(fbInfo.uid))
-
-    logger.debug("Will insert new FB users : " + usersToInsert)
-    
-    users.insert(usersToInsert)
-
-    val alreadyParticipantUserIds = 
-      from(decisionParticipations)(dp =>
-        where(dp.decisionId === r.decisionId and dp.voterId.in(usersAlreadyInSystem.map(_._1).toSeq))
-        select(&(dp.voterId))
-      ).toSet
-    
-    logger.debug("alreadyParticipantUserIds : " + alreadyParticipantUserIds)
-    
-    val z = 
-      if(fbUserIdsToInsert.isEmpty)
-        Map.empty
-      else
-        usersByFbId(fbUserIdsToInsert).toMap
-    
-    val invitationsToInsert =
-      for(u <- (z ++ usersAlreadyInSystem) if ! alreadyParticipantUserIds.contains(u._1))
-        yield ParticipationInvitation(
-          decisionId = r.decisionId,
-          facebookAppRequestId = r.request,
-          invitedUserId = u._1,
-          invitingUserId = invitingUserId)
-
-    logger.debug("invitationsToInsert : " + invitationsToInsert)
-
-    participationInvitations.insert(invitationsToInsert)
-
-    // automatic acceptation : 
-    val dps = 
-      for(i <- invitationsToInsert)
-        yield DecisionParticipation(i.decisionId, i.invitedUserId, 0)
-    
-    decisionParticipations.insert(dps)
-
-/*    
-    from(participationInvitations, users)((pi, u) =>
-      where(pi.decisionId === r.decisionId and pi.invitedUserId === u.id)
-      select(&(u.f))
-    )
-    //exclude_ids
-
-*/
-  }
-  
-  def authenticateOrCreateUser(info: MinimalInfo) = {
-    val facebookId = java.lang.Long.parseLong(info.id)
-    val (u, isNewUser) = 
-    Schema.users.where(_.facebookId === facebookId).headOption match {
-      case None =>
-        Logger.info("New User registered, facebookId :  " + facebookId)
-        (createNewUser(info, facebookId), true)
-      case Some(uz) => 
-        Logger.info("Successful Logon, userId: " + uz.id)
-        (uz, false)
-    }
-    
-    u
-  }
-  
-  def createNewUser(info: MinimalInfo, fbId: Long) = {
-
-    val u = User(info.firstName, info.lastName, info.name, Some(fbId), true, info.email)
-    
-    Schema.users.insert(u)    
-  }  
-
-  def respondToAppRequestClick(facebookRequestId: Option[Long], targetFacebookUserId: Long) = inTransaction {
- 
-    facebookRequestId.foreach { fbReqId =>
-      val dId = 
-        from(participationInvitations)(pi => 
-          where(pi.facebookAppRequestId === fbReqId)
-          select(pi.decisionId)
-        ).headOption
-      
-      if(dId == None) 
-        logger.error("AppRequest "+ fbReqId + " Not found, TODO: DELETE app Requests, and handle AppRequest Not Found")
-      else
-        update(decisionParticipations)(dp => 
-          where(dp.decisionId === dId.get)
-          set(dp.lastModifTime := new Timestamp(System.currentTimeMillis))
-        )
-    }
-    
-    val u = 
-      from(users)(u => 
-        where(u.facebookId === targetFacebookUserId)
-        select(u)
-      ).headOption
-
-    u
-  }
   
   def decisionIdsOf(userId: Long) = transaction {
+    
+    val toks = 
+      from(decisionParticipations, pTokens)((dp, tok) =>
+        where(tok.userId === userId and dp.decisionId === tok.decisionId and dp.voterId === userId)
+        select(tok)
+        orderBy(dp.lastModifTime desc)
+      ).page(0, 10).toList
 
+/*
     val ds = 
       from(decisionParticipations, decisions)((dp, d) =>
         where(dp.voterId === userId and dp.decisionId === d.id)
         select(d)
         orderBy(dp.lastModifTime desc)
       ).page(0, 10).toList
-
-      for(d <- ds)
-         yield Map("decisionId" -> d.id)
+*/
+      for(t <- toks)
+         yield Map("decisionId" -> t.id)
+         
   }
   
-  def usersByFbId(fbIds: Traversable[Long]) =
-    from(Schema.users)(u =>
-      where { 
-        val fbId = u.facebookId.~
+  def decisionPubicView(tok: PToken) = inTransaction {
 
-        val r = fbId.in(fbIds)
-
-        r
-      }
-      select(&(u.id), &(u.facebookId))
-    )
+    val currentUserId = tok.userId
     
-  def lookupFacebookUser(fbId: Long) = inTransaction {
-    Schema.users.where(_.facebookId === fbId).headOption
-  }
-
-  def decisionPubicView(decisionId: String, currentUserId: Long) = inTransaction {
-
-    val d = decisions.lookup(decisionId).get
+    val d = decisions.lookup(tok.decisionId).get
+    
     val owner = users.lookup(d.ownerId).get
 
     val numParticipants: Long = 
       from(decisionParticipations)(dp =>
-        where(dp.decisionId === decisionId)
+        where(dp.decisionId === tok.decisionId)
         compute(count())
       )
       
     val numVoted = 
       from(votes)(v =>
-        where(v.decisionId === decisionId)
+        where(v.decisionId === tok.decisionId)
         compute(countDistinct(v.voterId))
       ).toInt
 
     val viewerIsParticipant = 
       (from(decisionParticipations)(dp =>
-        where(dp.decisionId === decisionId and dp.voterId === currentUserId)
+        where(dp.decisionId === tok.decisionId and dp.voterId === currentUserId)
         compute(count())
       ): Long) > 0
 
     val currentUserVotes = 
       from(votes)(v =>
-        where(v.decisionId === decisionId and v.voterId === currentUserId)
+        where(v.decisionId === tok.decisionId and v.voterId === currentUserId)
         compute(countDistinct(v.voterId))
       ).toInt
 
@@ -304,7 +206,7 @@ object DecisionManager {
       else Some(
         // participants that have not voted (no rows in votes table, don't contribute to totals)
         join(decisionAlternatives, votes.leftOuter)((a,v) => 
-          where(a.decisionId === decisionId)
+          where(a.decisionId === tok.decisionId)
           groupBy(a.title)
           compute(sum(v.map(_.score)))
           orderBy(nvl(sum(v.map(_.score)),Int.MinValue) desc)
@@ -334,26 +236,12 @@ object DecisionManager {
   private implicit def tuple2Dp(t: (DecisionParticipation, User)) = 
     t._1.display(t._2)
 
-  private implicit def tuplePi(t: (ParticipationInvitation, User)) = 
-    t._1.display(t._2)
-  
-  def participantAndInvitation(decisionId: String, page: Int, size: Int) = inTransaction {
-    (invitations(decisionId, page, size), participants(decisionId, page, size))
-  }
-  
-  def participants(decisionId: String, page: Int, size: Int) = {
+
+  def participants(tok: PToken, page: Int, size: Int) = {
 
     from(decisionParticipations, users)((dp, u) =>
-      where(dp.decisionId === decisionId and dp.voterId === u.id)
+      where(dp.decisionId === tok.decisionId and dp.voterId === u.id)
       select((dp, u))
-    ).page(page, size).map(t => t : ParticipantDisplay).toSeq
-  }
-  
-  def invitations(decisionId: String, page: Int, size: Int) = {
-
-    from(participationInvitations, users)((i, u) =>
-      where(i.decisionId === decisionId and i.invitedUserId === u.id)
-      select((i, u))
     ).page(page, size).map(t => t : ParticipantDisplay).toSeq
   }
 

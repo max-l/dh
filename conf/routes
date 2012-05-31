@@ -1,9 +1,19 @@
 
 GET      /                                      controllers.MainPage.home
-GET      /newDecision                           controllers.MainPage.newDecision
-GET      /decisionAdmin/:id                     controllers.MainPage.decisionAdmin(id: String)
+#GET      /newDecision                          controllers.MainPage.newDecision
+#GET      /decisionAdmin/:id                    controllers.MainPage.decisionAdmin(id: String)
 POST     /facebookCanvasUrl/                    controllers.MainPage.facebookCanvasUrl
 GET      /vote/:did                             controllers.MainPage.voterScreen(did: String)
+
+
+# Public View :
+GET  /d/:tok                                    controllers.MainPage.app(tok: String) 
+
+# Admin Link :
+GET  /admin/:tok                                controllers.MainPage.app(tok: String)
+
+# Voter Link :
+GET  /voter/:tok                                controllers.MainPage.app(tok: String)
 
 
 GET      /dec/:id                               controllers.JSonRestApi.getDecision(id: String)

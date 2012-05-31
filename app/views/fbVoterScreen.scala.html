@@ -2,16 +2,12 @@
 @import com.codahale.jerkson.Json._
 
 
-@main {
+@app {
 
-  <div class="container">
-    <div id='mainPanel'>
-      <div id='ballotList'></div>
-    </div>
-  </div>
-  @js("fbVoterScreen.js")
-} {
-
-  initializeApp(@Html(invitationInfoWhenUnAuthorized.map(generate(_)).getOrElse("null")))
+  @if(invitationInfoWhenUnAuthorized != None) {
+    new FacebookAuthorizeDialog(@Html(generate(invitationInfoWhenUnAuthorized.get)))
+  } else {
+    new ApplicationView()
+  }
 }
 

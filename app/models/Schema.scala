@@ -14,6 +14,8 @@ object Schema extends org.squeryl.Schema {
 
   val users = table[User]
 
+  val pTokens = table[PToken]
+  
   val decisions = table[Decision]
 
   val decisionAlternatives = table[DecisionAlternative]
@@ -69,6 +71,8 @@ object ResetSchema {
     Schema.initDb
   }
 }
+
+class PToken(val id: String, val decisionId: String, val userId: Long) extends KeyedEntity[String]
 
 class PersistentLogin(val userId: String, val serieId: String, val token: String, val expiryTime: Long) {
 

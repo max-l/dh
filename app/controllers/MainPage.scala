@@ -8,6 +8,7 @@ import play.api.templates.Html
 import com.decision_hub._
 import com.decision_hub.Util._
 import com.decision_hub.FacebookProtocol._
+import org.squeryl.PrimitiveTypeMode._
 import com.codahale.jerkson.Json._
 import html.voterScreen
 
@@ -34,13 +35,19 @@ object MainPage extends BaseDecisionHubController {
     Ok(html.home())
   }
 
-/*  
+/**
   def newDecision = Action { req =>
     val d = DecisionManager.newDecision
     Redirect(routes.MainPage.decisionAdmin(d.id))
   }
-  */
+*/
 
+  def app(tok: String) = Action {
+    
+    val t = (tok: PToken)
+
+    Ok(html.app(Html("new ApplicationView('" + t.id + "')")))
+  }
 
   def voterScreen(decisionId: String) = Action { req =>
     Ok(html.voterScreen(decisionId))
@@ -67,7 +74,7 @@ object MainPage extends BaseDecisionHubController {
       }
       case FBClickOnApplicationRegistered(fbUserId) =>
         val appReqId = extractRequestIds(request.queryString, "request_ids").headOption
-        DecisionManager.respondToAppRequestClick(appReqId, fbUserId) match {
+        FacebookParticipantManager.respondToAppRequestClick(appReqId, fbUserId) match {
           case Some(u) => AuthenticationSuccess(Ok(html.fbVoterScreen(None)), new DecisionHubSession(u, request))
           case None => {
             logger.error("Registered FB user not in the DB : " + fbUserId)
