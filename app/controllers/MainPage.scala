@@ -12,18 +12,17 @@ import com.codahale.jerkson.Json._
 import html.voterScreen
 
 /**
+ * Decision public view :
  * 
- * Participant View :
- *
- *  Tab1: DecisionPublicView
- *  Tab2: BallotView
- *  Tab3: AdminView (if isOwner)
- *
- * Creation Wizard
- *  1: AdminView / DecisionForm  (click next : Invite participants)
- *  2: AdminView / ParticipantTab (click next : Start Voting)
- *  3: BallotView (optional: click : I don't want to vote on this..., click finish)
- *  4: DecisionPublicView
+ *  /d/:decisionId
+ * 
+ * Admin Link :
+ *  
+ *  /a/:adminUserId
+ *  
+ * Voter Link :
+ *  
+ *  /v/:adminUserId
  *  
  */
 
