@@ -18,11 +18,17 @@ object DecisionManager {
   }
   
   def newDecision(d: Decision, ownerId: Option[Long]) = inTransaction {
-    val d0 =
-      ownerId.map(uid => decisions.insert(d.copy(ownerId = uid))).
-        getOrElse(decisions.insert(d))
-      
-    val t = new PToken(Util.newGuid, d0.id, ownerId.get)
+    
+    val oid = ownerId.getOrElse {
+      val u = User(nickName = Some("name me !"))
+      users.insert(u)
+      u.id
+    }
+    
+    //here we'll get a new Guid :
+    val d0 = decisions.insert(d.copy(ownerId = oid))
+
+    val t = new PToken(Util.newGuid, d0.id, oid)
     pTokens.insert(t)
     t
   }  

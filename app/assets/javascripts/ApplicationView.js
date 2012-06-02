@@ -4,8 +4,12 @@
 ApplicationView = function(token) {
 
     var V = Backbone.View.extend({
-
-    	el: $('#mainPanel'),
+    	el: $('body'),
+    	events: {
+           "click #createNewDecision": function() {
+	         new CreateDecisionWizard()
+           }
+        },
         initialize: function() {
         	//initFacebook(this)
         	this.render()
@@ -13,7 +17,7 @@ ApplicationView = function(token) {
         render: function() {
 
           var bv = new DecisionWidgetList(token);
-          $(this.el).html(bv.render().el);
+          this.$('#mainPanel').html(bv.render().el);
           bv.model.fetch();
 
           return this

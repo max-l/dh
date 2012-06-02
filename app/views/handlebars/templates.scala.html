@@ -93,31 +93,103 @@
             <div class="tabbable">
               <ul class="nav nav-tabs">
                 <li class="active">
-                  <a href="#decisionTitle" data-toggle="tab">Decision Title</a></li>
+                  <a href="#step1" data-toggle="tab">The decision</a></li>
                 <li>
-                  <a href="#choices" data-toggle="tab">Choices</a></li>
+                  <a href="#step2" data-toggle="tab">Who will vote ?</a></li>
                 <li>
-                  <a href="#participants" data-toggle="tab">Participants</a></li>
+                  <a href="#step3" data-toggle="tab">Send Invitations</a></li>
                 <li>
-                  <a href="#finish" data-toggle="tab">Finish</a></li>
+                  <a href="#step4" data-toggle="tab">Ready</a></li>
               </ul>
               <div class="tab-content">
-                <div class="wizardStep tab-pane active" id="decisionTitle">
-                  <h2>Enter the title of the decision</h2>
-                  <div>
-                    <input name='title' type="text" placeholder="ex: Who's the Master of the Universe ?"/>
+              
+                <div class="tab-pane active" id="step1">
+                  <h3>What is the decision about ?</h3>
+                  <p>Enter a title and choices for the decision</p>
+                  <form class="form-horizontal">
+                  
+                      {{# applyTemplate "rowT" label="Title"}}
+                         <input name='title' type="text" placeholder="ex: Who's the Master of the Universe ?"/>
+                      {{/ applyTemplate}}
+                      
+                      {{# applyTemplate "rowT" label="Choices"}}
+                         <div id='choiceList'></div>
+                      {{/ applyTemplate}}
+
+                  </form>
+                  <a goto='#step2' class='btn'>Next</a>
+                </div>
+                
+                <div class="tab-pane" id="step2">
+                  <h3>Who will vote on this decision ?</h3>
+
+                  <div class="accordion" id="openOrClosedInvitation">
+                  
+                    <div class="accordion-group">
+                      <div class="accordion-heading">
+                        <a class='btn active' href="#voteOnInvitationOnly" rel='tooltip' title='Use this option to control precisely who will vote.'>
+                          Only voters that I invite (by facebook or email)
+                        </a>
+
+                      </div>
+                      <div id="voteOnInvitationOnly" class="accordion-body">
+                        <div class="accordion-inner">
+
+                            <div class='control-group'>
+                                <label class="control-label">You can send invitations by Facebook </label>
+                                <div class="controls">
+                                  <a id='enableFacebook' class='btn'>Enable invitations by Facebook (optional)</a>
+                                </div>
+                            </div>
+
+                            <div class='control-group'>
+                                <label class="control-label">Your email address (required for us to send invitations by email on your behalf)</label>
+                                <div class="controls">
+                                  <input id='emailAddress' type='text' placeholder='bob@@abc.xyz'> <input id='yourName1' type='text' placeholder='Bob'>
+                                </div>
+                            </div>
+
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="accordion-group">
+
+                      <div class="accordion-heading">
+                        <a class='btn' href="#anyOneCanVote">
+                          Anyone who receives a link to this Decision
+                        </a>
+                      </div>
+                      <div id="anyOneCanVote" class="accordion-body">
+                        <div class="accordion-inner">
+                          <p>With this option, you will send a link to voters, and they will register to vote.</p>
+
+                            <div class='control-group'>
+                                <label class="control-label">Your name</label>
+                                <div class="controls">
+                                  <input id='yourName2' type='text' placeholder='Bob'>
+                                </div>
+                            </div>
+
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <a id='nextChoices' class='btn'>Next</a>
+
+                  <div><a goto='#step3' class='btn'>Next</a></div>
                 </div>
-                <div class="tab-pane" id="choices">
-                  <h2>Enter choices for the decision</h2>
-                  <div id='choiceList'></div>
-                  <div><a id='nextParticipants' class='btn'>Next</a></div>
+
+                <div class="tab-pane" id="step3">
+                  <h2>Enter your name</h2>
+                  <input id='yourName' type="text" placeholder="name of nickname"/>
+                  <div><a goto='#participants' class='btn'>Next</a></div>
                 </div>
-                <div class="tab-pane" id="participants">
+                
+                <div class="tab-pane" id="step4">
                   <h2>Invite Participants to vote on the decision</h2>
                   <div id='participantsList'></div>
-                  <a id='nextFinish' class='btn'>Next</a></div>
+                  <a goto='#finish' class='btn'>Next</a></div>
+                  
                 <div class="tab-pane" id="finish">
                   <h2>You're done</h2>
                   <div>
