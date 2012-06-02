@@ -47,6 +47,24 @@
   </form>
 </script>
 <!--
+
+                <div class="tab-pane" id="step3">
+                  <h3>When does voting end ?</h3>
+                  
+                    <p>As the administrator of this vote, you can end it at any time, you will
+                      ideally wait that eveyone has voted. You can also set it to terminate 
+                      at a specific time and date.</p>
+                    <p>Note : results of the vote are not shown until it has ended.</p>
+
+                    <ul>
+                      <li><a class='btn active'>You control the end.</a></li>
+                      <li><a  class='btn'>Ends at specific time</a></li>
+                    </ul>
+                    
+                    <p>You can change this later.</p>
+                  
+                  <a goto='#step4' class='btn'>Next</a>
+                </div>
     {{# applyTemplate "rowT" label="Description"}}
       <textarea name='summary' class='input-xlarge' type="textarea"></textarea>
     {{/ applyTemplate}}
@@ -95,23 +113,25 @@
                 <li class="active">
                   <a href="#step1" data-toggle="tab">The decision</a></li>
                 <li>
-                  <a href="#step2" data-toggle="tab">Who will vote ?</a></li>
+                  <a href="#step2" data-toggle="tab">Voter registration</a></li>
                 <li>
-                  <a href="#step3" data-toggle="tab">Send Invitations</a></li>
+                  <a href="#step3-private" data-toggle="tab">Link to external account</a></li>
                 <li>
-                  <a href="#step4" data-toggle="tab">Ready</a></li>
+                  <a href="#step3-public" data-toggle="tab">Confirm</a></li>
+                <li>
+                  <a href="#step4-private" data-toggle="tab">Confirm</a></li>
               </ul>
               <div class="tab-content">
-              
+
                 <div class="tab-pane active" id="step1">
                   <h3>What is the decision about ?</h3>
                   <p>Enter a title and choices for the decision</p>
                   <form class="form-horizontal">
-                  
+
                       {{# applyTemplate "rowT" label="Title"}}
                          <input name='title' type="text" placeholder="ex: Who's the Master of the Universe ?"/>
                       {{/ applyTemplate}}
-                      
+
                       {{# applyTemplate "rowT" label="Choices"}}
                          <div id='choiceList'></div>
                       {{/ applyTemplate}}
@@ -119,84 +139,93 @@
                   </form>
                   <a goto='#step2' class='btn'>Next</a>
                 </div>
-                
+
                 <div class="tab-pane" id="step2">
-                  <h3>Who will vote on this decision ?</h3>
+                  <h3>Will the vote be public or private ?</h3>
 
-                  <div class="accordion" id="openOrClosedInvitation">
-                  
-                    <div class="accordion-group">
-                      <div class="accordion-heading">
-                        <a class='btn active' href="#voteOnInvitationOnly" rel='tooltip' title='Use this option to control precisely who will vote.'>
-                          Only voters that I invite (by facebook or email)
-                        </a>
+                  <ul>
+                    <li><a id='registrationPublic' class='btn active'>Public</a>
+                      Anyone has this link : http://equivote.net/Y8e8ksK7__g2SYyYx2bkq5
+                      will be able to register and vote.
+                    </li>
+                    <li><a id='registrationPrivate' class='btn'>Private</a> 
+                      Voters need to receive an invitation from you in order to register and vote.
+                      Invitations will be sent to their Facebook or Email account on
+                      your behalf.
+                    </li>
+                  </ul>
 
-                      </div>
-                      <div id="voteOnInvitationOnly" class="accordion-body">
-                        <div class="accordion-inner">
+                  <a id='step3' class='btn'>Next</a>
+                </div>
 
-                            <div class='control-group'>
-                                <label class="control-label">You can send invitations by Facebook </label>
-                                <div class="controls">
-                                  <a id='enableFacebook' class='btn'>Enable invitations by Facebook (optional)</a>
-                                </div>
-                            </div>
+                <div class="tab-pane" id="step3-private">
 
-                            <div class='control-group'>
-                                <label class="control-label">Your email address (required for us to send invitations by email on your behalf)</label>
-                                <div class="controls">
-                                  <input id='emailAddress' type='text' placeholder='bob@@abc.xyz'> <input id='yourName1' type='text' placeholder='Bob'>
-                                </div>
-                            </div>
+                  <h3>Link to email or Facebook account</h3>
 
+                    <p>For a private vote, you need to supply an email address,
+                       <b>or</b> sign in to Facebook and authorize this application.</p>
+                       <span id='needExternalAccount'></span>
+
+                    <div class="accordion">
+                      <div class="accordion-group">
+                        <div class="accordion-heading">
+                          <a class='btn' href="#linkToFacebook">Link to Facebook</a>
                         </div>
-                      </div>
-                    </div>
+                         <div id="linkToFacebook" class="accordion-body">
+                           <div class="accordion-inner">
+                             <div class='control-group'>
+                                 <label class="control-label">Login to Facebook</label>
+                                 <div class="controls">
+                                   <a id='enableFacebook' class='btn'>FB</a>
+                                 </div>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
 
-                    <div class="accordion-group">
-
-                      <div class="accordion-heading">
-                        <a class='btn' href="#anyOneCanVote">
-                          Anyone who receives a link to this Decision
-                        </a>
-                      </div>
-                      <div id="anyOneCanVote" class="accordion-body">
-                        <div class="accordion-inner">
-                          <p>With this option, you will send a link to voters, and they will register to vote.</p>
-
-                            <div class='control-group'>
-                                <label class="control-label">Your name</label>
-                                <div class="controls">
-                                  <input id='yourName2' type='text' placeholder='Bob'>
-                                </div>
-                            </div>
-
+                      <div class="accordion-group">
+                        <div class="accordion-heading">
+                          <a class='btn' href="#linkToEmail">Link to Email</a>
                         </div>
-                      </div>
-                    </div>
+                         <div id="linkToEmail" class="accordion-body">
+                           <div class="accordion-inner">
+                             <div class='control-group'>
+                                 <label class="control-label">Your email address (you will receive a confirmation request and an administrative link to this decision by email)</label>
+                                 <div class="controls">
+                                   <input id='ownerEmail' type='text' placeholder='bob@@abc.xyz'> <input id='ownerName' type='text' placeholder='Bob'>
+                                 </div>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
                   </div>
 
-                  <div><a goto='#step3' class='btn'>Next</a></div>
+                  <a goto='#step4-private' class='btn'>Next</a>
                 </div>
 
-                <div class="tab-pane" id="step3">
-                  <h2>Enter your name</h2>
-                  <input id='yourName' type="text" placeholder="name of nickname"/>
-                  <div><a goto='#participants' class='btn'>Next</a></div>
+                <div class="tab-pane" id="step4-private">
+                  <h3>Confirm</h3>
+
+                  The decision X will be tied to your Y account.
+
+                  <div><a goto='#step3' class='btn'>Proceed to sending invitations</a></div>
                 </div>
-                
-                <div class="tab-pane" id="step4">
-                  <h2>Invite Participants to vote on the decision</h2>
-                  <div id='participantsList'></div>
-                  <a goto='#finish' class='btn'>Next</a></div>
-                  
-                <div class="tab-pane" id="finish">
-                  <h2>You're done</h2>
-                  <div>
-                    <a id='startVoting' class='btn'>Allow voting to begin</a>
-                    <a id='gotoDecisionWidget' class='btn'>Make modifications to the election before voting can start</a>
-                  </div>
+
+                <div class="tab-pane" id="step3-public">
+                  <h3>Confirm</h3>
+
+                  You can administer the decision X by this link <br>
+
+                  http://equivote.net/npuhXEdlBmf1MYl3cX7PF4  (don't share this link !) <br>
+
+                  Anyone who receives this link : <br>
+                  http://equivote.net/Y8e8ksK7__g2SYyYx2bkq5<br>
+
+                  Can register and vote.
+
+                  <div><a goto='#step3' class='btn'>Proceed to sending invitations</a></div>
                 </div>
+
               </div>
             </div>
 

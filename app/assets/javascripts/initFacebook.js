@@ -5,7 +5,7 @@
 // loggedInFacebook(meResp, response.authResponse)
 // loggedOutFacebook()
 
-function initFacebook(fbAuthStatusListener) {
+function initFacebook(fbAuthStatusListener, subscribeToScatusChange) {
     window.fbAsyncInit = function() {
       FB.init({
         appId      : '300426153342097',
@@ -17,16 +17,19 @@ function initFacebook(fbAuthStatusListener) {
 
       fbAuthStatusListener.ready();
 
-      FB.Event.subscribe('auth.statusChange', function(response) {
-
-         if(response.authResponse) {
-             FB.api('/me', function(meResp) {
-            	 fbAuthStatusListener.loggedInFacebook(meResp, response.authResponse)
-             })
-         }
-         else
-           fbAuthStatusListener.loggedOutFacebook()
-      })
+      if(subscribeToScatusChange) {
+          FB.Event.subscribe('auth.statusChange', function(response) {
+    
+             if(response.authResponse) {
+                 FB.api('/me', function(meResp) {
+                	 fbAuthStatusListener.loggedInFacebook(meResp, response.authResponse)
+                 })
+             }
+             else {
+            	 fbAuthStatusListener.loggedOutFacebook()
+             }
+          })
+       }
     };
 
     // Load the SDK Asynchronously
@@ -38,3 +41,20 @@ function initFacebook(fbAuthStatusListener) {
        ref.parentNode.insertBefore(js, ref);
      }(document));
 };
+
+
+
+function registerAuthorizedFbAccount(fbAuthResponse, successFunc, errorFunc) {
+    $.ajax({
+        type: 'POST',
+        url: "/loginWithFacebookToken",
+        data: JSON.stringify(fbAuthResponse),
+        success: function() {
+    	  successFunc(meResp, fbAuthResponse)
+        },
+        error: errorFunc,
+        contentType: "application/json; charset=utf-8",
+        dataType: 'json'
+    })
+}
+

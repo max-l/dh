@@ -5,6 +5,12 @@ import play.api.mvc.BodyParsers
 import com.codahale.jerkson.{Json => Jerkson}
 import java.sql.Timestamp
 import java.util.Calendar
+import com.decision_hub.FBAuthResponse
+
+
+
+case class CreateDecision(title: String, choices: Seq[String], isPublic: Boolean, fbAuth: Option[FBAuthResponse], ownerEmail: Option[String])
+case class CreateDecisionResponse(adminToken: String)
 
 
 case class Score(alternativeId : Long, title: String, currentScore: Option[Int])
