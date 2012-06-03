@@ -70,12 +70,6 @@ CreateDecisionWizard = function() {
         	    popups.push(this)
         	    this.p.show()
         	  },
-        	  toggle: function(visible) {
-        		  if(visible) {
-        			  this.show()
-        		  }
-        		  else this.hide();
-        	  },
         	  hide: function() {
         		if(! this.p) return
         		this.p.hide()
@@ -104,16 +98,21 @@ CreateDecisionWizard = function() {
     	     var choicesOk = zis._choicesOk()
     	     
              if(titleOk && choicesOk) {
-            	 zis.enableTab('#step2')
+         	     zis.enableTab("#step3-public")
+        	     zis.enableTab("#step3-private")
             	 onValid()
              } 
           },
     	  "#step4-private": function(zis, onValid) {
         	  if(zis.isLinkedToFacebook()) {
-        		  if(zis._enableFacebookOk()) onValid()
+        		  if(zis._enableFacebookOk()) {
+        			  onValid()
+        		  }
         	  }
         	  else {
-        		  if(zis._ownerEmailOk()) onValid()
+        		  if(zis._ownerEmailOk()) {
+        			  onValid()
+        		  }
         	  }
           }
         },
@@ -156,14 +155,22 @@ CreateDecisionWizard = function() {
             },
             //set 'Next' button to trigger tab switch
     	    "click a[goto]": function(a) {
-    	       var tabId = $(a.currentTarget).attr('goto');
-    	       var btn = this.$('a[href=' + tabId + "]")
-    	       var v = this.validatorsBeforeTabs[tabId]
-    	       v(this, function() {
-    	    	 hideWarnings()
-    	         btn.trigger('click')
-    	       })
-            },
+               if(! this._inhibitGotoTab) {
+        	       var tabId = $(a.currentTarget).attr('goto');
+        	       var btn = this.$('a[href=' + tabId + "]")
+        	       this.gotoTab(tabId, btn)
+        	   }
+            },/*
+    	    "click a[href^=#step]": function(a) {
+            	hideWarnings()
+            	debugger
+               if(! this._inhibitGotoTab) {
+            	   
+         	       var tabId = $(a.currentTarget).attr('href');
+         	       var btn = $(a.currentTarget)
+         	       this.gotoTab(tabId, btn)
+         	   }
+             },*/
             "click #enableFacebook" : function(a) {
             	var btn = $(a.currentTarget)
             	if(btn.hasClass("active")) {
@@ -220,6 +227,18 @@ CreateDecisionWizard = function() {
             "click #closeWizard": function() {
             	hideWarnings()
             }
+        },
+        gotoTab: function(tabId, btn) {
+           var zis = this;
+ 	       var v = this.validatorsBeforeTabs[tabId]
+	       v && v(this, function() {
+	    	 hideWarnings()
+	    	 zis.enableTab(tabId)
+	    	 //this.$(tabId).tab('show')
+	    	 zis._inhibitGotoTab = true
+	         btn.trigger('click')
+	         zis._inhibitGotoTab = false
+	       })        	
         },
     	model: new Decision({
     	    sync: function() {return false}
@@ -279,7 +298,13 @@ CreateDecisionWizard = function() {
     	    	var ok = t && t.length > 3
     	    	if(ok) zis._titleWarning.hide()
     	    	else {
-    	    	  if(!noWarning) zis._titleWarning.show()
+    	    	  if(!noWarning) {
+    	    		  zis.disableTab("#step2")
+    	              zis.disableTab("#step3-public")
+    	              zis.disableTab("#step3-private")
+    	              zis.disableTab("#step4-private")
+    	    		  zis._titleWarning.show()
+    	    	  }
     	    	}
     	    	return ok
     	    }
@@ -301,7 +326,10 @@ CreateDecisionWizard = function() {
     	    	var ok = t && validateEmail(t) 
     	    	if(ok) zis._ownerEmailWarning.hide()
     	    	else {
-    	    	  if(!noWarning) zis._ownerEmailWarning.show()
+    	    	  if(!noWarning) {
+    	    		  zis.disableTab("#step4-private")
+    	    		  zis._ownerEmailWarning.show()
+    	    	  }
     	    	}
     	    	return ok
     	    }
@@ -310,10 +338,18 @@ CreateDecisionWizard = function() {
     	    	var ok = zis.model.get('fbAuth') 
     	    	if(ok) zis._enableFacebookWarning.hide()
     	    	else {
-    	    	  if(!noWarning) zis._enableFacebookWarning.show()
+    	    	  if(!noWarning) {
+    	    		  zis.disableTab("#step4-private")
+    	    		  zis._enableFacebookWarning.show()
+    	    	  }
     	    	}
     	    	return ok
     	    }
+    	    
+    	    zis.disableTab("#step2")
+    	    zis.disableTab("#step3-public")
+    	    zis.disableTab("#step3-private")
+    	    zis.disableTab("#step4-private")
     	    
     	    
         	this.modal = this.$('#createDecisionWizard').modal({backdrop: 'static'}).data('modal')
@@ -331,6 +367,15 @@ CreateDecisionWizard = function() {
         	
         	zis._choicesListView.model.on('add', function() {
         		zis._notEnoughChoicesWarning.hide()
+        	},this)
+        	
+        	zis._choicesListView.model.on('remove', function() {
+	    	    if(! zis._choicesOk(true)) {
+	    		    zis.disableTab("#step2")
+	                zis.disableTab("#step3-public")
+	                zis.disableTab("#step3-private")
+	                zis.disableTab("#step4-private")
+	    	    }        		
         	},this)
 
         	this.model.set('isPublic', true)
