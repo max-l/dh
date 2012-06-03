@@ -15,13 +15,13 @@ GET  /admin/:tok                                controllers.MainPage.app(tok: St
 # Voter Link :
 GET  /voter/:tok                                controllers.MainPage.app(tok: String)
 
+GET      /guid                                  controllers.JSonRestApi.newSignedGuidJson
 
 GET      /dec/:id                               controllers.JSonRestApi.getDecision(id: String)
 GET      /decision/:id                          controllers.JSonRestApi.getDecisionPublicView(id: String)
 PUT      /dec/:id                               controllers.JSonRestApi.saveDecision(id: String)
 POST     /dec                                   controllers.JSonRestApi.createDecision()
 GET      /dec/alternatives/:did                 controllers.JSonRestApi.getAlternatives(did: String)
-POST     /dec/bulkalternatives/:did             controllers.JSonRestApi.createAlternatives(did: String)
 POST     /dec/alternatives/:did                 controllers.JSonRestApi.createAlternative(did: String)
 PUT      /dec/alternatives/:did/:altId          controllers.JSonRestApi.updateAlternative(did: String, altId: Long)
 DELETE   /dec/alternatives/:did/:altId          controllers.JSonRestApi.deleteAlternative(did: String, altId: Long)

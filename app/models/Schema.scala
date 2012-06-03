@@ -96,7 +96,8 @@ case class User(
    facebookAuthorized: Boolean = false,
    email: Option[String] = None,
    passwordHash: Option[String] = None,
-   anonymousId: Option[String] = None) extends DecisionHubEntity {
+   anonymousId: Option[String] = None,
+   confirmed: Boolean = true) extends DecisionHubEntity {
 
   override def toString = 
     Seq(firstName, lastName, nickName, facebookId).mkString("User(", ",", ")")
@@ -135,9 +136,10 @@ case class User(
 case class LoginToken(guid: String, participationId: Long)
 
 case class Decision(
-  ownerId: Long = 0L,
+  ownerId: Long,
   title: String,
-  id: String = Util.newGuid,
+  id: String,
+  isPublic: Boolean,
   description: Option[String] = None,
   endsOn: Option[Timestamp] = None,// if None, ends when complete
   endedByCompletionOn: Option[Timestamp] = None,

@@ -164,7 +164,6 @@
 
                     <p>For a private vote, you need to supply an email address,
                        <b>or</b> sign in to Facebook and authorize this application.</p>
-                       <span id='needExternalAccount'></span>
 
                     <div class="accordion">
                       <div class="accordion-group">
@@ -207,12 +206,16 @@
                   <h3>Confirm</h3>
 
                   The decision X will be tied to your Y account.
+                  
+                  <span class='confirmationMessage'></span>
 
-                  <div><a goto='#step3' class='btn'>Proceed to sending invitations</a></div>
+                  <div><a id='confirm-private' class='btn'>Proceed to sending invitations</a></div>
                 </div>
 
                 <div class="tab-pane" id="step3-public">
                   <h3>Confirm</h3>
+                  
+                  <input id='publicName' type='text'/>
 
                   You can administer the decision X by this link <br>
 
@@ -223,7 +226,7 @@
 
                   Can register and vote.
 
-                  <div><a goto='#step3' class='btn'>Proceed to sending invitations</a></div>
+                  <div><a id='confirm-public' class='btn'>Proceed to sending invitations</a></div>
                 </div>
 
               </div>

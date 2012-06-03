@@ -13,13 +13,46 @@ import com.decision_hub._
 import com.decision_hub.Util._
 import com.decision_hub.FacebookProtocol._
 import play.mvc.Result
-
 import com.codahale.jerkson.Json
+import play.api.libs.concurrent.Promise
+import com.strong_links.crypto._
 
 
 object JSonRestApi extends BaseDecisionHubController {
+  
+  import Util._
+  import CryptoUtil._
 
   def js[A](a: A) = Ok(Json.generate(a))
+  
+  
+  
+  lazy val serverSecret = 
+    Play.current.configuration.getString("application.secret").
+      map(s =>  s : CryptoField).getOrElse(sys.error("missing config 'application.secret'"))
+      
+  def newSignedGuidJson = Action {
+    
+    val sg = newSignedGuid(serverSecret)
+    js(Map("adminGuid" -> sg._1, 
+           "publicGuid" -> sg._2, 
+           "guidSignatures" -> sg._3))
+  }
+  
+  def newSignedGuid(key: CryptoField) = {
+    
+    val guid1 = Util.newGuid
+    val guid2 = Util.newGuid
+    val signature = hmacSha256(guid1, guid2)(key)
+    (guid1, guid2, signature.value)
+  }  
+  
+  private def hasValidGuid(cd: CreateDecision) = {
+    
+    val computedSignature = hmacSha256(cd.linkGuids.adminGuid, cd.linkGuids.publicGuid)(serverSecret)
+    
+    computedSignature matches cd.linkGuids.guidSignatures
+  }
 
   def saveDecision(decisionId: String) = Action(expectJson[Decision]) { r =>
 
@@ -29,13 +62,48 @@ object JSonRestApi extends BaseDecisionHubController {
       NotFound
   }
   
-  def createDecision = Action(BodyParsers.parse.json) { r =>
+  def createDecision = Action(expectJson[CreateDecision]) { r =>
     
-    val title = ((r.body) \ "title").as[String]
+    val cd = r.body
+
+    val res = 
+      if(! hasValidGuid(r.body)) Right("InvalidGuid")
+      else (cd.fbAuth, cd.ownerEmail, cd.ownerName) match {
+        case (Some(fbAuth), None, None) => FacebookProtocol.authenticateSignedRequest(fbAuth.signedRequest) match {
+          case None => Right("Invalid FB signedRequest.")
+          case Some(req) =>
+            val fbUserId = java.lang.Long.parseLong((req \ "user_id").as[String])
+            FacebookParticipantManager.lookupFacebookUser(fbUserId) match {
+              case Some(user) => Left(user)
+              case None =>
+                val mi = FacebookProtocol.facebookOAuthManager.obtainMinimalInfo(fbAuth.accessToken)
+                mi match {
+                  case Left(userInfo) => Left(userInfo : User) 
+                  case Right(_) => Right("Failed FB info retrieval") 
+                }
+            }
+        }
+        case (None, ownerEmail@Some(_), ownerName) =>
+          //TODO: Send confirmation email
+          Left(User(email = ownerEmail, firstName = ownerName, confirmed = false))
+        case (None, None, ownerName@Some(_)) =>
+          Left(User(nickName = ownerName))
+        case _ => Right("Invalid information to create decision " + cd)
+      }
     
-    val tok = DecisionManager.newDecision(Decision(0L, title), None)
-    
-    js(Map("id" -> tok.id))
+    res.fold(
+        user => {
+          val (tok, _) = DecisionManager.newDecision(cd, user)
+          if(user.confirmed)
+            js(Map("id" -> tok.id))
+          else
+            js(Map("needConfirmation" -> true))
+        },
+        errorMsg => {
+          logger.error(errorMsg)
+          BadRequest
+        }
+    )
   }
 
   def getDecision(decisionId: String) = Action { req =>
@@ -70,17 +138,6 @@ object JSonRestApi extends BaseDecisionHubController {
 
     js(Map("id" -> a.id))
   }
-  
-  def createAlternatives(decisionId: String) = Action(BodyParsers.parse.json) { r =>
-    //TODO: verify if admin
-    //TODO: validate title
-    
-    val titles = ((r.body) \\ "title")
-    val z = titles.map(_.as[String])
-    val a = DecisionManager.createAlternatives(decisionId, z)
-    val a2 = a.map(_.id)
-    js(a2)
-  }  
 
   def updateAlternative(decisionId: String, altId: Long) = Action(BodyParsers.parse.json) { r =>
 

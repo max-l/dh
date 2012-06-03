@@ -13,30 +13,38 @@ object DecisionManager {
 
   def logger = Logger("application")
   
-  def newDecision = inTransaction {
-    decisions.insert(Decision(0L, ""))
-  }
+  //def newDecision = inTransaction {decisions.insert(Decision(0L, ""))}
   
-  def newDecision(d: Decision, ownerId: Option[Long]) = inTransaction {
-    
-    val oid = ownerId.getOrElse {
-      val u = User(nickName = Some("name me !"))
-      users.insert(u)
-      u.id
-    }
-    
-    //here we'll get a new Guid :
-    val d0 = decisions.insert(d.copy(ownerId = oid))
+  def newDecision(cd: CreateDecision, u: User) = inTransaction {
 
-    val t = new PToken(Util.newGuid, d0.id, oid)
+    assert(cd.title.length > 3)
+    assert(cd.choices.size > 2)
+    
+    val owner = 
+      if(u.isPersisted) u
+      else users.insert(u)
+
+    val d = decisions.insert(Decision(
+        owner.id,
+        cd.title,
+        Util.newGuid,
+        cd.isPublic
+      ))
+
+    cd.choices.foreach { t =>
+       val a = DecisionAlternative(d.id, t)
+       decisionAlternatives.insert(a)
+    }
+
+    val t = new PToken(cd.id, d.id, u.id)
     pTokens.insert(t)
-    t
-  }  
-  
+    (t, d)
+  }
+
   def decisionExists(tok: PToken) = inTransaction {
     decisions.lookup(tok.decisionId).isDefined
   }
-  
+
   def updateDecision(decision: Decision) = inTransaction {
     assert {
       update(decisions)(d =>
@@ -127,17 +135,7 @@ object DecisionManager {
         set(dp.completedOn := Some(new Timestamp(System.currentTimeMillis)))
     ) != 1) sys.error("Could not mark vote as complete " + tok.decisionId + "," + voterId)
   }
-    
-  def createAlternatives(tok: PToken, titles: Seq[String]) = inTransaction {
-    
-    val alts = titles.map { t =>
-       val a = DecisionAlternative(tok.decisionId, t)
-       decisionAlternatives.insert(a).id
-       a
-    }
-    alts
-  }  
-  
+
   def updateAlternative(tok: PToken, alternativeId: Long, title: String) = inTransaction {
 
     update(decisionAlternatives)(a =>

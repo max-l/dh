@@ -106,11 +106,15 @@ CreateDecisionWizard = function() {
     	  "#step4-private": function(zis, onValid) {
         	  if(zis.isLinkedToFacebook()) {
         		  if(zis._enableFacebookOk()) {
+        			  zis.$('.confirmationMessage').text("")
         			  onValid()
         		  }
         	  }
         	  else {
         		  if(zis._ownerEmailOk()) {
+        			  zis.$('.confirmationMessage').text(
+        				  "You will receive a confirmation link at " + zis.model.get('ownerEmail')+
+        				  " you need to follow this link to activate this Decision")
         			  onValid()
         		  }
         	  }
@@ -194,39 +198,33 @@ CreateDecisionWizard = function() {
             	this.model.set('ownerEmail', $(e.currentTarget).val())
             },
             'keyup input[id=ownerName]' : function(e) {
-            	this.model.set('ownerName', $(e.currentTarget).val())
-            },            
-        	"click #nextYourName" : function() {
-            	//FB's apprequest model requires to have a persisted Decision b4 
-            	//any invitation is sent so now is the time to save :
-            	
-            	if(this._choicesListView.model.length < 2)
-            		this._notEnoughChoicesWarning.show()
-            	else {
-            	  var decision = this.model;
-            	  var zis = this;
-            	  if(decision.isNew()) {
-                	  decision.save(null, {
-                		  success: function() {
-                		      decision.sync = Backbone.sync;
-                	          zis._choicesListView.model.persist("/dec/bulkalternatives/" + decision.id, '/dec/alternatives/'+ decision.id)
-                	          zis._participantView = new ParticipantsView(decision.id, "You are invited to vote on " + decision.get('title'));
-                	          zis.$('#participantsList').html(zis._participantView.render().el);
-                	          // we enable the next 2 tabs :
-                	          zis.enableOrDisable('a[href=#yourName]', true)
-                	          zis.$('a[href=#finish]').prop('disabled', false)
-                	      }
-                	  })
-                  }
-                  else zis.enableOrDisable('a[href=#yourName]', true)
-            	}
+            	var t = $(e.currentTarget).val()
+            	this.$('input[id=publicName]').val(t)
+            	this.model.set('ownerName', t)
+            },
+            'keyup input[id=publicName]' : function(e) {
+            	var t = $(e.currentTarget).val()
+            	this.$('input[id=ownerName]').val(t)
+            	this.model.set('ownerName', t)
             },
             'keyup input[name=title]' : function(e) {
                 this.model.set('title', $(e.currentTarget).val())
             },
             "click #closeWizard": function() {
             	hideWarnings()
-            }
+            },
+            "click #confirm-public": function() {
+            	this.postDecision()
+            },            
+            "click #confirm-private": function() {
+            	this.postDecision()
+            }            
+        },
+        postDecision: function() {
+        	var d = this.model.toJSON()
+        	var choices = this._choicesListView.model.toJSON()
+        	d.choices = choices
+        	debugger;
         },
         gotoTab: function(tabId, btn) {
            var zis = this;
@@ -240,10 +238,16 @@ CreateDecisionWizard = function() {
 	         zis._inhibitGotoTab = false
 	       })        	
         },
-    	model: new Decision({
-    	    sync: function() {return false}
-    	}),
-    	initialize: function() {
+    	model: new Decision(),
+        initialize: function() {
+        	var zis = this;
+        	$.get('/guid', function(rawGuid) {
+        		var linkGuids = JSON.parse(rawGuid)
+        		zis.model.set('linkGuids', linkGuids);
+        		zis.postInitialize();
+        	})
+        },
+    	postInitialize: function() {
         	this.render();
         	var zis = this;
 
@@ -262,6 +266,7 @@ CreateDecisionWizard = function() {
                 	if(zis.model.get('fbAuth')) {
                  	  zis.$('#enableFacebook').text(linkTofacebookButtonCaption(meResp.name))
                 	  zis.$('#enableFacebook').addClass("active")
+                	  zis._enableFacebookWarning.hide()
                 	}
                 	else {
                    	  zis.$('#enableFacebook').text(linkTofacebookButtonCaption())

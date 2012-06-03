@@ -7,6 +7,7 @@ import com.codahale.jerkson.{Json => Jerkson}
 import com.decision_hub.FacebookProtocol.FBClickOnApplication
 import play.api.libs.iteratee._
 import play.api.libs.concurrent.Promise
+import models.User
 
 object Util {
 
@@ -148,6 +149,17 @@ object Util {
       FacebookProtocol.authenticateSignedRequest(m).
         getOrElse(sys.error("invalid signed request " + m))
     }
+  }
+  
+  implicit def fbInfo2User(i: MinimalInfo) = {
+    val u = 
+      User(facebookId = Some(java.lang.Long.parseLong(i.id)), 
+         firstName = i.firstName,
+         lastName = i.lastName,
+         nickName = i.firstName,
+         email = i.email)
+    assert(u.validate.isLeft, "invalid user " + i)
+    u
   }
 }
 

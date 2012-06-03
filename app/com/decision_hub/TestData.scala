@@ -9,6 +9,9 @@ import play.api.libs.concurrent._
 import com.codahale.jerkson.Json._
 import java.net.URI
 import java.net.URLEncoder
+import com.strong_links.crypto.CryptoUtil
+import controllers.JSonRestApi
+import com.strong_links.crypto.CryptoField
 
 object TestData {
 
@@ -92,30 +95,25 @@ object TestData {
   
    def fakeDecision(user: User, title: String, anonymous: Boolean, f: Decision => Decision, alternatives : Seq[(Option[User], String)]) = {
 
-     val punchLine = 
-       if(random.nextBoolean) Some("This is about " + title)
-       else None
+     val guid = JSonRestApi.newSignedGuid(secret)
+     val d = CreateDecision(guid._1, guid._2, title, alternatives.map(_._2), false, None, None, None)
      
-     val d =
-      Schema.decisions.insert(f(Decision(user.id, title, Util.newGuid, Some("bla bla"))))
-
-     for(a <- alternatives) {
-
-       decisionAlternatives.insert(DecisionAlternative(d.id, a._2, a._1.map(_.id), Some("text for " + a._2)))
-     }
-     
-     d
+     val (tok, decision) = DecisionManager.newDecision(d, user)
+     decision
   }
   
+  import CryptoUtil._
   
-   def fakeAnonDecision(title: String, alternatives : Seq[String]) = {
+  val secret = "X1e3?nwXg`/^?2ckh>QDWN86iEms3eCM4n_]:Gi3gWv4yc^TiuGyQn3OY>N4Sxr:" : CryptoField
+  
+  def fakeAnonDecision(title: String, alternatives : Seq[String]) = {
      
-     val dGuid = Util.newGuid
-     val u = User(nickName = Some("Anon Owner of " + dGuid))
+     val guid = JSonRestApi.newSignedGuid(secret)
+     val u = User(nickName = Some("Anon Owner of " + guid))
      users.insert(u)
-     val d = Decision(u.id,title, id = dGuid)
-     val tok = DecisionManager.newDecision(d, Some(u.id))
-     DecisionManager.createAlternatives(tok, alternatives)
+     val d = CreateDecision(guid._1, guid._2, title, alternatives, false, None, None, None)
+     
+     val tok = DecisionManager.newDecision(d, u)
      tok
    }
    

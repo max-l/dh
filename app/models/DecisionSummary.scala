@@ -8,10 +8,9 @@ import java.util.Calendar
 import com.decision_hub.FBAuthResponse
 
 
+case class Guids(adminGuid: String, publicGuid: String, guidSignatures: String)
 
-case class CreateDecision(title: String, choices: Seq[String], isPublic: Boolean, fbAuth: Option[FBAuthResponse], ownerEmail: Option[String])
-case class CreateDecisionResponse(adminToken: String)
-
+case class CreateDecision(linkGuids: Guids, title: String, choices: Seq[String], isPublic: Boolean, fbAuth: Option[FBAuthResponse], ownerEmail: Option[String], ownerName: Option[String])
 
 case class Score(alternativeId : Long, title: String, currentScore: Option[Int])
 case class Ballot(decisionId: String, decisionTitle: String, scores: Seq[Score])
