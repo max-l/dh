@@ -106,7 +106,13 @@ CreateDecisionWizard = function() {
     	  "#step4-private": function(zis, onValid) {
         	  if(zis.isLinkedToFacebook()) {
         		  if(zis._enableFacebookOk()) {
-        			  zis.$('.confirmationMessage').text("")
+
+        			  zis.$('#privateConfirmationMessage').html(
+        				  $("<p>The decision <b>" + zis.model.get('title') + 
+        					"</b> will be tied to your Facebook account. You can access it here http://apps.facebook.com/equivote" +
+        					" or by logging with facebook here : here http://equivote.net</p>")
+        			  )
+
         			  onValid()
         		  }
         	  }
@@ -418,7 +424,7 @@ CreateDecisionWizard = function() {
     	},
     	render: function() {
     		var zis = this;
-    		$(this.el).html($(Templates.createDecisionWizardTemplate()))
+    		$(this.el).html($(Templates.createDecisionWizardTemplate(this.model.toJSON())))
     		this.$('#choiceList').html(this._choicesListView.render().el)
     		$('body').append(this.el)
     		return this

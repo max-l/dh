@@ -37,25 +37,31 @@ object DecisionManager {
        decisionAlternatives.insert(a)
     }
     
+    //owner is always a participant
+    val dp = DecisionParticipation(d.id, u.id)
+    decisionParticipations.insert(dp)
+        
     import DecisionPrivacyMode._
-    
+
     mode match {
       case Public =>
         val adminTok = new PToken(cd.linkGuids.adminGuid, d.id, Some(u.id), true)
         val publicTok = new PToken(cd.linkGuids.publicGuid, d.id, None, true)
         pTokens.insert(publicTok)
         pTokens.insert(adminTok)
-        (d, Some(adminTok), Some(publicTok))
+        (d, publicTok, Some(adminTok))
       case EmailAccount =>
-        // we use new GUIDs for email private decisions, the are confirmed, the "unguessable"
+        // we use new GUIDs for email private decisions, they are pre confirmed, the "unguessable"
         // guids will be sent by email to the owner
         val adminTok = new PToken(Util.newGuid, d.id, Some(u.id), true)
         val publicTok = new PToken(Util.newGuid, d.id, None, true)
         pTokens.insert(publicTok)
         pTokens.insert(adminTok)
-        (d, Some(adminTok), Some(publicTok))
+        (d, publicTok, Some(adminTok))
       case FBAccount =>
-        (d, None, None)
+        val publicTok = new PToken(cd.linkGuids.publicGuid, d.id, None, true)
+        pTokens.insert(publicTok)
+        (d, publicTok, None)
     }
   }
 
@@ -80,7 +86,7 @@ object DecisionManager {
     decisionAlternatives.where(a => a.decisionId === k.decision.id).toList
   })
   
-  def getBallot(k: AccessKey) = k.attemptVote({
+  def getBallot(k: AccessKey) = k.attemptVote( transaction{
 
     val alts = decisionAlternatives.where(a => a.decisionId === k.decision.id).toList
 
@@ -100,7 +106,7 @@ object DecisionManager {
     new Ballot(k.accessGuid, k.decision.title, resAlts)
   })
   
-  def vote(k: AccessKey, alternativeId: Long, score: Int) = k.attemptVote(inTransaction {
+  def vote(k: AccessKey, alternativeId: Long, score: Int) = k.attemptVote((userId:Long) => inTransaction {
 
     val v = 
       update(votes)(v =>
@@ -109,7 +115,7 @@ object DecisionManager {
       )
       
     if(v < 1) 
-      votes.insert(new Vote(k.decision.id, alternativeId, k.userId, score))
+      votes.insert(new Vote(k.decision.id, alternativeId, userId, score))
   })
 
   def createAlternative(k: AccessKey, title: String) = k.attemptAdmin(inTransaction {
@@ -145,13 +151,29 @@ object DecisionManager {
   
   def decisionIdsOf(userId: Long) = transaction {
 
-      val toks = 
+      val toks0 = 
         from(decisionParticipations, pTokens)((dp, tok) =>
           where(tok.userId === userId and dp.decisionId === tok.decisionId and dp.voterId === userId)
           select(tok)
           orderBy(dp.lastModifTime desc)
-        ).toList
-  
+        )
+
+      val toks = 
+        join(decisions, decisionParticipations, pTokens, pTokens.leftOuter)((d, dp, pubTok, tok) =>
+          where(dp.voterId === userId)
+          select(d, dp, pubTok, tok)
+          orderBy(dp.lastModifTime desc)
+          on(d.id === dp.decisionId,
+             pubTok.decisionId === d.id,
+             tok.map(_.userId).get === Some(userId))
+        ).map { t =>
+         val (d, dp, pubTok, tok) = t
+           
+           tok match {
+             case None => pubTok.id
+             case Some(adminOrVoteTok) => adminOrVoteTok.id
+           }
+        }        
   /*
       val ds = 
         from(decisionParticipations, decisions)((dp, d) =>
@@ -160,8 +182,13 @@ object DecisionManager {
           orderBy(dp.lastModifTime desc)
         ).page(0, 10).toList
   */
+      val res = 
         for(t <- toks)
-           yield Map("decisionId" -> t.id)
+           yield Map("decisionId" -> t)
+      
+      println("------------------->" + res)
+      
+      res
     }
   
   def decisionPubicView(k: AccessKey) = k.attemptView(inTransaction {

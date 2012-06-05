@@ -18,48 +18,65 @@ class AccessKey(token: PToken, val decision: Decision, val session: Option[contr
   import DecisionPrivacyMode._
   
   def accessGuid = token.id
-  
-  lazy val userId = 
-    (token.userId orElse session.map(_.userId)).getOrElse(sys.error("Insuficient access rights"))
-  
-  private def isOwner = 
-    token.userId.map(_ == decision.ownerId).getOrElse(false)
-  
+
+  /**
+   * userId in token has precedence over the session's :
+   * 
+   * The only case where token.userId and session.userId are both not None
+   * and different, is when a logged in FB user is accessing a Decision not link
+   * to FB (i.e. a public or email based one).
+   */
+  val userId = 
+    token.userId orElse session.map(_.userId)
+
+  //.getOrElse(sys.error("Insuficient access rights"))
+  def isOwnerOfDecision = 
+    userId.map(_ == decision.ownerId).getOrElse(false)
+
   lazy val isParticipant = inTransaction {
-    //userId in token has precedence over the session's :
-    val userId = token.userId orElse session.map(_.userId)
-    
+
     userId.map { uId =>
       Schema.decisionParticipations.where(
         dp => dp.decisionId === decision.id and dp.voterId === uId).headOption.isDefined
     }.getOrElse(false)
   }
+  
+  def canAdmin = attemptAdmin(Unit).isLeft
+  
+  def canVote = attemptVote(Unit).isLeft
 
-  def attemptAdmin[A](a: => A) = 
-      (decision.mode, session,  token.userId) match {
-        case (Public, _, Some(_)) if isOwner => Left(a)
+  def attemptAdmin[A](a: => A):Either[A,String] =
+    attemptAdmin((z:Long) => a)
+
+  def attemptVote[A](a: => A):Either[A,String] =
+    attemptVote((z:Long) => a)
+
+  def attemptAdmin[A](a: Long => A):Either[A,String] = {
+
+      (decision.mode, session,  userId) match {
+        case (Public, _, Some(uId)) if isOwnerOfDecision => Left(a(uId))
         case (Public, _, None   ) => Right("cannot administer this decision with a public link.")
         
-        case (EmailAccount, _, Some(_)) if isOwner =>
-          if(token.confirmed) Left(a)
+        case (EmailAccount, _, Some(uId)) if isOwnerOfDecision =>
+          if(token.confirmed) Left(a(uId))
           else Right("You must follow the link sent to you email account in order to administer this decision.")
         case (EmailAccount, _, None   ) => Right("cannot administer this decision with a public link.")
         
-        case (FBAccount, Some(_), _) if isOwner => Left(a)
+        case (FBAccount, Some(_), Some(uId)) if isOwnerOfDecision => Left(a(uId))
         case (FBAccount, None, _) => Right("You must be logged in to your facebook account in order to administer this decision")
         case _ => Right("Insufficient rights")
       }
+  }
   
-  
-  def attemptVote[A](a: => A) = 
-      (decision.mode, session,  token.userId) match {
-        case (Public, _, Some(_)) if isParticipant => Left(a)
+  def attemptVote[A](a: Long => A) = 
+      (decision.mode, session,  userId) match {
+        case (Public, _, Some(uId)) if isParticipant => Left(a(uId))
         case (Public, _, None   ) => Right("cannot vote with a public link.")
         
-        case (EmailAccount, _, Some(_)) if isParticipant => Left(a)
+        case (EmailAccount, _, Some(uId)) if isParticipant => Left(a(uId))
         case (EmailAccount, _, None   ) => Right("cannot vote with a public link.")
         
-        case (FBAccount, Some(_), _) if isParticipant => Left(a)
+        case (FBAccount, Some(_), Some(uId)) if isParticipant => Left(a(uId))
         case (FBAccount, None, _) => Right("You must be logged in to your facebook account to vote on this decision")
         case _ => Right("Insufficient rights")
       }

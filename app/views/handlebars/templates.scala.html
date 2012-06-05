@@ -145,7 +145,7 @@
 
                   <ul>
                     <li><a id='registrationPublic' class='btn active'>Public</a>
-                      Anyone has this link : http://equivote.net/Y8e8ksK7__g2SYyYx2bkq5
+                      Anyone has this link : http://equivote.net/d/{{linkGuids.publicGuid}}
                       will be able to register and vote.
                     </li>
                     <li><a id='registrationPrivate' class='btn'>Private</a> 
@@ -204,25 +204,32 @@
 
                 <div class="tab-pane" id="step4-private">
                   <h3>Confirm</h3>
-
-                  The decision X will be tied to your Y account.
                   
-                  <span class='confirmationMessage'></span>
+                  <div id='privateConfirmationMessage'></div>
 
                   <div><a id='confirm-private' class='btn'>Proceed to sending invitations</a></div>
                 </div>
 
                 <div class="tab-pane" id="step3-public">
-                  <h3>Confirm</h3>
-                  
-                  <input id='publicName' type='text'/>
 
-                  You can administer the decision X by this link <br>
+                  <div class='control-group'>
+                      <label class="control-label">Your Name</label>
+                      <div class="controls">
+                        <input id='publicName' type='text'/>
+                      </div>
+                  </div>
+                             
+                  You can administer the decision {{title}} by accessing this link :<br>
 
-                  http://equivote.net/npuhXEdlBmf1MYl3cX7PF4  (don't share this link !) <br>
+                  <span class='guidLink'>
+                    http://equivote.net/admin/{{linkGuids.adminGuid}}
+                  </span> <b>(don't share this link !)</b> <br>
 
                   Anyone who receives this link : <br>
-                  http://equivote.net/Y8e8ksK7__g2SYyYx2bkq5<br>
+                  
+                  <span class='guidLink'>
+                    http://equivote.net/d/{{linkGuids.publicGuid}} <br>
+                  </span>
 
                   Can register and vote.
 

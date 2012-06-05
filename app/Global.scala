@@ -18,17 +18,17 @@ object Global extends GlobalSettings {
 
     Schema.initDb
   }
-
+    /*
   override def onStart(a: Application) = {
 
     import akka.util.Duration
     import java.util.concurrent.TimeUnit._
-
+ 
     Akka.system.scheduler.schedule(Duration(30, SECONDS), Duration(5, MINUTES)) {
-
       DecisionManager.processElectionTerminations
     }
   }
+    */  
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
 

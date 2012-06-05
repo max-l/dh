@@ -41,7 +41,7 @@ object FacebookParticipantManager {
     ).single
   }
   
-  def inviteVotersFromFacebook0(k: AccessKey, r: FBInvitationRequest) = k.attemptAdmin(inTransaction {
+  def inviteVotersFromFacebook0(k: AccessKey, r: FBInvitationRequest) = k.attemptAdmin { (currentUserId: Long) => inTransaction {
 
     val recipientsFacebookIds = r.to.map(_.uid).toSet
 
@@ -79,7 +79,7 @@ object FacebookParticipantManager {
           decisionId = r.decisionId,
           facebookAppRequestId = r.request,
           invitedUserId = u._1,
-          invitingUserId = k.userId)
+          invitingUserId = currentUserId)
 
     logger.debug("invitationsToInsert : " + invitationsToInsert)
 
@@ -100,7 +100,7 @@ object FacebookParticipantManager {
     //exclude_ids
 
 */
-  })
+  }}
   
   def authenticateOrCreateUser(info: MinimalInfo) = {
     val facebookId = java.lang.Long.parseLong(info.id)
