@@ -22,6 +22,7 @@ case class DecisionPublicView(
     owner: ParticipantDisplay,
     viewerCanVote: Boolean,
     viewerHasVoted: Boolean,
+    viewerCanAdmin: Boolean,
     ownerId: Long,
     numberOfVoters: Long,
     numberOfVotesExercised: Long,

@@ -146,26 +146,33 @@ DecisionWidget = function(decisionId) {
     	},
     	render: function() {
     		var e = $(this.el);
-    		e.html($(Templates.decisionWidgetTemplate()));
+    		
     		var d = new DecisionPublicInfo({id: decisionId});
-    		var dpvTab = this.$('#decisionPublicView');
 
     		d.fetch({
     			success: function() {
+    			
     			   var p = DecisionView(d);
-    			   dpvTab.html(p.render().el)
+    			   
+    			   if(d.get('viewerCanAdmin')) {
+    				    e.html($(Templates.decisionWidgetTemplate()));
+        			    var dpvTab = this.$('#decisionPublicView');
+        			    dpvTab.html(p.render().el)
+        			    var settingsTab = this.$('#settings')
+    				    
+    		    		var dsv = new DecisionSettingsView(decisionId);
+    		    		dsv.model.fetch({
+    		    			success: function() {
+    		 			      settingsTab.html(dsv.render().el)
+    		 		       }
+    		 		    })
+    			   }
+    			   else {
+    				   e.html(p.render().el);
+    			   }
     		    }
     		})
-    		
-    		var dsv = new DecisionSettingsView(decisionId);
-    		var settingsTab = this.$('#settings')
 
-    		dsv.model.fetch({
-    			success: function() {
- 			      settingsTab.html(dsv.render().el)
- 		       }
- 		    })
- 		    
     		return this
     	}
     });

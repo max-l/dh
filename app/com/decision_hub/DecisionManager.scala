@@ -74,7 +74,7 @@ object DecisionManager {
     true
   })
   
-  def getDecision(k: AccessKey) = k.attemptView(k.decision)
+  def getDecision(k: AccessKey) = k.attemptAdmin(k.decision)
 
   def getAlternatives(k: AccessKey) = k.attemptAdmin(inTransaction {
     decisionAlternatives.where(a => a.decisionId === k.decision.id).toList
@@ -189,6 +189,7 @@ object DecisionManager {
       ): Long) > 0
 */
     val currentUserCanVote = k.attemptVote(Unit).isLeft
+    val currentUserCanAdmin = k.attemptAdmin(Unit).isLeft
     
     val part = 
       decisionParticipations.where(dp => 
@@ -230,6 +231,7 @@ object DecisionManager {
       ownerId = d.ownerId,
       viewerCanVote = currentUserCanVote,
       viewerHasVoted = part.map(_.completedOn.isDefined).getOrElse(false),
+      viewerCanAdmin = currentUserCanAdmin, 
       numberOfVoters = numParticipants,
       numberOfVotesExercised = numVoted,
       results = alts.map(_.toSeq))
