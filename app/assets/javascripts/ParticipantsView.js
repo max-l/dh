@@ -16,7 +16,7 @@ ParticipantsView = function(decisionId, fbAppRerquestTitle) {
                 var msgToPost = JSON.stringify(response)
                 $.ajax({
                   type: 'POST',
-                  url: "/dec/recordInvitationList",
+                  url: "/dec/recordInvitationList/" + decisionId,
                   data: msgToPost,
                   success: function() {
                 	//TODO: optimize...

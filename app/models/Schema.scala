@@ -72,7 +72,14 @@ object ResetSchema {
   }
 }
 
-class PToken(val id: String, val decisionId: String, val userId: Long) extends KeyedEntity[String]
+object DecisionPrivacyMode extends Enumeration {
+  type DecisionPrivacyMode = Value 
+  val FBAccount = Value(1, "private-fb") 
+  val EmailAccount = Value(2, "private-email") 
+  val Public  = Value(3, "public")
+}
+
+class PToken(val id: String, val decisionId: String, val userId: Option[Long], val confirmed: Boolean) extends KeyedEntity[String]
 
 class PersistentLogin(val userId: String, val serieId: String, val token: String, val expiryTime: Long) {
 
@@ -139,13 +146,15 @@ case class Decision(
   ownerId: Long,
   title: String,
   id: String,
-  isPublic: Boolean,
+  mode: DecisionPrivacyMode.Value,
   description: Option[String] = None,
   endsOn: Option[Timestamp] = None,// if None, ends when complete
   endedByCompletionOn: Option[Timestamp] = None,
   endedByOwnerOn: Option[Timestamp] = None,
   creationTime: Option[Timestamp] = Some(new Timestamp(System.currentTimeMillis))) extends KeyedEntity[String] {
 
+  def this() = this(0L, "","",DecisionPrivacyMode.Public)
+  
   def resultsCanBeDisplayed = 
       endedByCompletionOn.orElse(endedByOwnerOn).isDefined ||
       endsOn.map(_.getTime > System.currentTimeMillis).getOrElse(false)
@@ -189,7 +198,6 @@ trait DisplayableUser {
 case class DecisionParticipation(
   decisionId: String,
   voterId: Long,
-  priviledges: Int, // 0: None, 1: Can Invite, 2: Owner
   completedOn: Option[Timestamp] = None,
   abstained: Int = 0,
   lastModifTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends DecisionHubEntity with DisplayableUser {

@@ -27,7 +27,7 @@ PUT      /dec/alternatives/:did/:altId          controllers.JSonRestApi.updateAl
 DELETE   /dec/alternatives/:did/:altId          controllers.JSonRestApi.deleteAlternative(did: String, altId: Long)
 POST     /loginWithFacebookToken                controllers.JSonRestApi.loginWithFacebookToken 
 
-POST     /dec/recordInvitationList              controllers.JSonRestApi.recordInvitationList
+POST     /dec/recordInvitationList/:accessGuid  controllers.JSonRestApi.recordInvitationList(accessGuid: String)
 GET      /dec/participants/:decisionId          controllers.JSonRestApi.getParticipants(decisionId: String)
 
 GET      /ballot/:did                           controllers.JSonRestApi.getBallot(did: String)

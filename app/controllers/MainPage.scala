@@ -42,11 +42,12 @@ object MainPage extends BaseDecisionHubController {
   }
 */
 
-  def app(tok: String) = Action {
+  def app(accessGuid: String) = MaybeAuthenticated { session => r =>
     
-    val t = (tok: PToken)
+    val k = accessKey(accessGuid, session)
 
-    Ok(html.app(Html("new ApplicationView('" + t.id + "')")))
+    k.attemptView(Ok(html.app(Html("new ApplicationView('" + accessGuid + "')")))).
+      fold(identity, identity)
   }
 
   def voterScreen(decisionId: String) = Action { req =>
@@ -64,11 +65,8 @@ object MainPage extends BaseDecisionHubController {
           case Some(fbAppReqId) => Async {
             FacebookProtocol.lookupAppRequestInfoRaw(fbAppReqId).map { t =>
               val (appRequestInfoRawJson, jsonAppReqInfo) = t
-              val d = DecisionManager.getDecision(jsonAppReqInfo.data).get
-
-              Ok(html.fbVoterScreen( 
-                  Some(DecisionInvitationInfo(d.title, jsonAppReqInfo))
-              ))
+              val d = FacebookParticipantManager.lookupDecisionIdForAccessGuid(jsonAppReqInfo.data)
+              Ok(html.fbVoterScreen(Some(DecisionInvitationInfo(d.title, jsonAppReqInfo)))) 
             }
           }
       }

@@ -12,6 +12,8 @@ import java.net.URLEncoder
 import com.strong_links.crypto.CryptoUtil
 import controllers.JSonRestApi
 import com.strong_links.crypto.CryptoField
+import controllers.DecisionHubSession
+import controllers.BaseDecisionHubController
 
 object TestData {
 
@@ -95,11 +97,11 @@ object TestData {
   
    def fakeDecision(user: User, title: String, anonymous: Boolean, f: Decision => Decision, alternatives : Seq[(Option[User], String)]) = {
 
-     val guid = JSonRestApi.newSignedGuid(secret)
-     val d = CreateDecision(guid._1, guid._2, title, alternatives.map(_._2), false, None, None, None)
+     val guids = JSonRestApi.newSignedGuid(secret)
+     val cd = CreateDecision(guids, title, alternatives.map(_._2), false, None, None, None)
      
-     val (tok, decision) = DecisionManager.newDecision(d, user)
-     decision
+     val (d, _, _) = DecisionManager.newDecision(cd, user, DecisionPrivacyMode.FBAccount)
+     (d, fakeFbAccesKey(user, d))
   }
   
   import CryptoUtil._
@@ -111,13 +113,23 @@ object TestData {
      val guid = JSonRestApi.newSignedGuid(secret)
      val u = User(nickName = Some("Anon Owner of " + guid))
      users.insert(u)
-     val d = CreateDecision(guid._1, guid._2, title, alternatives, false, None, None, None)
-     
-     val tok = DecisionManager.newDecision(d, u)
-     tok
+
+     val guids = JSonRestApi.newSignedGuid(secret)
+     val cd = CreateDecision(guids, title, alternatives, false, None, None, None)
+
+     DecisionManager.newDecision(cd, u, DecisionPrivacyMode.EmailAccount)
    }
    
   case class FBPublicUserInfo(name: String, first_name: String, last_name: String)
+  
+  def fakeFbAccesKey(u: User, d: Decision) = {
+    val s = DecisionHubSession(u.id, "", null)
+    
+    val t = new PToken(Util.newGuid, d.id, Some(u.id), true)
+    pTokens.insert(t)
+    
+    BaseDecisionHubController.accessKey(t.id, s)
+  } 
   
   def fakeUsers(fbIds: Seq[Long]) =    
     Promise.sequence {
@@ -151,7 +163,7 @@ object TestData {
 
      val nancy = users.find(_.facebookId.get == nancyFBId).get
      
-     val d1 = 
+     val (d1, adminTokenD1) = 
        fakeDecision(bob, "The big Decision", true, identity, 
        Seq(
          None -> "1this is the one !",
@@ -160,7 +172,7 @@ object TestData {
          None-> "4everyone's favorite"
        ))
 
-     val d2 = 
+     val (d2, adminTokenD2) = 
        fakeDecision(bob, "Vote for the master of the universe", 
            true,
            identity,
@@ -175,11 +187,11 @@ object TestData {
 
 
      FacebookParticipantManager.inviteVotersFromFacebook0(
-         bob.id, 
+         adminTokenD1, 
          FBInvitationRequest(d1.id,-1L, Seq(FBFriendInfo(nancy.facebookId.get, nancy.displayableName))))
          
      FacebookParticipantManager.inviteVotersFromFacebook0(
-         bob.id,
+         adminTokenD1,
          FBInvitationRequest(d1.id,-1L, Seq(FBFriendInfo(bob.facebookId.get, bob.displayableName))))
      
      Session.currentSession.connection.commit()
@@ -197,12 +209,12 @@ object TestData {
          a4.id -> -2
      )
      
-     val nancyTok = new PToken(Util.newGuid, d1.id, nancy.id)
-     pTokens.insert(nancyTok)
-     DecisionManager.vote(Schema.pTokens.lookup(nancyTok.id).get, a1.id, nancy.id, v1(a1.id))
-     DecisionManager.vote(nancyTok, a2.id, nancy.id, v1(a2.id))
-     DecisionManager.vote(nancyTok, a3.id, nancy.id, v1(a3.id))
-     DecisionManager.vote(nancyTok, a4.id, nancy.id, v1(a4.id))
+     val nancyTok = fakeFbAccesKey(nancy, d1)
+     
+     DecisionManager.vote(nancyTok, a1.id, v1(a1.id))
+     DecisionManager.vote(nancyTok, a2.id, v1(a2.id))
+     DecisionManager.vote(nancyTok, a3.id, v1(a3.id))
+     DecisionManager.vote(nancyTok, a4.id, v1(a4.id))
      
      val v2 = Map(
          a1.id -> 0,
@@ -210,16 +222,15 @@ object TestData {
          a3.id -> 1,
          a4.id -> -2
      )
-     
-     val bobTok = new PToken(Util.newGuid, d1.id, bob.id)
-     pTokens.insert(bobTok)
-     DecisionManager.vote(bobTok, a1.id, bob.id, v2(a1.id))
-     DecisionManager.vote(bobTok, a2.id, bob.id, v2(a2.id))
-     DecisionManager.vote(bobTok, a3.id, bob.id, v2(a3.id))
-     DecisionManager.vote(bobTok, a4.id, bob.id, v2(a4.id))
-     
-     val d1ToValidate = decisionSummaries(Seq(d1)).headOption.getOrElse(sys.error(d1+ " not found in db."))
 
+     val bobTok = fakeFbAccesKey(bob, d1)
+
+     DecisionManager.vote(bobTok, a1.id, v2(a1.id))
+     DecisionManager.vote(bobTok, a2.id, v2(a2.id))
+     DecisionManager.vote(bobTok, a3.id, v2(a3.id))
+     DecisionManager.vote(bobTok, a4.id, v2(a4.id))
+
+     val d1ToValidate = decisionSummaries(Seq(d1)).headOption.getOrElse(sys.error(d1+ " not found in db."))
 
      val expectedScores = 
        v1.map(_._2).zip(v2.map(_._2)).map(t => t._1 + t._2)
@@ -234,10 +245,20 @@ object TestData {
      val allDecisions = decisions.where(s => 1 === 1).toList
      assertEquals(2, allDecisions.size)
 
-     fakeAnonDecision("Anon Decide", Seq("this", "that", "or that"))
-
+     testEmailPrivateDecision
+     
      println("Success ! ")
    }
+    
+    
+  def testEmailPrivateDecision = {
+    
+    val (emailDecision, adminKey, publicKey) = 
+      fakeAnonDecision("Email private decision", Seq("this", "that", "or that"))
+
+    println("AdminGUId: " + adminKey.get.id)
+    println("PublicGUId: " + publicKey.get.id)
+  }
    
   def assertEquals(a1: Any, a2: Any) = {
     if(a1 != a2) sys.error("expected " + a1 + " got " + a2)

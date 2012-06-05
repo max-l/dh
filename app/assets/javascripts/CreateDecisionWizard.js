@@ -221,10 +221,35 @@ CreateDecisionWizard = function() {
             }            
         },
         postDecision: function() {
+        	var zis = this
         	var d = this.model.toJSON()
         	var choices = this._choicesListView.model.toJSON()
         	d.choices = choices
         	debugger;
+        	
+            $.ajax({
+                type: 'POST',
+                url: "/dec",
+                data: JSON.stringify(d),
+                success: function(returnCode) {
+            	  if(returnCode == "private-email")
+            		  zis.pleaseReplyToEmailDialog()
+                  else if(returnCode == "private-fb") {
+                	  zis.close()
+                	  new ApplicationView(zis.model.get('linkGuids').publicGuid)
+                  }
+                  else if(returnCode == "public") {
+                	  zis.close()
+                	  new ApplicationView(zis.model.get('linkGuids').adminGuid)
+                  } 
+                  else throw Error("Invalid return code " + returnCode)
+                },
+                error: function() {
+                	$(zis.el).find('#fbConnect').text('Connect To FB')
+                },
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json'
+            })
         },
         gotoTab: function(tabId, btn) {
            var zis = this;
@@ -246,6 +271,9 @@ CreateDecisionWizard = function() {
         		zis.model.set('linkGuids', linkGuids);
         		zis.postInitialize();
         	})
+        },
+        pleaseReplyToEmailDialog: function() {
+        	this.$('#createDecisionWizard .modal-body').html(Templates.pleaseReplyToEmailTemplate(this.model.toJSON()))
         },
     	postInitialize: function() {
         	this.render();

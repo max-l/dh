@@ -12,10 +12,10 @@ import play.api.templates.Html
 import com.decision_hub._
 import com.decision_hub.Util._
 import com.decision_hub.FacebookProtocol._
-import play.mvc.Result
 import com.codahale.jerkson.Json
 import play.api.libs.concurrent.Promise
 import com.strong_links.crypto._
+import play.api.mvc.Results.EmptyContent
 
 
 object JSonRestApi extends BaseDecisionHubController {
@@ -32,20 +32,18 @@ object JSonRestApi extends BaseDecisionHubController {
       map(s =>  s : CryptoField).getOrElse(sys.error("missing config 'application.secret'"))
       
   def newSignedGuidJson = Action {
-    
-    val sg = newSignedGuid(serverSecret)
-    js(Map("adminGuid" -> sg._1, 
-           "publicGuid" -> sg._2, 
-           "guidSignatures" -> sg._3))
+    js(newSignedGuid(serverSecret))
   }
   
   def newSignedGuid(key: CryptoField) = {
     
+    
     val guid1 = Util.newGuid
     val guid2 = Util.newGuid
     val signature = hmacSha256(guid1, guid2)(key)
-    (guid1, guid2, signature.value)
-  }  
+    
+    Guids(guid1, guid2, signature.value)
+  }
   
   private def hasValidGuid(cd: CreateDecision) = {
     
@@ -53,20 +51,21 @@ object JSonRestApi extends BaseDecisionHubController {
     
     computedSignature matches cd.linkGuids.guidSignatures
   }
+  
+  def saveDecision(accessGuid: String) = MaybeAuthenticated(expectJson[Decision]) { session => r =>
+    
+    val k = accessKey(accessGuid, session)
 
-  def saveDecision(decisionId: String) = Action(expectJson[Decision]) { r =>
-
-    if(DecisionManager.updateDecision(r.body))
-      Ok
-    else
-      NotFound
+    doIt(DecisionManager.updateDecision(k, r.body))(
+      z => if(z) NotFound else Ok
+    )
   }
   
   def createDecision = Action(expectJson[CreateDecision]) { r =>
     
     val cd = r.body
 
-    val res = 
+    val res: Either[(User,DecisionPrivacyMode.Value), String] = 
       if(! hasValidGuid(r.body)) Right("InvalidGuid")
       else (cd.fbAuth, cd.ownerEmail, cd.ownerName) match {
         case (Some(fbAuth), None, None) => FacebookProtocol.authenticateSignedRequest(fbAuth.signedRequest) match {
@@ -74,30 +73,34 @@ object JSonRestApi extends BaseDecisionHubController {
           case Some(req) =>
             val fbUserId = java.lang.Long.parseLong((req \ "user_id").as[String])
             FacebookParticipantManager.lookupFacebookUser(fbUserId) match {
-              case Some(user) => Left(user)
+              case Some(user) => Left((user, DecisionPrivacyMode.FBAccount))
               case None =>
                 val mi = FacebookProtocol.facebookOAuthManager.obtainMinimalInfo(fbAuth.accessToken)
                 mi match {
-                  case Left(userInfo) => Left(userInfo : User) 
+                  case Left(userInfo) =>
+                    val user = userInfo : User
+                    Left((user, DecisionPrivacyMode.FBAccount)) 
                   case Right(_) => Right("Failed FB info retrieval") 
                 }
             }
         }
-        case (None, ownerEmail@Some(_), ownerName) =>
+        case (None, Some(ownerEmail), ownerName) =>
           //TODO: Send confirmation email
-          Left(User(email = ownerEmail, firstName = ownerName, confirmed = false))
+          EmailParticipantManager.lookupUserByEmail(ownerEmail) match {
+            case Some(user) =>
+              Left((user, DecisionPrivacyMode.EmailAccount))
+            case None =>
+              Left((User(email = Some(ownerEmail), firstName = ownerName, confirmed = false), DecisionPrivacyMode.EmailAccount))
+          }
         case (None, None, ownerName@Some(_)) =>
-          Left(User(nickName = ownerName))
+          Left((User(nickName = ownerName)), DecisionPrivacyMode.Public)
         case _ => Right("Invalid information to create decision " + cd)
       }
-    
-    res.fold(
-        user => {
-          val (tok, _) = DecisionManager.newDecision(cd, user)
-          if(user.confirmed)
-            js(Map("id" -> tok.id))
-          else
-            js(Map("needConfirmation" -> true))
+
+    res.fold( left => {  
+          val (user, mode) = left
+          DecisionManager.newDecision(cd, user, mode)
+          js(mode.toString)
         },
         errorMsg => {
           logger.error(errorMsg)
@@ -106,77 +109,95 @@ object JSonRestApi extends BaseDecisionHubController {
     )
   }
 
-  def getDecision(decisionId: String) = Action { req =>
+  def getDecision(accessGuid: String) = MaybeAuthenticated { session => req =>
 
-    DecisionManager.getDecision(decisionId).
-      map(js(_)).getOrElse(NotFound)
+    val k = accessKey(accessGuid, session)
+
+    doIt(DecisionManager.getDecision(k))(js(_))
   }
 
-  def getDecisionPublicView(decisionId: String) = MaybeAuthenticated { session => req =>
+  def getDecisionPublicView(accessGuid: String) = MaybeAuthenticated { session => req =>
     
-    //TODO: checl session.map(_.userId) with token
+    val k = accessKey(accessGuid, session)
+
+    doIt(DecisionManager.decisionPubicView(k))(js(_))
+  }
+
+  def getAlternatives(accessGuid: String) = MaybeAuthenticated { session => r =>
     
-    //val tok = session.map( decisionId)
-    js(DecisionManager.decisionPubicView(decisionId))
+    val k = accessKey(accessGuid, session)
+
+    doIt(DecisionManager.getAlternatives(k))(js(_))
   }
 
-  def getAlternatives(decisionId: String) = Action { r =>
-
-    js(DecisionManager.getAlternatives(decisionId))
-  }
-
-  def submitVote(decisionId: String) = IsAuthenticated { session => req =>
-    DecisionManager.voteIsComplete(decisionId, session.userId)
-    Ok
+  def submitVote(accessGuid: String) = MaybeAuthenticated { session => req =>
+    
+    val k = accessKey(accessGuid, session)
+    
+    doIt(DecisionManager.voteIsComplete(k))(z => Ok)
   }
   
-  def createAlternative(decisionId: String) = Action(BodyParsers.parse.json) { r =>
-    //TODO: verify if admin
-    //TODO: validate title
+  def createAlternative(accessGuid: String) = MaybeAuthenticated(BodyParsers.parse.json) { session => r =>
+    
+    val k = accessKey(accessGuid, session)
+    
     val title = ((r.body) \ "title").as[String]
-    val a = DecisionManager.createAlternative(decisionId, title)
-
-    js(Map("id" -> a.id))
+    doIt(DecisionManager.createAlternative(k, title))(a => 
+      js(Map("id" -> a.id))
+    )
   }
 
-  def updateAlternative(decisionId: String, altId: Long) = Action(BodyParsers.parse.json) { r =>
+  def updateAlternative(accessGuid: String, altId: Long) = MaybeAuthenticated(BodyParsers.parse.json) { session => r =>
 
+    val k = accessKey(accessGuid, session)
+    
     val title = ((r.body) \ "title").as[String]
-    DecisionManager.updateAlternative(decisionId, altId, title)
-    Ok
+    
+    doIt(DecisionManager.updateAlternative(k, altId, title))(z => Ok)
   }
 
-  def deleteAlternative(decisionId: String, altId: Long) = Action { r =>
-    DecisionManager.deleteAlternative(decisionId, altId)
-    Ok
-  }
-  
-  def getParticipants(decisionId: String) = Action { r => 
-    js(DecisionManager.participants(decisionId, 0, 1000))
-  }
+  def deleteAlternative(accessGuid: String, altId: Long) = MaybeAuthenticated { session => r =>
 
-  def getBallot(decisionId: String) = MaybeAuthenticated { session => r =>
+    val k = accessKey(accessGuid, session)
 
-    js(DecisionManager.getBallot(decisionId))
-  }
-
-  def vote(decisionId: String, altId: Long, score: Int) = IsAuthenticated { session => r =>
-
-    DecisionManager.vote(decisionId, altId, session.userId, score)
-    Ok
+    doIt(DecisionManager.deleteAlternative(k, altId))(z => Ok)
   }
   
-  def recordInvitationList = IsAuthenticated(expectJson[FBInvitationRequest]) { session => request =>
+  def getParticipants(accessGuid: String) = MaybeAuthenticated { session => r =>
+    
+    val k = accessKey(accessGuid, session)
+    
+    doIt(DecisionManager.participants(k, 0, 1000))(js(_))
+  }
+
+  def getBallot(accessGuid: String) = MaybeAuthenticated { session => r =>
+    
+    val k = accessKey(accessGuid, session)
+
+    doIt(DecisionManager.getBallot(k))(js(_))
+  }
+
+  def vote(accessGuid: String, altId: Long, score: Int) = MaybeAuthenticated { session => r =>
+
+    val k = accessKey(accessGuid, session)
+    
+    doIt(DecisionManager.vote(k, altId, score))(z => Ok)
+  }
+  
+  def recordInvitationList(accessGuid: String) = IsAuthenticated(expectJson[FBInvitationRequest]) { session => request =>
 
     val invitationRequest = request.body
+    
+    val k = accessKey(accessGuid, session)
 
-    FacebookParticipantManager.inviteVotersFromFacebook0(session.userId, invitationRequest)
-
-    logger.info("Invited participants to decision " + invitationRequest.decisionId)
-    Ok
+    doIt(FacebookParticipantManager.inviteVotersFromFacebook0(k, invitationRequest))(z => {
+      logger.info("Invited participants to decision " + invitationRequest.decisionId)
+      Ok
+    })
   }
   
   def myDecisionIds = IsAuthenticated { session => request =>
+    
     js(DecisionManager.decisionIdsOf(session.userId))
   }
   

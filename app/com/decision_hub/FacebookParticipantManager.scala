@@ -7,6 +7,7 @@ import java.sql.Timestamp
 import org.squeryl.dsl.ast.LogicalBoolean
 import play.api.Logger
 import models.DecisionParticipation
+import controllers.AccessKey
 
 
 
@@ -32,7 +33,15 @@ object FacebookParticipantManager {
     Schema.users.where(_.facebookId === fbId).headOption
   }
   
-  def inviteVotersFromFacebook0(invitingUserId: Long, r: FBInvitationRequest) = inTransaction {
+  def lookupDecisionIdForAccessGuid(publicAccessGuid: String) = inTransaction {
+    
+    from(Schema.pTokens, Schema.decisions)((t,d) =>
+      where(t.decisionId === d.id and t.id === publicAccessGuid)
+      select(d)
+    ).single
+  }
+  
+  def inviteVotersFromFacebook0(k: AccessKey, r: FBInvitationRequest) = k.attemptAdmin(inTransaction {
 
     val recipientsFacebookIds = r.to.map(_.uid).toSet
 
@@ -70,7 +79,7 @@ object FacebookParticipantManager {
           decisionId = r.decisionId,
           facebookAppRequestId = r.request,
           invitedUserId = u._1,
-          invitingUserId = invitingUserId)
+          invitingUserId = k.userId)
 
     logger.debug("invitationsToInsert : " + invitationsToInsert)
 
@@ -79,7 +88,7 @@ object FacebookParticipantManager {
     // automatic acceptation : 
     val dps = 
       for(i <- invitationsToInsert)
-        yield DecisionParticipation(i.decisionId, i.invitedUserId, 0)
+        yield DecisionParticipation(i.decisionId, i.invitedUserId)
     
     decisionParticipations.insert(dps)
 
@@ -91,7 +100,7 @@ object FacebookParticipantManager {
     //exclude_ids
 
 */
-  }
+  })
   
   def authenticateOrCreateUser(info: MinimalInfo) = {
     val facebookId = java.lang.Long.parseLong(info.id)
