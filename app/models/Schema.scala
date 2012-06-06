@@ -50,6 +50,11 @@ object Schema extends org.squeryl.Schema {
       s
     })
   }
+  
+  def main(args: Array[String]): Unit = {
+    
+    initDb
+  }
 }
 
 
