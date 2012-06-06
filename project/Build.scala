@@ -10,7 +10,8 @@ object ApplicationBuild extends Build {
     val appDependencies = Seq(
         "postgresql" % "postgresql" % "8.4-701.jdbc4",
         "org.squeryl" %% "squeryl" % "0.9.5-2",
-        "org.pegdown" % "pegdown" % "1.1.0"
+        "org.pegdown" % "pegdown" % "1.1.0",
+        "javax.mail" % "mail" % "1.4"
     )
 
     val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
