@@ -20,7 +20,8 @@ object Mailer {
     val m = new MimeMessage(s)
     val to = new InternetAddress(recipientAddress)
 
-    m.setFrom(new InternetAddress("noreply@clearvote.net"))
+    //m.setFrom(new InternetAddress("noreply@clearvote.net"))
+    m.setFrom(new InternetAddress("all_clearvote@clearvote.net"))
     m.addRecipient(Message.RecipientType.TO, to)
     m.setSubject("Clearvote decision confirmation")
     m.setSentDate(new java.util.Date)
