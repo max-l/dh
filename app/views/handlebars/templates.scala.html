@@ -261,15 +261,15 @@
      <div class="tabbable">
        <ul class="nav nav-tabs">
          <li class="active">
-           <a href="#decisionPublicView" data-toggle="tab">Decision</a></li>
+           <a href="#decisionPublicView{{decisionId}}" data-toggle="tab">Decision</a></li>
          <li>
-           <a href="#settings" data-toggle="tab">Settings</a><i class='icon-wrench'></i></li>
+           <a href="#settings{{decisionId}}" data-toggle="tab">Settings</a><i class='icon-wrench'></i></li>
        </ul>
        <div class="tab-content">
-         <div class="tab-pane active" id="decisionPublicView">
+         <div class="tab-pane active" id="decisionPublicView{{decisionId}}">
            <a id='voteButton' class='btn'>Vote</a>
          </div>
-         <div class="tab-pane" id="settings">
+         <div class="tab-pane" id="settings{{decisionId}}">
          </div>
        </div>
      </div>

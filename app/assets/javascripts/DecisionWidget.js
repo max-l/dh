@@ -73,7 +73,7 @@ DecisionWidget = function(decisionId) {
    }
 	
 
-      var BallotView = function(ballotModel) {
+   var BallotView = function(ballotModel) {
          var V = Backbone.View.extend({
         	model: ballotModel,
             events: {
@@ -155,10 +155,10 @@ DecisionWidget = function(decisionId) {
     			   var p = DecisionView(d);
     			   
     			   if(d.get('viewerCanAdmin')) {
-    				    e.html($(Templates.decisionWidgetTemplate()));
-        			    var dpvTab = this.$('#decisionPublicView');
+    				    e.html($(Templates.decisionWidgetTemplate({decisionId: decisionId})));
+        			    var dpvTab = this.$('#decisionPublicView'+decisionId);
         			    dpvTab.html(p.render().el)
-        			    var settingsTab = this.$('#settings')
+        			    var settingsTab = this.$('#settings'+ decisionId)
     				    
     		    		var dsv = new DecisionSettingsView(decisionId);
     		    		dsv.model.fetch({
@@ -202,10 +202,10 @@ DecisionWidgetList = function(token) {
         },
         addOne: function(decisionIdModel) {
             var ul = $(this.el);
-            var ballotDiv = $('<div></div>')
-            ul.append(ballotDiv)
+            var div = $('<div></div>')
+            ul.append(div)
             var dv = new DecisionWidget(decisionIdModel.get('decisionId'))
-            ballotDiv.append(dv.render().el)
+            div.append(dv.render().el)
         }
     });
     

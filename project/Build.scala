@@ -4,12 +4,12 @@ import PlayProject._
 
 object ApplicationBuild extends Build {
 
-    val appName         = "play-test"
+    val appName         = "clearvote"
     val appVersion      = "1.0-SNAPSHOT"
 
     val appDependencies = Seq(
         "postgresql" % "postgresql" % "8.4-701.jdbc4",
-        "org.squeryl" %% "squeryl" % "0.9.5-RC2",
+        "org.squeryl" %% "squeryl" % "0.9.5-2",
         "org.pegdown" % "pegdown" % "1.1.0"
     )
 
