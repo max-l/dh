@@ -27,9 +27,14 @@ object Mailer {
     m.setText(content)
     
     val transport = s.getTransport("smtp")
+    try {
+      transport.connect();
     
-    transport.sendMessage(m, m.getRecipients(Message.RecipientType.TO))
-    transport.close();
+      transport.sendMessage(m, m.getRecipients(Message.RecipientType.TO))
+    }
+    finally {
+      transport.close();
+    }
 
   //s.connect('smtp.webfaction.com')
   //s.login('all_clearvote','zaza123')
