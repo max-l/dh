@@ -10,9 +10,11 @@ object Mailer {
 
     //noreply@clearvote.net
 
+    
     val props = System.getProperties()
     props.put("mail.smtp.host", "smtp.webfaction.com")
     props.put("mail.debug", "true")
+    props.put("mail.smtp.auth", "true");
     props.put("mail.user", "all_clearvote")
     props.put("mail.password", "zaza123")
 
