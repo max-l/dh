@@ -113,7 +113,7 @@ case class ParticipantDisplay(displayName: String, facebookId: Option[Long], acc
 
 case class FBFriendInfo(uid: Long, name: String)
 
-case class FBInvitationRequest(decisionId: String, request: Long, to: Seq[FBFriendInfo])
+case class FBInvitationRequest(request: Long, to: Seq[FBFriendInfo], fbAuthResponse: FBAuthResponse)
 
 object FBInvitationRequest {
   

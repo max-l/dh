@@ -207,9 +207,13 @@ case class DecisionParticipation(
   abstained: Int = 0,
   lastModifTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends DecisionHubEntity with DisplayableUser {
   
+  private def truncate(s: String) =
+    if(s.length() > 15) s.substring(0,14) + "..."
+    else s
+  
   def display(u: User) = 
     new ParticipantDisplay(
-        u.displayableName, u.facebookId, true, u.email)
+        truncate(u.displayableName), u.facebookId, true, u.email)
 }
 
 case class ParticipationInvitation(

@@ -57,6 +57,7 @@ object DecisionManager {
         val publicTok = new PToken(Util.newGuid, d.id, None, true)
         pTokens.insert(publicTok)
         pTokens.insert(adminTok)
+        Mailer.sendConfirmationToOwner(d, cd.copy(linkGuids = Guids(adminTok.id, publicTok.id, "")))
         (d, publicTok, Some(adminTok))
       case FBAccount =>
         val publicTok = new PToken(cd.linkGuids.publicGuid, d.id, None, true)
@@ -268,12 +269,12 @@ object DecisionManager {
     t._1.display(t._2)
 
 
-  def participants(k: AccessKey, page: Int, size: Int) = k.attemptView({
+  def participants(k: AccessKey, page: Int, size: Int) = k.attemptView( transaction {
 
     from(decisionParticipations, users)((dp, u) =>
       where(dp.decisionId === k.decision.id and dp.voterId === u.id)
       select((dp, u))
-    ).page(page, size).map(t => t : ParticipantDisplay).toSeq
+    ).page(page, size).map(t => t : ParticipantDisplay).toList
   })
 
   def processElectionTerminations = transaction {

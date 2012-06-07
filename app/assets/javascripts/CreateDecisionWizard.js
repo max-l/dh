@@ -481,7 +481,7 @@ CreateDecisionWizard = function() {
         			zis.loggedOutFacebook()
         			if(notLoggedInFunc) notLoggedInFunc()
         		}
-            });        	
+            })
         },
         ready: function() {
         	this.checkFacebookStatus()

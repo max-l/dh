@@ -1,8 +1,14 @@
 
+/**
+ *    Invite participants from Facebook 
+ */
+
+
 ParticipantsView = function(decisionId, fbAppRerquestTitle) {
 	
 	if(! decisionId) throw new Error('decisionId is null.');
 		
+	
     var augmentAndPostInfo = function(response, participantView) {
     
         var fbIds = JSON.stringify(response.to).replace('[','(').replace(']',')')
@@ -40,64 +46,72 @@ ParticipantsView = function(decisionId, fbAppRerquestTitle) {
      var V = Backbone.View.extend({
     	model: new modelz(),
         events: {
-    	   'click #fbConnect' : function() {
-    	     FB.login()
-           },
            'click #inviteFromFB' : function() {
-        	  var zis = this;
-        	  var currentParticipants = 
-        		  zis.model.map(function(p) {return p.get('facebookId')})
-        		    .filter(function(fbId) {return fbId})
-
-		      FB.ui({method: 'apprequests',
-		          message: fbAppRerquestTitle,
-		          exclude_ids: currentParticipants,
-		          data: decisionId
-		        },
-		        function requestCallback(response) {
-		          if(response != null) {
-		             response.decisionId = decisionId
-		             augmentAndPostInfo(response, zis)
-		           }
-		        }
-		      )
+        	   this.validateFbStatusAndPopInviteDialog()
            }
         },
         loggedInFacebook: function(meResp, fbAuthResponse) {
         	var zis = this;
         	if(fbAuthResponse) {
-                $.ajax({
-                    type: 'POST',
-                    url: "/loginWithFacebookToken",
-                    data: JSON.stringify(fbAuthResponse),
-                    success: function() {
-                	  zis.loggedInFacebookAndDecisionHub(meResp, fbAuthResponse)
-                    },
-                    error: function() {
-                    	$(zis.el).find('#fbConnect').text('Connect To FB')
-                    },
-                    contentType: "application/json; charset=utf-8",
-                    dataType: 'json'
-                })
+        		//loginClearVote(meResp, fbAuthResponse)
             }
         },
+        validateFbStatusAndPopInviteDialog: function() {
+        	var zis = this
+        	FB.getLoginStatus(function(response) {
+        		if (response.status === 'connected') {
+        			//Connected to FB and App Authorized
+        			zis.popFbInviteDialog(response.authResponse)
+        		}
+        		else {
+        	        FB.Event.subscribe('auth.statusChange', function(response) {
+                        if(response.authResponse) {
+                            FB.api('/me', function(meResp) {
+                            	zis.popFbInviteDialog(response.authResponse)
+                            })
+                        }
+                        //else {alert('')}
+                    })
+                    FB.login()
+                }
+            })
+        },
+        popFbInviteDialog: function(authResponse) {
+        	var zis = this
+            var currentParticipants = 
+    		  zis.model.map(function(p) {return p.get('facebookId')})
+    	        .filter(function(fbId) {return fbId})
+    
+            FB.ui({method: 'apprequests',
+                message: fbAppRerquestTitle,
+                exclude_ids: currentParticipants,
+                data: decisionId
+              },
+              function requestCallback(response) {
+                if(response != null) {
+                   response.decisionId = decisionId
+                   response.fbAuthResponse = authResponse
+                   augmentAndPostInfo(response, zis)
+                }
+              }
+            )
+        },
         loggedInFacebookAndDecisionHub: function(meResp, fbAuthResponse) {
-      	    this.$('#fbConnect').text('Connected To FB ' + meResp.name)
+      	    //this.$('#fbConnect').text('Connected To FB ' + meResp.name)
         },
         ready: function() {
-        	this.render()
+        	
         },
         loggedOutFacebook: function() {
-        	this.$('#fbConnect').text('Connect To Facebook')
+        	//this.$('#fbConnect').text('Connect To Facebook')
         },
         initialize: function() {
         	initFacebook(this)
-        	
             this.model.on('add', this.addOne, this);
-            //this.model.on('all', this.render, this);
             this.model.on('reset', this.addAll, this);
-        	
             $(this.el).html(Templates.participantTabTemplate())
+            this.render()
+            this.model.fetch()
         },
         addAll: function() {
         	var ul = this.$("ul");
@@ -108,7 +122,6 @@ ParticipantsView = function(decisionId, fbAppRerquestTitle) {
             var FBParticipantView = Backbone.View.extend({
             	model: pv,
             	render: function() {
-            	  console.log(pv.toJSON())
             	  $(this.el).html(Templates.fbParticipantTemplate(pv.toJSON()))
             	  return this
                 }

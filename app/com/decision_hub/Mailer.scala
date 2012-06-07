@@ -2,9 +2,19 @@ package com.decision_hub
 import javax.mail._
 import javax.mail.internet._
 import com.sun.mail.smtp.SMTPTransport
+import models._
+
+import views._
+
 
 object Mailer {
 
+  def sendConfirmationToOwner(d: Decision, cd: CreateDecision) = {
+    
+    val content = html.ownerConfirmation(d, cd).toString
+    
+    sendConfirmationMail(content, cd.ownerEmail.get)
+  }
 
   def sendConfirmationMail(content: String, recipientAddress: String) = {
 
@@ -22,7 +32,7 @@ object Mailer {
     //m.setFrom(new InternetAddress("noreply@clearvote.net"))
     m.setFrom(new InternetAddress("noreply@clearvote.net"))
     m.addRecipient(Message.RecipientType.TO, to)
-    m.setSubject("Clearvote decision confirmation")
+    m.setSubject("Clearvote Decision Confirmation")
     m.setSentDate(new java.util.Date)
     m.setText(content)
     
@@ -30,6 +40,10 @@ object Mailer {
     try {
       transport.connect("all_clearvote", "zaza123")
       transport.sendMessage(m, m.getRecipients(Message.RecipientType.TO))
+      None
+    }
+    catch {
+      case e: Exception => Some(e)
     }
     finally {
       transport.close();

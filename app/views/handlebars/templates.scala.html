@@ -84,7 +84,6 @@
 </script>
 
 <script id="participantTabTemplate" type="text/x-handlebars-template">
-   <button id='fbConnect' class="btn" data-toggle="button">Facebook</button>
    <button id='inviteFromFB' class="btn">Invite participants from Facebook</button>
    <div>
      <ul></ul>
@@ -93,9 +92,13 @@
 
 
 <script id="fbParticipantTemplate" type="text/x-handlebars-template">
-  <div class='span1'>
-    <img src='https://graph.facebook.com/{{facebookId}}/picture?type=square'>
-    <h4>{{displayName}}</h4> 
+  <div>
+    {{#if facebookId}}
+      <img src='https://graph.facebook.com/{{facebookId}}/picture?type=square'>
+    {{else}}
+      [Email]
+    {{/if}}
+    <b>{{displayName}}</b> 
     {{# ifNot accepted}} <i>(Unconfirmed)</i> {{/ ifNot}}
   </div>
 </script>
@@ -388,4 +391,3 @@
   </div>
 
 </script>
-

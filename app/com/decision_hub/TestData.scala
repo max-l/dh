@@ -183,16 +183,16 @@ object TestData {
 
      //val bobDecisions = DecisionManager.decisionSummariesOf(bob.id, true)
 
-     val nancyTok = fakeFbAccesKey(nancy, d1)
-     val bobTok = fakeFbAccesKey(bob, d1)
+     val nancyTokD1 = fakeFbAccesKey(nancy, d1)
+     val bobTokD1 = fakeFbAccesKey(bob, d1)
 
      
-     assert(bobTok.decision.ownerId == bob.id)
-     assert(bobTok.isOwnerOfDecision)
+     assert(bobTokD1.decision.ownerId == bob.id)
+     assert(bobTokD1.isOwnerOfDecision)
      
      assert(FacebookParticipantManager.inviteVotersFromFacebook0(
-         bobTok, 
-         FBInvitationRequest(d1.id,-1L, Seq(FBFriendInfo(nancy.facebookId.get, nancy.displayableName)))).isLeft)
+         bobTokD1, 
+         FBInvitationRequest(-1L, Seq(FBFriendInfo(nancy.facebookId.get, nancy.displayableName)), null : FBAuthResponse)).isLeft)
 
 //     FacebookParticipantManager.inviteVotersFromFacebook0(
 //         adminTokenD1,
@@ -215,10 +215,10 @@ object TestData {
      
      
      
-     assert(DecisionManager.vote(nancyTok, a1.id, v1(a1.id)).isLeft)
-     assert(DecisionManager.vote(nancyTok, a2.id, v1(a2.id)).isLeft)
-     assert(DecisionManager.vote(nancyTok, a3.id, v1(a3.id)).isLeft)
-     assert(DecisionManager.vote(nancyTok, a4.id, v1(a4.id)).isLeft)
+     assert(DecisionManager.vote(nancyTokD1, a1.id, v1(a1.id)).isLeft)
+     assert(DecisionManager.vote(nancyTokD1, a2.id, v1(a2.id)).isLeft)
+     assert(DecisionManager.vote(nancyTokD1, a3.id, v1(a3.id)).isLeft)
+     assert(DecisionManager.vote(nancyTokD1, a4.id, v1(a4.id)).isLeft)
      
      val v2 = Map(
          a1.id -> 0,
@@ -227,10 +227,10 @@ object TestData {
          a4.id -> -2
      )
 
-     assert(DecisionManager.vote(bobTok, a1.id, v2(a1.id)).isLeft)
-     assert(DecisionManager.vote(bobTok, a2.id, v2(a2.id)).isLeft)
-     assert(DecisionManager.vote(bobTok, a3.id, v2(a3.id)).isLeft)
-     assert(DecisionManager.vote(bobTok, a4.id, v2(a4.id)).isLeft)
+     assert(DecisionManager.vote(bobTokD1, a1.id, v2(a1.id)).isLeft)
+     assert(DecisionManager.vote(bobTokD1, a2.id, v2(a2.id)).isLeft)
+     assert(DecisionManager.vote(bobTokD1, a3.id, v2(a3.id)).isLeft)
+     assert(DecisionManager.vote(bobTokD1, a4.id, v2(a4.id)).isLeft)
 
      val d1ToValidate = decisionSummaries(Seq(d1)).headOption.getOrElse(sys.error(d1+ " not found in db."))
 

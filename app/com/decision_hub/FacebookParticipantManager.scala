@@ -48,20 +48,24 @@ object FacebookParticipantManager {
     val usersAlreadyInSystem = 
       usersByFbId(recipientsFacebookIds).toMap
 
+      println("0: " + recipientsFacebookIds)
+      println("1: " + usersAlreadyInSystem)
     val fbUserIdsToInsert =
       recipientsFacebookIds.diff(usersAlreadyInSystem.map(_._2.get).toSet)
 
+    println("2: " + fbUserIdsToInsert)
     val usersToInsert = 
       for(fbInfo <- r.to if fbUserIdsToInsert.contains(fbInfo.uid))
         yield User(nickName = Some(fbInfo.name), facebookId = Some(fbInfo.uid))
 
+    
     logger.debug("Will insert new FB users : " + usersToInsert)
     
     users.insert(usersToInsert)
 
     val alreadyParticipantUserIds = 
       from(decisionParticipations)(dp =>
-        where(dp.decisionId === r.decisionId and dp.voterId.in(usersAlreadyInSystem.map(_._1).toSeq))
+        where(dp.decisionId === k.decision.id and dp.voterId.in(usersAlreadyInSystem.map(_._1).toSeq))
         select(&(dp.voterId))
       ).toSet
     
@@ -76,7 +80,7 @@ object FacebookParticipantManager {
     val invitationsToInsert =
       for(u <- (z ++ usersAlreadyInSystem) if ! alreadyParticipantUserIds.contains(u._1))
         yield ParticipationInvitation(
-          decisionId = r.decisionId,
+          decisionId = k.decision.id,
           facebookAppRequestId = r.request,
           invitedUserId = u._1,
           invitingUserId = currentUserId)

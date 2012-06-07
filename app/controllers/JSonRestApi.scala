@@ -184,16 +184,20 @@ object JSonRestApi extends BaseDecisionHubController {
     doIt(DecisionManager.vote(k, altId, score))(z => Ok)
   }
   
-  def recordInvitationList(accessGuid: String) = IsAuthenticated(expectJson[FBInvitationRequest]) { session => request =>
+  def recordInvitationList(accessGuid: String) = Action(expectJson[FBInvitationRequest]) { request =>
 
     val invitationRequest = request.body
     
-    val k = accessKey(accessGuid, session)
-
-    doIt(FacebookParticipantManager.inviteVotersFromFacebook0(k, invitationRequest))(z => {
-      logger.info("Invited participants to decision " + invitationRequest.decisionId)
-      Ok
-    })
+    authenticateFbAuth(invitationRequest.fbAuthResponse) match {
+       case None => BadRequest
+       case Some(u) =>
+          val ses = new DecisionHubSession(u, request)
+          val k = accessKey(accessGuid, ses)
+          doIt(FacebookParticipantManager.inviteVotersFromFacebook0(k, invitationRequest))(z => {
+            logger.info("Invited participants to decision " + k.decision.id)
+            Ok
+          })
+    }
   }
   
   def myDecisionIds = IsAuthenticated { session => request =>
@@ -204,10 +208,19 @@ object JSonRestApi extends BaseDecisionHubController {
   def loginWithFacebookToken = MaybeAuthenticated(expectJson[FBAuthResponse]) { session => implicit request =>
     session match {
       case Some(_) => Ok // already logged in...
-      case _ => FacebookProtocol.authenticateSignedRequest(request.body.signedRequest) match {
+      case _ =>
+        authenticateFbAuth(request.body) match {
+          case Some(u) =>  AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
+          case None => BadRequest
+        }
+    }
+  }
+
+  def authenticateFbAuth(fbAuth: FBAuthResponse) = 
+      FacebookProtocol.authenticateSignedRequest(fbAuth.signedRequest) match {
         case None =>
           logger.debug("Invalid FB signedRequest.")
-          BadRequest
+          None
         case Some(req) =>
 
           val fbUserId = java.lang.Long.parseLong((req \ "user_id").as[String])
@@ -215,25 +228,22 @@ object JSonRestApi extends BaseDecisionHubController {
           FacebookParticipantManager.lookupFacebookUser(fbUserId) match {
             case Some(u) =>
               logger.debug("fb user %s authenticated.".format(fbUserId))
-              AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
+              Some(u)
             case None =>
 
               val fbCode = (req \ "code").as[String]
 
-              FacebookProtocol.facebookOAuthManager.obtainMinimalInfo(request.body.accessToken) match {                
+              FacebookProtocol.facebookOAuthManager.obtainMinimalInfo(fbAuth.accessToken) match {                
                 case Left(info) => transaction {
                   val u = FacebookParticipantManager.authenticateOrCreateUser(info)
-                  val ses = new DecisionHubSession(u, request)
-                  AuthenticationSuccess(Ok, new DecisionHubSession(u, request))
+                  Some(u)
                 }
                 case Right(error) => 
                   Logger.info("Failed to get info from facebook" + error)
-                  BadRequest
+                  None
              }
           }
       }
-    }
-  }  
 }
 
 

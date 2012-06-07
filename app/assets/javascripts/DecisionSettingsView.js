@@ -60,6 +60,9 @@ DecisionSettingsView = function(decisionId) {
 
             zis.$('#choiceList').html(zis._choicesListView.render().el)
             zis._choicesListView.model.fetch()
+            
+            var fbPartsView = new ParticipantsView(decisionId, "Invitation to vote on " + decision.title)
+            $(this.el).append(fbPartsView.render().el)
 
             return this;
         }
