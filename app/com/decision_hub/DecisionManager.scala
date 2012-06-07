@@ -202,19 +202,25 @@ object DecisionManager {
         where(dp.decisionId === k.decision.id)
         compute(count())
       )
-      
+/*      
     val numVoted = 
       from(votes)(v =>
         where(v.decisionId === k.decision.id)
         compute(countDistinct(v.voterId))
       ).toInt
-/*
+
     val viewerIsParticipant = 
       (from(decisionParticipations)(dp =>
         where(dp.decisionId === tok.decisionId and dp.voterId === currentUserId)
         compute(count())
       ): Long) > 0
 */
+    val numVoted = 
+      from(decisionParticipations)(dp =>
+        where(dp.decisionId === k.decision.id and dp.voterId === k.userId and dp.completedOn.isNotNull)
+        compute(count())
+      ).toInt
+
     val currentUserCanVote = k.attemptVote(Unit).isLeft
     val currentUserCanAdmin = k.attemptAdmin(Unit).isLeft
     
