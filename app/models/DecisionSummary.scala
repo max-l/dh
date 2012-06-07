@@ -51,7 +51,7 @@ case class DSummary(decision: Decision, numberOfVoters: Long, numberOfAbstention
   }  
 }
   
-case class AlternativeSummary(decisionId: String, alternativeId: Long, alternativeTitle: String, points: Int) {
+case class AlternativeSummary(guid: String, alternativeId: Long, alternativeTitle: String, points: Int) {
   
   def percentageOfMaximumPoints(d: DSummary) =
     if(d.numberOfVoters == 0)
@@ -63,7 +63,7 @@ case class AlternativeSummary(decisionId: String, alternativeId: Long, alternati
 
 case class CastedVote(alternative: DecisionAlternative, score: Int)
 
-
+/*
 case class DecisionPost(
   title: String,
   id: Option[String],
@@ -105,8 +105,9 @@ case class DecisionPost(
       ))
   }
 }
-
 case class AlternativePost(id: Long, title: String)
+
+*/
 
 
 case class ParticipantDisplay(displayName: String, facebookId: Option[Long], accepted: Boolean, email: Option[String])

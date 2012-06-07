@@ -28,7 +28,6 @@ object DecisionManager {
     val d = decisions.insert(Decision(
         owner.id,
         cd.title,
-        Util.newGuid,
         mode
       ))
 
@@ -70,7 +69,7 @@ object DecisionManager {
 //    decisions.lookup(tok.decisionId).isDefined
 //  }
 
-  def updateDecision(k: AccessKey, decision: Decision) = k.attemptAdmin(inTransaction {
+  def updateDecision(k: AccessKey, decision: DecisionM) = k.attemptAdmin(inTransaction {
     assert {
       update(decisions)(d =>
         where(d.id === k.decision.id)
@@ -81,10 +80,10 @@ object DecisionManager {
     true
   })
   
-  def getDecision(k: AccessKey) = k.attemptAdmin(k.decision)
+  def getDecision(k: AccessKey) = k.attemptAdmin(k.decision.toModel(k.accessGuid))
 
   def getAlternatives(k: AccessKey) = k.attemptAdmin(inTransaction {
-    decisionAlternatives.where(a => a.decisionId === k.decision.id).toList
+    decisionAlternatives.where(a => a.decisionId === k.decision.id).map(_.toModel(k.accessGuid))
   })
   
   def getBallot(k: AccessKey) = k.attemptVote( transaction{

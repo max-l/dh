@@ -122,7 +122,7 @@ ParticipantsView = function(decisionId, fbAppRerquestTitle) {
             var FBParticipantView = Backbone.View.extend({
             	model: pv,
             	render: function() {
-            	  $(this.el).html(Templates.fbParticipantTemplate(pv.toJSON()))
+            	  $(this.el).html(Templates.participantTemplate(pv.toJSON()))
             	  return this
                 }
             });

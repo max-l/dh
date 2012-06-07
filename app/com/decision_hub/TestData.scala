@@ -16,15 +16,15 @@ import controllers.DecisionHubSession
 import controllers.BaseDecisionHubController
 
 object TestData {
-
-  def participationSummaries(decisionIds: Seq[String]) =
+/*
+  def participationSummaries(decisionIds: Seq[Long]) =
     from(decisionParticipations)(dp =>
       where(dp.decisionId.in(decisionIds))
       groupBy(dp.decisionId)
       compute(count, nvl(sum(dp.abstained),0), 1)
     )
 
-  def alternativeSummary(decisionIds: Seq[String]) = 
+  def alternativeSummary(decisionIds: Seq[Long]) = 
     join(decisionAlternatives, votes.leftOuter)((a,v) => 
       where(a.decisionId.in(decisionIds))
       groupBy(a.decisionId, a.id, a.title)
@@ -33,7 +33,7 @@ object TestData {
     ) map {t =>
       AlternativeSummary(t.key._1, t.key._2, t.key._3, t.measures.getOrElse(0))
     }
-/*  
+  
   def decisionDetails(decisionId: String, currentUser: Option[Long]) = inTransaction {
 
     val d = decisions.lookup(decisionId).get
@@ -70,6 +70,7 @@ object TestData {
     )
   }
 */  
+/*  
   def decisionSummaries(ds: Seq[Decision]) =
     if(ds == Nil)
       Nil 
@@ -90,7 +91,7 @@ object TestData {
           alternativeSummaries = aSums.get(d.id).toSeq.flatten)
       }
     }
-  
+*/  
   val random = new java.util.Random
   
   
@@ -115,7 +116,7 @@ object TestData {
      users.insert(u)
 
      val guids = JSonRestApi.newSignedGuid(secret)
-     val cd = CreateDecision(guids, title, alternatives, false, None, None, None)
+     val cd = CreateDecision(guids, title, alternatives, false, None, Some("maxime.levesque@gmail.com"),Some("maxou"))
 
      DecisionManager.newDecision(cd, u, DecisionPrivacyMode.EmailAccount)
    }
@@ -232,14 +233,16 @@ object TestData {
      assert(DecisionManager.vote(bobTokD1, a3.id, v2(a3.id)).isLeft)
      assert(DecisionManager.vote(bobTokD1, a4.id, v2(a4.id)).isLeft)
 
-     val d1ToValidate = decisionSummaries(Seq(d1)).headOption.getOrElse(sys.error(d1+ " not found in db."))
+     val d1ToValidate = DecisionManager.decisionPubicView(bobTokD1).fold(identity, msg => sys.error(msg))
+     
+       //decisionSummaries(Seq(d1)).headOption.getOrElse(sys.error(d1+ " not found in db."))
 
      val expectedScores = 
        v1.map(_._2).zip(v2.map(_._2)).map(t => t._1 + t._2)
      
      val badScores = 
        expectedScores.zip(
-           d1ToValidate.alternativeSummaries.sortBy(da => da.alternativeTitle).map(_.points)
+           d1ToValidate.results.get.sortBy(_.title).map(_.score)
        ).filter(t => t._1 != t._2)
      
      assert(badScores.isEmpty, "bad scores exist : " + badScores)

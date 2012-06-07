@@ -52,7 +52,7 @@ object JSonRestApi extends BaseDecisionHubController {
     computedSignature matches cd.linkGuids.guidSignatures
   }
   
-  def saveDecision(accessGuid: String) = MaybeAuthenticated(expectJson[Decision]) { session => r =>
+  def saveDecision(accessGuid: String) = MaybeAuthenticated(expectJson[DecisionM]) { session => r =>
     
     val k = accessKey(accessGuid, session)
 

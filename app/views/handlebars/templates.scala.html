@@ -91,7 +91,7 @@
 </script>
 
 
-<script id="fbParticipantTemplate" type="text/x-handlebars-template">
+<script id="participantTemplate" type="text/x-handlebars-template">
   <div>
     {{#if facebookId}}
       <img src='https://graph.facebook.com/{{facebookId}}/picture?type=square'>
@@ -347,12 +347,16 @@
   <div class='rvElectionResults'>
      <div>
        <h2>Decision : {{title}}</h2><br>
-       
-       <div class='span1'>
-         <img src='https://graph.facebook.com/{{owner.facebookId}}/picture?type=square'>
-         Owner : {{owner.displayName}}
+
+       <div>
+         {{#if owner.facebookId}}
+           <img src='https://graph.facebook.com/{{owner.facebookId}}/picture?type=square'>
+         {{else}}
+           [Email]
+         {{/if}}
+         <b>{{owner.displayName}}</b> 
        </div>
-       
+         
        {{#if viewerHasVoted}}You have voted{{/if}}
        {{#if viewerCanVote}}<a class='btn' id='voteNow'>Vote</a>{{/if}}
 
