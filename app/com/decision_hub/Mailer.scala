@@ -31,7 +31,7 @@ object Mailer {
     
     val transport = s.getTransport("smtp")
     try {
-      transport.connect();
+      transport.connect("all_clearvote", "zaza123")
     
       transport.sendMessage(m, m.getRecipients(Message.RecipientType.TO))
     }
