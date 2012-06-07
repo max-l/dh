@@ -15,7 +15,7 @@ object Mailer {
     props.put("mail.smtp.host", "smtp.webfaction.com")
     props.put("mail.debug", "true")
     props.put("mail.smtp.auth", "true");
-    props.put("mail.user", "all_clearvote")
+    props.put("mail.user", "all_clearvote@clearvote.net")
     props.put("mail.password", "zaza123")
 
     val s = Session.getInstance(props);
