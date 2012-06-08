@@ -201,7 +201,7 @@ object JSonRestApi extends BaseDecisionHubController {
           })
     }
   }
-  
+
   def myDecisionIds = IsAuthenticated { session => request =>
     
     js(DecisionManager.decisionIdsOf(session.userId))

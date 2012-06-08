@@ -23,7 +23,12 @@
           http://clearvote.net/d/{{publicGuid}}
         </span>
     {{/ applyTemplate}}
-         
+
+    {{# applyTemplate "rowT" label=""}}
+        <a class='btn btn-large' id='phase' ></a>
+      </div>
+    {{/ applyTemplate}}
+
     {{# applyTemplate "rowT" label="Title"}}
       <input name='title' type="text" value="{{title}}" placeholder="What is the decision about ?"/>
     {{/ applyTemplate}}

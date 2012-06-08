@@ -3,6 +3,7 @@ GET      /                                      controllers.MainPage.home
 #GET      /newDecision                          controllers.MainPage.newDecision
 #GET      /decisionAdmin/:id                    controllers.MainPage.decisionAdmin(id: String)
 POST     /facebookCanvasUrl/                    controllers.MainPage.facebookCanvasUrl
+#GET     /recuperateRegisteredUserInfo          controllers.MainPage.recuperateRegisteredUserInfo
 
 
 # Public View :
@@ -38,9 +39,6 @@ GET      /myDecisionIds                         controllers.JSonRestApi.myDecisi
 POST     /requestEnableEmailInvites/:did        controllers.JSonRestApi.requestEnableEmailInvites(did: String)
 
 POST     /inviteByEmail/:did                    controllers.JSonRestApi.inviteByEmail(did: String)
-
-#GET      /recuperateRegisteredUserInfo          controllers.MainPage.recuperateRegisteredUserInfo
-
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file                          controllers.Assets.at(path="/public", file)

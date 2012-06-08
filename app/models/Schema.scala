@@ -78,10 +78,18 @@ object ResetSchema {
 
 object DecisionPrivacyMode extends Enumeration {
   type DecisionPrivacyMode = Value 
-  val FBAccount = Value(1, "private-fb") 
-  val EmailAccount = Value(2, "private-email") 
-  val Public  = Value(3, "public")
+  val FBAccount =    Value(0, "private-fb") 
+  val EmailAccount = Value(1, "private-email") 
+  val Public  =      Value(2, "public")
 }
+
+object DecisionPhase extends Enumeration {
+  type DecisionPhase = Value 
+  val Draft =       Value(0, "Draft") 
+  val VoteStarted = Value(1, "VoteStarted") 
+  val Ended  =      Value(2, "Ended")
+}
+
 
 class PToken(val id: String, val decisionId: Long, val userId: Option[Long], val action: Option[Int] = None) extends KeyedEntity[String]
 
@@ -138,6 +146,7 @@ case class Decision(
   title: String,
   mode: DecisionPrivacyMode.Value,
   canInviteByEmail: Boolean,
+  phase: DecisionPhase.Value = DecisionPhase.Draft,
   automaticEnd: Boolean = false,
   description: Option[String] = None,
   startedOn: Option[Timestamp] = None,
@@ -146,11 +155,11 @@ case class Decision(
   creationTime: Option[Timestamp] = Some(new Timestamp(System.currentTimeMillis))) extends DecisionHubEntity {
 
   def this() = this(0L, "",DecisionPrivacyMode.Public, false)
-  
+    
   def toModel(guid: String, publicGuid: String) = 
     DecisionM(
-        guid, title, endsOn, automaticEnd,
-        canInviteByEmail, mode.toString, startedOn.isDefined, endedOn.isDefined, publicGuid)
+        guid, title, endsOn, automaticEnd, canInviteByEmail, 
+        mode.toString, phase.toString, publicGuid)
 
   def resultsCanBeDisplayed = 
       endedOn.isDefined

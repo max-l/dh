@@ -17,8 +17,7 @@ case class DecisionM(
   automaticEnd: Boolean, 
   canInviteByEmail: Boolean, 
   mode: String, 
-  votingInProgress: Boolean,
-  ended: Boolean,
+  phase: String,
   publicGuid: String)
 
 

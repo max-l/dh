@@ -8,6 +8,7 @@ import org.squeryl.dsl.ast.LogicalBoolean
 import play.api.Logger
 import models.DecisionParticipation
 import controllers.AccessKey
+import java.util.Date
 
 
 object DecisionManager {
@@ -66,15 +67,16 @@ object DecisionManager {
     }
   }
 
-//  def decisionExists(k: AccessKey) = inTransaction {
-//    decisions.lookup(tok.decisionId).isDefined
-//  }
-
   def updateDecision(k: AccessKey, decision: DecisionM) = k.attemptAdmin(inTransaction {
+    
+    val phase = 
+      DecisionPhase.values.find(_.toString == decision.phase).get
+      
       update(decisions)(d =>
         where(d.id === k.decision.id)
         set(d.title := decision.title,
-        d.endsOn := decision.endsOn)
+            d.phase := phase, 
+            d.endsOn := decision.endsOn)
       ) == 1
   })
   
@@ -84,7 +86,7 @@ object DecisionManager {
     pTokens.insert(t)
     
   })
-   
+
   def createEmailParticipantsAndSentInvites(k: AccessKey, emailList: Set[String]) = k.attemptAdmin((userId: Long) => transaction {
     
     val existingUsers = 
@@ -272,7 +274,7 @@ object DecisionManager {
         dp.voterId === k.userId).headOption
 
     val alts = 
-      if(false) //d.resultsCanBeDisplayed)
+      if(d.phase == DecisionPhase.VoteStarted)
         None
       else Some(
         // participants that have not voted (no rows in votes table, don't contribute to totals)

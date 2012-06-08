@@ -240,9 +240,9 @@ object TestData {
      
     import play.core.StaticApplication
 
-    //new StaticApplication(new java.io.File("."))    
-    //doIt
+    new StaticApplication(new java.io.File("."))    
+    doIt
     
-    com.codahale.jerkson.Json.parse[CreateDecision](testCR)
+    //com.codahale.jerkson.Json.parse[CreateDecision](testCR)
   }
 }
