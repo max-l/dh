@@ -224,15 +224,17 @@ CreateDecisionWizard = function() {
             },            
             "click #confirm-private": function() {
             	this.postDecision()
-            }            
+            }
+        },
+        close: function() {
+        	this.$('#createDecisionWizard').modal('hide')
         },
         postDecision: function() {
         	var zis = this
         	var d = this.model.toJSON()
         	var choices = this._choicesListView.model.toJSON()
-        	d.choices = choices
-        	debugger;
-        	
+        	d.choices = _.map(choices, function(c){return c.title})
+
             $.ajax({
                 type: 'POST',
                 url: "/dec",
@@ -321,7 +323,8 @@ CreateDecisionWizard = function() {
                 	    zis.$("#registrationPrivate").addClass("active")
                 	    zis.hideOrShowTab('#step3-private', true);
                 	    zis.hideOrShowTab('#step4-private', true);
-                	    zis.hideOrShowTab('#step3-public', false)
+                	    zis.hideOrShowTab('#step3-public', false);
+                	    zis.checkFacebookStatus();
                 	}
                 }
         	})

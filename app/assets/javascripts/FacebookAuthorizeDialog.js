@@ -19,7 +19,18 @@ FacebookAuthorizeDialog = function(invitationInfoWhenUnAuthorized) {
             this.render()
         },
         loggedInFacebook: function(meResp, fbAuthResponse) {
-            new ApplicationView()
+        	
+            $.ajax({
+              type: 'POST',
+              url: "/loginWithFacebookToken",
+              data: JSON.stringify(authResponse),
+              success: function() {
+            	new ApplicationView(invitationInfoWhenUnAuthorized.decisionPublicGuid)
+              },
+              error: function() {},
+              contentType: "application/json; charset=utf-8",
+              dataType: 'json'
+            })
         },
         loggedOutFacebook: function() {}
     });

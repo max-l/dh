@@ -21,16 +21,15 @@ object Schema extends org.squeryl.Schema {
   val decisionAlternatives = table[DecisionAlternative]
   
   val decisionParticipations = table[DecisionParticipation]
-  
-  val participationInvitations = table[ParticipationInvitation]
 
   val votes = table[Vote]
-  
-  val persistentLogins = table[PersistentLogin]
-  
-  
+
   on(decisionParticipations)(dp => declare(
     columns(dp.decisionId, dp.voterId) are(unique)
+  ))
+  
+  on(votes)(v => declare(
+    columns(v.decisionId, v.alternativeId, v.voterId) are(unique)
   ))
   
   def initDb = {
@@ -86,15 +85,6 @@ object DecisionPrivacyMode extends Enumeration {
 
 class PToken(val id: String, val decisionId: Long, val userId: Option[Long], val action: Option[Int] = None) extends KeyedEntity[String]
 
-class PersistentLogin(val userId: String, val serieId: String, val token: String, val expiryTime: Long) {
-
-  def userIdSerieId = compositeKey(userId, serieId)
-  
-  def this(uId: String, exp: Long) = this(uId, Util.newGuid, Util.newGuid, exp)
-  
-  def renew(newExpiryTime: Long) = new PersistentLogin(userId, serieId, Util.newGuid, newExpiryTime)
-}
-
 
 trait DecisionHubEntity extends KeyedEntity[Long] {
   val id = 0L
@@ -140,31 +130,30 @@ case class User(
   //TODO: display(externalPlatformIEnum#Value)
   def display =
     new ParticipantDisplay(
-        displayableName, facebookId, true, this.email)
+        displayableName, facebookId, true, this.email, this.confirmed)
 }
 
-
-case class DecisionM(id: String, title: String, endsOn: Option[Timestamp], canInviteByEmail: Boolean, mode: String)
-    
 case class Decision(
   ownerId: Long,
   title: String,
   mode: DecisionPrivacyMode.Value,
   canInviteByEmail: Boolean,
+  automaticEnd: Boolean = false,
   description: Option[String] = None,
   startedOn: Option[Timestamp] = None,
   endsOn: Option[Timestamp] = None,// if None, ends when complete
-  endedByCompletionOn: Option[Timestamp] = None,
-  endedByOwnerOn: Option[Timestamp] = None,
+  endedOn: Option[Timestamp] = None,
   creationTime: Option[Timestamp] = Some(new Timestamp(System.currentTimeMillis))) extends DecisionHubEntity {
 
   def this() = this(0L, "",DecisionPrivacyMode.Public, false)
   
-  def toModel(guid: String) = DecisionM(guid, title, endsOn, canInviteByEmail, mode.toString)
-  
+  def toModel(guid: String, publicGuid: String) = 
+    DecisionM(
+        guid, title, endsOn, automaticEnd,
+        canInviteByEmail, mode.toString, startedOn.isDefined, endedOn.isDefined, publicGuid)
+
   def resultsCanBeDisplayed = 
-      endedByCompletionOn.orElse(endedByOwnerOn).isDefined ||
-      endsOn.map(_.getTime > System.currentTimeMillis).getOrElse(false)
+      endedOn.isDefined
   
   def voteRange = 4
   
@@ -191,9 +180,7 @@ case class DecisionAlternative(
   
   def toModel(guid: String) = DecisionAlternativeM(guid, title)
 }
-
-case class DecisionAlternativeM(decisionId: String, title: String)
-
+  
 object DecisionParticipationStatus extends Enumeration {
   type DecisionParticipationStatus = Value 
   
@@ -208,6 +195,7 @@ case class DecisionParticipation(
   decisionId: Long,
   voterId: Long,
   confirmed: Boolean,
+  facebookRequestId: Option[Long],
   completedOn: Option[Timestamp] = None,
   lastModifTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends DecisionHubEntity with DisplayableUser {
   
@@ -217,20 +205,7 @@ case class DecisionParticipation(
   
   def display(u: User) = 
     new ParticipantDisplay(
-        truncate(u.displayableName), u.facebookId, true, u.email)
-}
-
-case class ParticipationInvitation(
-  decisionId: Long,
-  facebookAppRequestId: Long, //facebook app request id
-  invitedUserId: Long,
-  invitingUserId: Long,
-  declined: Boolean = false,
-  creationTime: Timestamp = new Timestamp(System.currentTimeMillis)) 
- extends DecisionHubEntity with DisplayableUser {
-
-  def display(u: User) = 
-    new ParticipantDisplay(u.displayableName, u.facebookId, false, u.email) 
+        truncate(u.displayableName), u.facebookId, true, u.email, confirmed)
 }
 
 case class Vote(

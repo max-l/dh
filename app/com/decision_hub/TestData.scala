@@ -16,82 +16,7 @@ import controllers.DecisionHubSession
 import controllers.BaseDecisionHubController
 
 object TestData {
-/*
-  def participationSummaries(decisionIds: Seq[Long]) =
-    from(decisionParticipations)(dp =>
-      where(dp.decisionId.in(decisionIds))
-      groupBy(dp.decisionId)
-      compute(count, nvl(sum(dp.abstained),0), 1)
-    )
 
-  def alternativeSummary(decisionIds: Seq[Long]) = 
-    join(decisionAlternatives, votes.leftOuter)((a,v) => 
-      where(a.decisionId.in(decisionIds))
-      groupBy(a.decisionId, a.id, a.title)
-      compute(sum(v.map(_.score)))
-      on(a.id === v.map(_.alternativeId))
-    ) map {t =>
-      AlternativeSummary(t.key._1, t.key._2, t.key._3, t.measures.getOrElse(0))
-    }
-  
-  def decisionDetails(decisionId: String, currentUser: Option[Long]) = inTransaction {
-
-    val d = decisions.lookup(decisionId).get
-
-    val pSums = participationSummaries(Seq(decisionId)).map(t => (t.key: String, t.measures)).toMap
-
-    val aSums: Map[String,Iterable[AlternativeSummary]] =
-      if(d.resultsCanBeDisplayed) 
-        alternativeSummary(Seq(decisionId)).groupBy(_.decisionId)
-      else 
-        Map.empty
-
-    val pSum = pSums.get(d.id).getOrElse((0L,0,0))
-      
-    
-    val isCurrentUserParticipant =
-      currentUser.map { userId =>
-        from(decisionParticipations)(dp =>
-          where(dp.voterId === userId and dp.decisionId === decisionId)
-          select(dp.id)
-        ).toList != Nil
-      }.getOrElse(false)
-
-    (DSummary(
-        decision = d,
-        numberOfVoters = pSum._1,
-        numberOfAbstentions = pSum._2,
-        numberOfVotesExercised = pSum._3,
-        alternativeSummaries = aSums.get(d.id).toSeq.flatten),
-     DecisionManager.participants(decisionId, 0, 16),
-     Nil,
-     isCurrentUserParticipant,
-     currentUser.map(_ == d.ownerId).getOrElse(false)
-    )
-  }
-*/  
-/*  
-  def decisionSummaries(ds: Seq[Decision]) =
-    if(ds == Nil)
-      Nil 
-    else {
-
-      val decisionIds = ds.map(_.id)
-      val pSums = participationSummaries(decisionIds).map(t => (t.key: String, t.measures)).toMap
-      val aSums = alternativeSummary(decisionIds).groupBy(_.decisionId)
-      ds map { d =>
-  
-        val pSum = pSums.get(d.id).getOrElse((0L,0,0))
-  
-        DSummary(
-          decision = d,
-          numberOfVoters = pSum._1,
-          numberOfAbstentions = pSum._2,
-          numberOfVotesExercised = pSum._3,
-          alternativeSummaries = aSums.get(d.id).toSeq.flatten)
-      }
-    }
-*/  
   val random = new java.util.Random
   
   
@@ -182,8 +107,6 @@ object TestData {
          None-> "Bill Wong"
        ))
 
-     //val bobDecisions = DecisionManager.decisionSummariesOf(bob.id, true)
-
      val nancyTokD1 = fakeFbAccesKey(nancy, d1)
      val bobTokD1 = fakeFbAccesKey(bob, d1)
 
@@ -191,19 +114,12 @@ object TestData {
      assert(bobTokD1.decision.ownerId == bob.id)
      assert(bobTokD1.isOwnerOfDecision)
      
-     assert(FacebookParticipantManager.inviteVotersFromFacebook0(
+     assert(FacebookParticipantManager.inviteVotersFromFacebook(
          bobTokD1, 
          FBInvitationRequest(-1L, Seq(FBFriendInfo(nancy.facebookId.get, nancy.displayableName)), null : FBAuthResponse)).isLeft)
 
-//     FacebookParticipantManager.inviteVotersFromFacebook0(
-//         adminTokenD1,
-//         FBInvitationRequest(d1.id,-1L, Seq(FBFriendInfo(bob.facebookId.get, bob.displayableName))))
-
      Session.currentSession.connection.commit()
-     
-     //DecisionManager.acceptFacebookInvitation(-1L, nancy.id)
-     //DecisionManager.acceptFacebookInvitation(-1L, bob.id)
-     
+
      val Seq(a1, a2, a3, a4) = 
        Schema.decisionAlternatives.where(_.decisionId === d1.id).toSeq.sortBy(_.title)
      
@@ -234,8 +150,6 @@ object TestData {
      assert(DecisionManager.vote(bobTokD1, a4.id, v2(a4.id)).isLeft)
 
      val d1ToValidate = DecisionManager.decisionPubicView(bobTokD1).fold(identity, msg => sys.error(msg))
-     
-       //decisionSummaries(Seq(d1)).headOption.getOrElse(sys.error(d1+ " not found in db."))
 
      val expectedScores = 
        v1.map(_._2).zip(v2.map(_._2)).map(t => t._1 + t._2)
@@ -286,51 +200,11 @@ object TestData {
     }.await(1000 * 30).get
   }
   
-  def appR = {
-
-        def zdeleteAppRequest(requestId: Long, fbUserId: Long, appToken: String) = {
-          val u = WS.url("https://graph.facebook.com/" + requestId + "_" + fbUserId + "/").
-             withQueryString("access_token" -> appToken)
-          u.delete
-        }
-        
-    val appAccessToken = appToken(300426153342097L, "52242a46291a5c1d4e37b69a48be689f")
-
-    zdeleteAppRequest(418532081508698L, 100003718310868L, appAccessToken.value)
-    
-    
-/*    
-    println("TOK:" + appAccessToken)
-    //GET /fql?q=SELECT+uid2+FROM+friend+WHERE+uid1=me()&access_token=...
-    val zaza =
-      WS.url("https://graph.facebook.com/284195261666034").
-       withQueryString("access_token" -> appAccessToken.value).get.map { r =>
-        //withQueryString("q" -> "SELECT request_id, app_id FROM apprequest WHERE request_id = 338696852845604"). get.map { r =>
-          println(">>>>>>>>>>> "+r.body)
-      }.await(1000 * 30)
-      
-      //curl -sL -w "%{http_code}" 'https://graph.facebook.com/339320519466276/?access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU'
-      //curl -sL -w "%{http_code}" -X DELETE 'https://graph.facebook.com/100003718310868_339320519466276/?access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU'
-      
-      // THis is the one !!!! :
-      //curl -sL -w "%{http_code}" -X DELETE 'https://graph.facebook.com/400557276634723_100003718310868/?access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU'
-
-      
-      
-      WS.url("https://graph.facebook.com/100003718310868_284195261666034").
-       withQueryString("access_token" -> appAccessToken.value).delete.map { r =>
-        //withQueryString("q" -> "SELECT request_id, app_id FROM apprequest WHERE request_id = 338696852845604"). get.map { r =>
-          println(">>>>>>>>>>> "+r.body)
-      }.await(1000 * 30)      
-*/
+  def deleteAppRequests = {
+    //curl -sL -w "%{http_code}" -X DELETE 'https://graph.facebook.com/400557276634723_100003718310868/?access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU'
   }
-  
-  
+
   def doIt {
-    
-    
-    //Schema.users.posoMetaData.fieldsMetaData
-    
     val appAccessToken = appToken(300426153342097L, "52242a46291a5c1d4e37b69a48be689f")
 
     println("TOK:" + appAccessToken)
@@ -352,147 +226,23 @@ object TestData {
       Session.currentSession.setLogger(println(_))
       fakeData(testUserIds.filterNot(uid => usersToExclude.contains(uid)))
     }
-
-    //akka.actor.ActorSystem.shutdown
-    
   }
   
-  def batchDel = {
-        
-  }
-/*
-  def deleteAppRequest(requestId: Long, fbUserId: Long) = {
-
+  val testCR = """
+{"linkGuids":{"adminGuid":"07ed3qWBr2eos9dk6vEF64","publicGuid":"RZe6BykT1qemi5E_Zaq4a5","guidSignatures":"BrgU92IXfYYIEl4fUfTqhvEtbKy85Ao2Hdu3UtLe/C0="},
+ "isPublic":false,
+ "fbAuth":{"accessToken":"AAAERPGomtJEBAObgISQW3Nhez6XmOzkZBPO7kudT52wGHQLufQpQA5Y0UeSEM1AfOkH560pZBazOlEVXLoCAw7LbG1Qh4P6oGmzuknxEs9k4hupKND","userID":"100003718310868","expiresIn":6398,"signedRequest":"AYdahvrRdveqErlR3vr6Ui1R_0cjnXW5Hy_rnsHeoJ0.eyJhbGdvcml0aG0iOiJITUFDLVNIQTI1NiIsImNvZGUiOiIyLkFRRHJjNkh6a0JFOFBVYnYuMzYwMC4xMzM5MTc4NDAwLjUtMTAwMDAzNzE4MzEwODY4fEI2S2VnMVFuRlp3RWxxY2dFdGJWMFlOaWtfTSIsImlzc3VlZF9hdCI6MTMzOTE3MjAwMiwidXNlcl9pZCI6IjEwMDAwMzcxODMxMDg2OCJ9"},
+ "title":"zozo",
+ "choices":[{"title":"1"},{"title":"2"},{"title":"3"}]
+ }"""
     
-    import org.apache.http.client._
-    import org.apache.http.client.methods._
-    import org.apache.http.params._
-    
-    //import org.apache.http.client.methods.
-
-    
-    //org.apache.http.client.
- 
-    import org.apache.http.impl.client.DefaultHttpClient
-
-    val httpclient = new DefaultHttpClient()
-    
-    val u = new URI("https://graph.facebook.com/" + requestId + "_" + fbUserId + "/?" + 
-        //"access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU")
-        "access_token=" + URLEncoder.encode("300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU","UTF-8"))
-    
-    println(u)
-    
-    //val method = new HttpGet(u)
-    val method = new HttpDelete(u)
-    
-    val r = httpclient.execute(method)
-    
-    r.getAllHeaders().mkString("\n")
-    
-    
-  }
-  
-    
-  def qdeleteAppRequest(requestId: Long, fbUserId: Long) = {
-    val u = WS.url("https://graph.facebook.com/" + requestId + "_" + fbUserId + "/").
-       withQueryString("access_token" -> URLEncoder.encode("300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU","UTF-8"))
-       
-     u.delete().map { r0 =>
-       println(r0.status)
-       println(r0.body)
-      
-    }.await(1000 * 5 * 60)
-       
-    //com.ning.http.client.
-      
-    
-    import com.ning.http.client._;
-    import java.util.concurrent.Future;
-
-    val asyncHttpClient = new AsyncHttpClient()
-    val f = asyncHttpClient.prepareDelete("https://graph.facebook.com/" + requestId + "_" + fbUserId + "/").execute();
-    val r = f.get()
-    
-    println(r.getStatusCode())
-    println(r.getStatusText())
-    println(r.getResponseBody())
-    
-    //println(u.headers.map(h => h._1 + "=" + h._2).mkString("\n"))    
-    //println("FB api call : \n" + u.url + u.queryString)
-    //println(u.headers.mkString("\n"))
-    //u.delete
-  }
-  
-  def dddd = {
-    deleteAppRequest(418532081508698L, 100003718310868L)
-/*    
-      map{ r => 
-        println(r.status)
-        println(r.body)
-        }.await(1000 * 5 * 60)
-*/      
-  }
-*/  
   def main(args: Array[String]): Unit = {
-
-    //alloMaika
-    //if(1 ==1) return;
-   //println(FBInvitationRequest.parseString(js))
-   //println(parse[FBInvitationRequest](js))
      
     import play.core.StaticApplication
 
-   new StaticApplication(new java.io.File("."))
+    //new StaticApplication(new java.io.File("."))    
+    //doIt
     
-   doIt
-   //appR
-    //dddd
-    
-    //val tok = URLEncoder.encode("300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU","UTF-8")
-    val tok = "300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU"
-/*    
-    FBBatchRequest(tok, Seq(FBBatchMethod("POST", "418532081508698_100003718310868"))).wsUri.map { r =>
-      println(r.status)
-      println(r.body)
-    }
-*/    
-     
-    try { 1}
-    catch {
-      case e:Throwable => throw e
-    }
-    finally {
-
-    }
+    com.codahale.jerkson.Json.parse[CreateDecision](testCR)
   }
 }
-/*
- * 
- * 
-curl -F 'access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU' \
-     -F 'batch=[{ "method": "POST","relative_url": "method/fql.query?query=select+name+from+user+where+uid=4"}]' https://graph.facebook.com
- 
- 
-{"access_token":"300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU",
- "batch":[
-   {"method":"DELETE","relative_url":"418532081508698_100003718310868"}
-  ]
-} 
- 
-curl -F 'access_token=300426153342097|mb3AR_FvrqBUriTeBtCwrR9gzjU' \
-     -F 'batch=[{"method": "DELETE", "relative_url": "418532081508698_100003718310868"}]' https://graph.facebook.com
-*/
-case class FBBatchMethod(method: String, relative_url: String)
-
-
-case class FBBatchRequest(access_token: String, batch: Seq[FBBatchMethod]) {
-  
-  def wsUri = WS.url("https://graph.facebook.com").post{ 
-    val json  = com.codahale.jerkson.Json.generate(this)
-    println(json)
-    json
-  }
-}
-
-

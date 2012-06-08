@@ -18,6 +18,12 @@
 <script id="decisionViewTemplate" type="text/x-handlebars-template">
   <form class="form-horizontal">
 
+    {{# applyTemplate "rowT" label="Public link"}}
+        <span class='guidLink'>
+          http://clearvote.net/d/{{publicGuid}}
+        </span>
+    {{/ applyTemplate}}
+         
     {{# applyTemplate "rowT" label="Title"}}
       <input name='title' type="text" value="{{title}}" placeholder="What is the decision about ?"/>
     {{/ applyTemplate}}
@@ -41,31 +47,6 @@
 
   </form>
 </script>
-<!--
-
-                <div class="tab-pane" id="step3">
-                  <h3>When does voting end ?</h3>
-                  
-                    <p>As the administrator of this vote, you can end it at any time, you will
-                      ideally wait that eveyone has voted. You can also set it to terminate 
-                      at a specific time and date.</p>
-                    <p>Note : results of the vote are not shown until it has ended.</p>
-
-                    <ul>
-                      <li><a class='btn active'>You control the end.</a></li>
-                      <li><a  class='btn'>Ends at specific time</a></li>
-                    </ul>
-                    
-                    <p>You can change this later.</p>
-                  
-                  <a goto='#step4' class='btn'>Next</a>
-                </div>
-    {{# applyTemplate "rowT" label="Description"}}
-      <textarea name='summary' class='input-xlarge' type="textarea"></textarea>
-    {{/ applyTemplate}}
--->
-
-
 
 <script id="choiceTemplate" type="text/x-handlebars-template">
   <input type="text" value="{{title}}"/><i class="icon-remove"></i>'
@@ -82,12 +63,15 @@
 
   <div class='participantPanel'>   
      <button id='inviteFromFB' class="btn">Invite participants from Facebook</button>
-    <form class="form-horizontal">  
-      {{# applyTemplate "rowT" label="Email Invitations"}}
-        <textarea name='emailInvitations' placeholder= 'enter list or email address separated by commas' class='input-xlarge' type="textarea"></textarea>
-      {{/ applyTemplate}}
-      <a id='sendEmailInvitations' class="btn">Send email invitations</a>
-    </form>
+
+     {{#if canInviteByEmail}}
+       <form class="form-horizontal">
+         {{# applyTemplate "rowT" label="Email Invitations"}}
+           <textarea name='emailInvitations' placeholder= 'enter list or email address separated by commas' class='input-xlarge' type="textarea"></textarea>
+         {{/ applyTemplate}}
+         <a id='sendEmailInvitations' class="btn">Send email invitations</a>
+       </form>
+     {{/if}}
      <div>
        <ul></ul>
      </div>
@@ -103,7 +87,11 @@
       [Email]
     {{/if}}
     <b>{{displayName}}</b> 
-    {{# ifNot accepted}} <i>(Unconfirmed)</i> {{/ ifNot}}
+    {{# if isConfirmed}} 
+      <i>(Confirmed)</i>
+    {{else}} 
+      <i>(unconfirmed)</i>
+    {{/if}}
   </div>
 </script>
 
@@ -152,7 +140,7 @@
 
                   <ul>
                     <li><a id='registrationPublic' class='btn active'>Public</a>
-                      Anyone has this link : http://equivote.net/d/{{linkGuids.publicGuid}}
+                      Anyone has this link : http://clearvote.net/d/{{linkGuids.publicGuid}}
                       will be able to register and vote.
                     </li>
                     <li><a id='registrationPrivate' class='btn'>Private</a> 
@@ -229,13 +217,13 @@
                   You can administer the decision {{title}} by accessing this link :<br>
 
                   <span class='guidLink'>
-                    http://equivote.net/admin/{{linkGuids.adminGuid}}
+                    https://clearvote.net/admin/{{linkGuids.adminGuid}}
                   </span> <b>(don't share this link !)</b> <br>
 
                   Anyone who receives this link : <br>
                   
                   <span class='guidLink'>
-                    http://equivote.net/d/{{linkGuids.publicGuid}} <br>
+                    https://clearvote.net/d/{{linkGuids.publicGuid}} <br>
                   </span>
 
                   Can register and vote.
@@ -268,15 +256,16 @@
      <div class="tabbable">
        <ul class="nav nav-tabs">
          <li class="active">
-           <a href="#decisionPublicView{{decisionId}}" data-toggle="tab">Decision</a></li>
+           <a href="#decisionPublicView{{id}}" data-toggle="tab">Decision</a></li>
          <li>
-           <a href="#settings{{decisionId}}" data-toggle="tab">Settings</a><i class='icon-wrench'></i></li>
+           <a href="#settings{{id}}" data-toggle="tab">Settings</a><i class='icon-wrench'></i></li>
        </ul>
        <div class="tab-content">
-         <div class="tab-pane active" id="decisionPublicView{{decisionId}}">
+         <br>
+         <div class="tab-pane active" id="decisionPublicView{{id}}">
            <a id='voteButton' class='btn'>Vote</a>
          </div>
-         <div class="tab-pane" id="settings{{decisionId}}">
+         <div class="tab-pane" id="settings{{id}}">
          </div>
        </div>
      </div>
@@ -352,6 +341,11 @@
      <div>
        <h2>Decision : {{title}}</h2><br>
 
+        Public link :
+        <span class='guidLink'>
+          http://clearvote.net/d/{{publicGuid}}
+        </span>
+        <br>
        <div>
          Created by : 
          {{#if owner.facebookId}}

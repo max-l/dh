@@ -41,22 +41,19 @@ object FacebookParticipantManager {
     ).single
   }
   
-  def inviteVotersFromFacebook0(k: AccessKey, r: FBInvitationRequest) = k.attemptAdmin { (currentUserId: Long) => inTransaction {
+  def inviteVotersFromFacebook(k: AccessKey, r: FBInvitationRequest) = k.attemptAdmin { (currentUserId: Long) => inTransaction {
 
     val recipientsFacebookIds = r.to.map(_.uid).toSet
 
     val usersAlreadyInSystem = 
       usersByFbId(recipientsFacebookIds).toMap
 
-      println("0: " + recipientsFacebookIds)
-      println("1: " + usersAlreadyInSystem)
     val fbUserIdsToInsert =
       recipientsFacebookIds.diff(usersAlreadyInSystem.map(_._2.get).toSet)
 
-    println("2: " + fbUserIdsToInsert)
     val usersToInsert = 
       for(fbInfo <- r.to if fbUserIdsToInsert.contains(fbInfo.uid))
-        yield User(nickName = Some(fbInfo.name), facebookId = Some(fbInfo.uid))
+        yield User(nickName = Some(fbInfo.name), facebookId = Some(fbInfo.uid), confirmed = false)
 
     
     logger.debug("Will insert new FB users : " + usersToInsert)
@@ -76,7 +73,7 @@ object FacebookParticipantManager {
         Map.empty
       else
         usersByFbId(fbUserIdsToInsert).toMap
-    
+/*    
     val invitationsToInsert =
       for(u <- (z ++ usersAlreadyInSystem) if ! alreadyParticipantUserIds.contains(u._1))
         yield ParticipationInvitation(
@@ -88,11 +85,11 @@ object FacebookParticipantManager {
     logger.debug("invitationsToInsert : " + invitationsToInsert)
 
     participationInvitations.insert(invitationsToInsert)
-
+*/
     // automatic acceptation : 
     val dps = 
-      for(i <- invitationsToInsert)
-        yield DecisionParticipation(i.decisionId, i.invitedUserId, true)
+      for(u <- (z ++ usersAlreadyInSystem) if ! alreadyParticipantUserIds.contains(u._1))
+        yield DecisionParticipation(k.decision.id, u._1, true, Some(r.request))
     
     decisionParticipations.insert(dps)
 
@@ -132,9 +129,9 @@ object FacebookParticipantManager {
  
     facebookRequestId.foreach { fbReqId =>
       val dId = 
-        from(participationInvitations)(pi => 
-          where(pi.facebookAppRequestId === fbReqId)
-          select(pi.decisionId)
+        from(decisionParticipations)(dp => 
+          where(dp.facebookRequestId === fbReqId)
+          select(dp.decisionId)
         ).headOption
       
       if(dId == None) 

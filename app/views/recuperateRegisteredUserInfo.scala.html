@@ -1,0 +1,31 @@
+@()
+<!DOCTYPE html>
+<html>
+  <head>
+    @js("jquery-1.7.2.js")
+    @js("initFacebook.js")
+  </head>
+
+  <body>
+    <script>
+      initFacebook({
+         ready: function() {},
+         loggedInFacebook(meResp, authResponse) {
+         debugger;
+                $.ajax({
+                  type: 'POST',
+                  url: "/loginWithFacebookToken",
+                  data: JSON.stringify(authResponse),
+                  success: function() {
+                    window.location.reload()
+                  },
+                  error: function() {},
+                  contentType: "application/json; charset=utf-8",
+                  dataType: 'json'
+                })
+         },
+         loggedOutFacebook: function(){}
+      })
+    </script>
+  </body>
+</html>

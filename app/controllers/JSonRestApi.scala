@@ -195,7 +195,7 @@ object JSonRestApi extends BaseDecisionHubController {
        case Some(u) =>
           val ses = new DecisionHubSession(u, request)
           val k = accessKey(accessGuid, ses)
-          doIt(FacebookParticipantManager.inviteVotersFromFacebook0(k, invitationRequest))(z => {
+          doIt(FacebookParticipantManager.inviteVotersFromFacebook(k, invitationRequest))(z => {
             logger.info("Invited participants to decision " + k.decision.id)
             Ok
           })

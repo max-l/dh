@@ -19,7 +19,7 @@ object DecisionManager {
   def newDecision(cd: CreateDecision, u: User, mode: DecisionPrivacyMode.Value) = inTransaction {
 
     assert(cd.title.length > 3)
-    assert(cd.choices.size > 2)
+    assert(cd.choices.size >= 2)
 
     val owner = 
       if(u.isPersisted) u
@@ -38,7 +38,7 @@ object DecisionManager {
     }
     
     //owner is always a participant
-    val dp = DecisionParticipation(d.id, u.id, true)
+    val dp = DecisionParticipation(d.id, u.id, true, None)
     decisionParticipations.insert(dp)
         
     import DecisionPrivacyMode._
@@ -121,7 +121,7 @@ object DecisionManager {
     val recipientsAndGuids =
       toInvite.map { u =>
         
-        val dp = DecisionParticipation(k.decision.id, u.id, false)
+        val dp = DecisionParticipation(k.decision.id, u.id, false, None)
         decisionParticipations.insert(dp)
         val vg = new PToken(Util.newGuid, k.decision.id, Some(u.id))
         pTokens.insert(vg)
@@ -132,8 +132,14 @@ object DecisionManager {
   })
   
   
-  def getDecision(k: AccessKey) = k.attemptAdmin(k.decision.toModel(k.accessGuid))
+  def getDecision(k: AccessKey) = k.attemptAdmin {
+    k.decision.toModel(k.accessGuid, k.publicGuid)
+  }
 
+  def getDecisionPublicGuid(dId: Long) = inTransaction {
+    pTokens.where(t => t.decisionId === dId and t.userId.isNull).single.id
+  }
+  
   def getAlternatives(k: AccessKey) = k.attemptAdmin(inTransaction {
     decisionAlternatives.where(a => a.decisionId === k.decision.id).map(_.toModel(k.accessGuid))
   })
@@ -194,7 +200,7 @@ object DecisionManager {
      decisionParticipations.update(dp => 
        where(dp.decisionId === k.decision.id and dp.voterId === userId)
        set(dp.confirmed := true)
-     )
+     ) == 1
   })
   
   def updateAlternative(k: AccessKey, alternativeId: Long, title: String) = k.attemptAdmin(inTransaction {
@@ -296,11 +302,12 @@ object DecisionManager {
       viewerCanAdmin = k.canAdmin, 
       numberOfVoters = numParticipants,
       numberOfVotesExercised = numVoted,
-      results = alts.map(_.toSeq))
+      results = alts.map(_.toSeq),
+      publicGuid = k.publicGuid)
   })
   
-  private implicit def tuple2Dp(t: (DecisionParticipation, User)) = 
-    t._1.display(t._2)
+//  private implicit def tuple2Dp(t: (DecisionParticipation, User)) = 
+//    t._1.display(t._2)
 
 
   def participants(k: AccessKey, page: Int, size: Int) = k.attemptView( transaction {
@@ -308,7 +315,10 @@ object DecisionManager {
     from(decisionParticipations, users)((dp, u) =>
       where(dp.decisionId === k.decision.id and dp.voterId === u.id)
       select((dp, u))
-    ).page(page, size).map(t => t : ParticipantDisplay).toList
+    ).page(page, size).map{ t => 
+      val (dp, u) = t
+      dp.display(u)
+    }.toList
   })
 
   def processElectionTerminations = transaction {
@@ -318,10 +328,9 @@ object DecisionManager {
     update(decisions)(d =>
       where(
        d.endsOn > n and 
-       d.endedByCompletionOn.isNotNull and 
-       d.endedByOwnerOn.isNotNull)
-      set(d.endedByCompletionOn := n)
+       d.automaticEnd === true and
+       d.endedOn.isNotNull)
+      set(d.endedOn := n)
     )
   }
-    
 }

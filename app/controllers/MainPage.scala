@@ -10,7 +10,7 @@ import com.decision_hub.Util._
 import com.decision_hub.FacebookProtocol._
 import org.squeryl.PrimitiveTypeMode._
 import com.codahale.jerkson.Json._
-import html.voterScreen
+import html.recuperateRegisteredUserInfo
 
 /**
  * Decision public view :
@@ -26,8 +26,6 @@ import html.voterScreen
  *  /v/:adminUserId
  *  
  */
-
-case class DecisionInvitationInfo(decisionTitle: String, appReqInfo: FBAppRequestInfo)
 
 object MainPage extends BaseDecisionHubController {
 
@@ -63,10 +61,6 @@ object MainPage extends BaseDecisionHubController {
     }
   }
 
-  def voterScreen(decisionId: String) = Action { req =>
-    Ok(html.voterScreen(decisionId))
-  }
-
   def facebookCanvasUrl = MaybeAuthenticated(expect[FBClickOnApplication]) { sess => implicit request =>
 
     request.body match {
@@ -79,7 +73,7 @@ object MainPage extends BaseDecisionHubController {
             FacebookProtocol.lookupAppRequestInfoRaw(fbAppReqId).map { t =>
               val (appRequestInfoRawJson, jsonAppReqInfo) = t
               val d = FacebookParticipantManager.lookupDecisionIdForAccessGuid(jsonAppReqInfo.data)
-              Ok(html.fbVoterScreen(Some(DecisionInvitationInfo(d.title, jsonAppReqInfo)))) 
+              Ok(html.fbVoterScreen(Some(DecisionInvitationInfo(d.title, jsonAppReqInfo, jsonAppReqInfo.data)))) 
             }
           }
       }
@@ -93,6 +87,10 @@ object MainPage extends BaseDecisionHubController {
           }
         }
     }
+  }
+  
+  def recuperateRegisteredUserInfo = Action {
+    Ok(html.recuperateRegisteredUserInfo())
   }
 
   def facebookChannelFile = Action {
@@ -111,3 +109,19 @@ object MainPage extends BaseDecisionHubController {
     yield Util.parseLong(id)
 
 }
+
+
+/*
+
+
+{"linkGuids":{"adminGuid":"07ed3qWBr2eos9dk6vEF64","publicGuid":"RZe6BykT1qemi5E_Zaq4a5",
+ "guidSignatures":"BrgU92IXfYYIEl4fUfTqhvEtbKy85Ao2Hdu3UtLe/C0="},
+ "isPublic":false,
+ "fbAuth":{"accessToken":"AAAERPGomtJEBAObgISQW3Nhez6XmOzkZBPO7kudT52wGHQLufQpQA5Y0UeSEM1AfOkH560pZBazOlEVXLoCAw7LbG1Qh4P6oGmzuknxEs9k4hupKND","userID":"100003718310868","expiresIn":6398,"signedRequest":"AYdahvrRdveqErlR3vr6Ui1R_0cjnXW5Hy_rnsHeoJ0.eyJhbGdvcml0aG0iOiJITUFDLVNIQTI1NiIsImNvZGUiOiIyLkFRRHJjNkh6a0JFOFBVYnYuMzYwMC4xMzM5MTc4NDAwLjUtMTAwMDAzNzE4MzEwODY4fEI2S2VnMVFuRlp3RWxxY2dFdGJWMFlOaWtfTSIsImlzc3VlZF9hdCI6MTMzOTE3MjAwMiwidXNlcl9pZCI6IjEwMDAwMzcxODMxMDg2OCJ9"},
+ "title":"zozo",
+ "choices":[{"title":"1"},{"title":"2"},{"title":"3"}]
+ }
+
+
+
+*/

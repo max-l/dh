@@ -140,7 +140,7 @@ ParticipantsView = function(decisionId, fbAppRerquestTitle, decisionModel) {
         	initFacebook(this)
             this.model.on('add', this.addOne, this);
             this.model.on('reset', this.addAll, this);
-            $(this.el).html(Templates.participantTabTemplate())
+            $(this.el).html(Templates.participantTabTemplate({canInviteByEmail: decisionModel.get('canInviteByEmail')}))
             this.render()
             this.model.fetch()
         },

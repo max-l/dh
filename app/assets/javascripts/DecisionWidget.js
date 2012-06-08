@@ -158,7 +158,8 @@ DecisionWidget = function(decisionId) {
     			   var p = DecisionView(d);
     			   
     			   if(d.get('viewerCanAdmin')) {
-    				    e.html($(Templates.decisionWidgetTemplate({decisionId: decisionId})));
+    				    var z = d.toJSON()
+    				    e.html($(Templates.decisionWidgetTemplate(z)));
         			    var dpvTab = this.$('#decisionPublicView'+decisionId);
         			    dpvTab.html(p.render().el)
         			    var settingsTab = this.$('#settings'+ decisionId)

@@ -33,6 +33,13 @@ class AccessKey(token: PToken, val decision: Decision, val session: Option[contr
   def isOwnerOfDecision = 
     userId.map(_ == decision.ownerId).getOrElse(false)
 
+  lazy val publicGuid =
+    if(token.userId.isEmpty)
+      token.id
+    else inTransaction {
+      DecisionManager.getDecisionPublicGuid(decision.id)
+    } 
+    
   lazy val isParticipant = inTransaction {
 
     userId.map { uId =>
