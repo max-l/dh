@@ -92,7 +92,7 @@ object FacebookParticipantManager {
     // automatic acceptation : 
     val dps = 
       for(i <- invitationsToInsert)
-        yield DecisionParticipation(i.decisionId, i.invitedUserId)
+        yield DecisionParticipation(i.decisionId, i.invitedUserId, true)
     
     decisionParticipations.insert(dps)
 

@@ -131,7 +131,9 @@ DecisionWidget = function(decisionId) {
 
     var V = Backbone.View.extend({
     	events: {
-    	  "click #voteNow" : function() {
+    	  "click #voteNow" : "popupBallot" 
+        },
+        popupBallot:function() {
     	    var b = new BallotModel({id: decisionId})
     	    var zis = this;
     	    b.fetch({success: function() {
@@ -139,13 +141,14 @@ DecisionWidget = function(decisionId) {
         	    $(zis.el).append(bv.render().el)
         	    bv.show()
     	    }})
-          }
         },
     	initialize: function() {
         	
     	},
     	render: function() {
-    		var e = $(this.el);
+    		var el = $(this.el);
+    		var e = $('<div class="decisionWidget"></div>')
+    		el.append(e)
     		
     		var d = new DecisionPublicInfo({id: decisionId});
 
@@ -181,7 +184,7 @@ DecisionWidget = function(decisionId) {
 }
 
 
-DecisionWidgetList = function(token) {
+DecisionWidgetList = function(token, popBallot) {
 
     var V = Backbone.View.extend({
         initialize: function() {
@@ -206,6 +209,8 @@ DecisionWidgetList = function(token) {
             ul.append(div)
             var dv = new DecisionWidget(decisionIdModel.get('decisionId'))
             div.append(dv.render().el)
+
+            if(popBallot) dv.popupBallot()
         }
     });
     

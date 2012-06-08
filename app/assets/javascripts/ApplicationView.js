@@ -1,7 +1,7 @@
 
 
 
-ApplicationView = function(token) {
+ApplicationView = function(token, popBallot) {
 
     var V = Backbone.View.extend({
     	el: $('body'),
@@ -16,7 +16,7 @@ ApplicationView = function(token) {
         },
         render: function() {
 
-          var bv = new DecisionWidgetList(token);
+          var bv = new DecisionWidgetList(token, popBallot);
           this.$('#mainPanel').html(bv.render().el);
           bv.model.fetch();
 

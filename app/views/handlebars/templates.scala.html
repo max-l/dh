@@ -39,11 +39,6 @@
        {{/ applyTemplate}}
     </div>
 
-    {{# applyTemplate "rowT" label="Email Invitations"}}
-      <textarea name='emailInvitations' class='input-xlarge' type="textarea"></textarea>
-      <a id='sendEmailInvitations'>Send email invitations</a>
-    {{/ applyTemplate}}
-
   </form>
 </script>
 <!--
@@ -84,10 +79,19 @@
 </script>
 
 <script id="participantTabTemplate" type="text/x-handlebars-template">
-   <button id='inviteFromFB' class="btn">Invite participants from Facebook</button>
-   <div>
-     <ul></ul>
-   </div>
+
+  <div class='participantPanel'>   
+     <button id='inviteFromFB' class="btn">Invite participants from Facebook</button>
+    <form class="form-horizontal">  
+      {{# applyTemplate "rowT" label="Email Invitations"}}
+        <textarea name='emailInvitations' placeholder= 'enter list or email address separated by commas' class='input-xlarge' type="textarea"></textarea>
+      {{/ applyTemplate}}
+      <a id='sendEmailInvitations' class="btn">Send email invitations</a>
+    </form>
+     <div>
+       <ul></ul>
+     </div>
+  </div>
 </script>
 
 
@@ -349,6 +353,7 @@
        <h2>Decision : {{title}}</h2><br>
 
        <div>
+         Created by : 
          {{#if owner.facebookId}}
            <img src='https://graph.facebook.com/{{owner.facebookId}}/picture?type=square'>
          {{else}}

@@ -3,20 +3,57 @@ import javax.mail._
 import javax.mail.internet._
 import com.sun.mail.smtp.SMTPTransport
 import models._
-
 import views._
+import play.api.Play
 
 
 object Mailer {
 
+  lazy val domain =
+    try {
+      Play.current.configuration.getString("application.domainName").get
+    }
+    catch {
+      case e:Exception => "localhost"
+    }
+  
   def sendConfirmationToOwner(d: Decision, cd: CreateDecision) = {
     
-    val content = html.ownerConfirmation(d, cd).toString
+    val content = html.email.ownerConfirmation(d, cd, domain).toString
     
-    sendConfirmationMail(content, cd.ownerEmail.get)
+    sendMail("Clearvote Decision Confirmation", content, new InternetAddress(cd.ownerEmail.get))
+  }
+  
+  /**
+   * returns Nil if successful, of a Seq of the recipients that had errors being sent.
+   */
+  def sendVoterEmails(decision: Decision, choices: Seq[String], owner: User, viewGuid: String, recipientsEmailAndVoterGuid: Seq[(String, String)]) = {
+    
+    
+    val problemEmails = 
+      for((email, voterGuid) <- recipientsEmailAndVoterGuid) yield {
+      
+        val content = html.email.inviteEmailParticipant(decision, choices, owner, voterGuid, viewGuid, domain).toString
+  
+        sendMail("Invitation to vote", content, new InternetAddress(email)) match {
+          case None => None
+          case Some(e) => Some(email)
+        }
+      }
+    
+    problemEmails.flatten
+  }
+  
+  def activateEmailInvitationsForOneDecision(d: Decision, activationGuid: String) = {
+    
+    //val content = html.activateEmailInvitationsForOneDecision(d, activationGuid).toString
+    //sendConfirmationMail(content, cd.ownerEmail.get)
   }
 
-  def sendConfirmationMail(content: String, recipientAddress: String) = {
+  def sendMail(subject: String, content: String, recipientAddress: InternetAddress): Option[Exception] =
+    sendMail(subject, content, Seq(recipientAddress))
+  
+  def sendMail(subject: String, content: String, recipientAddresses: Seq[InternetAddress]) = {
 
     val props = System.getProperties()
     props.put("mail.smtp.host", "smtp.webfaction.com")
@@ -27,12 +64,13 @@ object Mailer {
 
     val s = Session.getInstance(props);
     val m = new MimeMessage(s)
-    val to = new InternetAddress(recipientAddress)
 
     //m.setFrom(new InternetAddress("noreply@clearvote.net"))
     m.setFrom(new InternetAddress("noreply@clearvote.net"))
-    m.addRecipient(Message.RecipientType.TO, to)
-    m.setSubject("Clearvote Decision Confirmation")
+    for(r <- recipientAddresses)
+      m.addRecipient(Message.RecipientType.TO, r)
+      
+    m.setSubject(subject)
     m.setSentDate(new java.util.Date)
     m.setText(content)
     
@@ -52,7 +90,7 @@ object Mailer {
 
   def main(args: Array[String]): Unit = {
     
-    sendConfirmationMail("test 123", "maxime.levesque@gmail.com")
+    sendMail("test 321", "test 123", new InternetAddress("maxime.levesque@gmail.com"))
   }
 
 }

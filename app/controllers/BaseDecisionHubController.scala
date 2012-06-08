@@ -57,9 +57,7 @@ class AccessKey(token: PToken, val decision: Decision, val session: Option[contr
         case (Public, _, Some(uId)) if isOwnerOfDecision => Left(a(uId))
         case (Public, _, None   ) => Right("cannot administer this decision with a public link.")
         
-        case (EmailAccount, _, Some(uId)) if isOwnerOfDecision =>
-          if(token.confirmed) Left(a(uId))
-          else Right("You must follow the link sent to you email account in order to administer this decision.")
+        case (EmailAccount, _, Some(uId)) if isOwnerOfDecision => Left(a(uId))
         case (EmailAccount, _, None   ) => Right("cannot administer this decision with a public link.")
         
         case (FBAccount, Some(_), Some(uId)) if isOwnerOfDecision => Left(a(uId))
@@ -98,6 +96,7 @@ trait BaseDecisionHubController extends Controller with Secured[DecisionHubSessi
     new AccessKey(tok, decision, session)
   }
 
+  
   protected def doIt[A](e: Either[A,String])(f: A => play.api.mvc.Result) = e.fold(
     a => f(a),
     msg => { 
@@ -105,7 +104,7 @@ trait BaseDecisionHubController extends Controller with Secured[DecisionHubSessi
       NotFound
     }
   )
-  
+
   val authenticatonTokenName = "authenticatonToken"
       
   val sslSessionIdHeaderName = 

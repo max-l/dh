@@ -46,8 +46,21 @@ object MainPage extends BaseDecisionHubController {
     
     val k = accessKey(accessGuid, session)
 
-    k.attemptView(Ok(html.app(Html("new ApplicationView('" + accessGuid + "')")))).
+    k.attemptView(appPage("new ApplicationView('" + accessGuid + "')")).
       fold(identity, identity)
+  }
+  
+  private def appPage(scriptLing: String) =
+    Ok(html.app(Html(scriptLing)))
+  
+  def appVoter(accessGuid: String) = MaybeAuthenticated { session => r =>
+    
+    val k = accessKey(accessGuid, session)
+
+    DecisionManager.confirmParticipation(k) match {
+      case Left(_) => appPage("new ApplicationView('" + accessGuid + "', true)")
+      case Right(_) => Unauthorized("Cannot vote with this link")
+    }
   }
 
   def voterScreen(decisionId: String) = Action { req =>

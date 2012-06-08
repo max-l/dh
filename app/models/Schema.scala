@@ -84,7 +84,7 @@ object DecisionPrivacyMode extends Enumeration {
   val Public  = Value(3, "public")
 }
 
-class PToken(val id: String, val decisionId: Long, val userId: Option[Long], val confirmed: Boolean) extends KeyedEntity[String]
+class PToken(val id: String, val decisionId: Long, val userId: Option[Long], val action: Option[Int] = None) extends KeyedEntity[String]
 
 class PersistentLogin(val userId: String, val serieId: String, val token: String, val expiryTime: Long) {
 
@@ -144,24 +144,23 @@ case class User(
 }
 
 
-
-case class LoginToken(guid: String, participationId: Long)
-
-case class DecisionM(id: String, title: String, endsOn: Option[Timestamp])
+case class DecisionM(id: String, title: String, endsOn: Option[Timestamp], canInviteByEmail: Boolean, mode: String)
     
 case class Decision(
   ownerId: Long,
   title: String,
   mode: DecisionPrivacyMode.Value,
+  canInviteByEmail: Boolean,
   description: Option[String] = None,
+  startedOn: Option[Timestamp] = None,
   endsOn: Option[Timestamp] = None,// if None, ends when complete
   endedByCompletionOn: Option[Timestamp] = None,
   endedByOwnerOn: Option[Timestamp] = None,
   creationTime: Option[Timestamp] = Some(new Timestamp(System.currentTimeMillis))) extends DecisionHubEntity {
 
-  def this() = this(0L, "",DecisionPrivacyMode.Public)
+  def this() = this(0L, "",DecisionPrivacyMode.Public, false)
   
-  def toModel(guid: String) = DecisionM(guid, title, endsOn)
+  def toModel(guid: String) = DecisionM(guid, title, endsOn, canInviteByEmail, mode.toString)
   
   def resultsCanBeDisplayed = 
       endedByCompletionOn.orElse(endedByOwnerOn).isDefined ||
@@ -208,8 +207,8 @@ trait DisplayableUser {
 case class DecisionParticipation(
   decisionId: Long,
   voterId: Long,
+  confirmed: Boolean,
   completedOn: Option[Timestamp] = None,
-  abstained: Int = 0,
   lastModifTime: Timestamp = new Timestamp(System.currentTimeMillis)) extends DecisionHubEntity with DisplayableUser {
   
   private def truncate(s: String) =

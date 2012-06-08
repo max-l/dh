@@ -1,4 +1,4 @@
-@(d: Decision, cd: CreateDecision)
+@(d: Decision, cd: CreateDecision, domain: String)
 
 Hi @cd.ownerName.getOrElse(""), you have created a group decision on http://clearvote.net
 
@@ -6,7 +6,7 @@ If you haven't, simply ignore this email.
 
 You can administer this decision by accessing it with this link : 
 
-  https://clearvote.net/admin/@cd.linkGuids.adminGuid
+  https://@domain/admin/@cd.linkGuids.adminGuid
 
 It is important that you *dont't* share this link, anyone who has this link
 can administer the decision, invite participants, etc.
@@ -14,7 +14,7 @@ This link also gives you access to your voting ballot for this decision.
 
 To invite participants, or to view the results, use this link :
 
-  https://clearvote.net/d/@cd.linkGuids.publicGuid
+  https://@domain/d/@cd.linkGuids.publicGuid
 
 each participants will receive a personalized link that will allow
 them to vote.

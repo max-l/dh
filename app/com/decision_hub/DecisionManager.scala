@@ -28,7 +28,8 @@ object DecisionManager {
     val d = decisions.insert(Decision(
         owner.id,
         cd.title,
-        mode
+        mode,
+        u.email.isDefined
       ))
 
     cd.choices.foreach { t =>
@@ -37,29 +38,29 @@ object DecisionManager {
     }
     
     //owner is always a participant
-    val dp = DecisionParticipation(d.id, u.id)
+    val dp = DecisionParticipation(d.id, u.id, true)
     decisionParticipations.insert(dp)
         
     import DecisionPrivacyMode._
 
     mode match {
       case Public =>
-        val adminTok = new PToken(cd.linkGuids.adminGuid, d.id, Some(u.id), true)
-        val publicTok = new PToken(cd.linkGuids.publicGuid, d.id, None, true)
+        val adminTok = new PToken(cd.linkGuids.adminGuid, d.id, Some(u.id))
+        val publicTok = new PToken(cd.linkGuids.publicGuid, d.id, None)
         pTokens.insert(publicTok)
         pTokens.insert(adminTok)
         (d, publicTok, Some(adminTok))
       case EmailAccount =>
         // we use new GUIDs for email private decisions, they are pre confirmed, the "unguessable"
         // guids will be sent by email to the owner
-        val adminTok = new PToken(Util.newGuid, d.id, Some(u.id), true)
-        val publicTok = new PToken(Util.newGuid, d.id, None, true)
+        val adminTok = new PToken(Util.newGuid, d.id, Some(u.id))
+        val publicTok = new PToken(Util.newGuid, d.id, None)
         pTokens.insert(publicTok)
         pTokens.insert(adminTok)
         Mailer.sendConfirmationToOwner(d, cd.copy(linkGuids = Guids(adminTok.id, publicTok.id, "")))
         (d, publicTok, Some(adminTok))
       case FBAccount =>
-        val publicTok = new PToken(cd.linkGuids.publicGuid, d.id, None, true)
+        val publicTok = new PToken(cd.linkGuids.publicGuid, d.id, None)
         pTokens.insert(publicTok)
         (d, publicTok, None)
     }
@@ -70,15 +71,66 @@ object DecisionManager {
 //  }
 
   def updateDecision(k: AccessKey, decision: DecisionM) = k.attemptAdmin(inTransaction {
-    assert {
       update(decisions)(d =>
         where(d.id === k.decision.id)
         set(d.title := decision.title,
         d.endsOn := decision.endsOn)
       ) == 1
-    }
-    true
   })
+  
+  def requestEnableOfEmailInvitations(k: AccessKey) = k.attemptAdmin (transaction {
+      
+    val t = new PToken(Util.newGuid, k.decision.id, k.userId, Some(1))
+    pTokens.insert(t)
+    
+  })
+   
+  def createEmailParticipantsAndSentInvites(k: AccessKey, emailList: Set[String]) = k.attemptAdmin((userId: Long) => transaction {
+    
+    val existingUsers = 
+      users.where(_.email in(emailList)).toSeq
+
+    val nonExisting = 
+      (emailList -- existingUsers.map(_.email.get)) map { email =>
+        val nick = email.split('@')(0)
+        val u = User(email = Some(email), nickName = Some(nick))
+        users.insert(u)
+      }
+    
+    val alreadyParticipant = 
+      from(decisionParticipations)((dp) => 
+        where(dp.id in (existingUsers.map(_.id)))
+        select(dp)
+      ).toSeq
+    
+    val toInvite = 
+      nonExisting.toSeq ++
+      existingUsers.filter(eu => ! alreadyParticipant.exists(_.id == eu.id))
+      
+    val choices = 
+      from(decisionAlternatives)(a => 
+        where(a.decisionId === k.decision.id)
+        select(a.title)
+      ).toSeq
+    
+    val owner = users.lookup(userId).get
+    
+    val publicGuid = 
+      pTokens.where(t => t.decisionId === k.decision.id and t.userId.isNull).single/*Option*/.id
+      
+    val recipientsAndGuids =
+      toInvite.map { u =>
+        
+        val dp = DecisionParticipation(k.decision.id, u.id, false)
+        decisionParticipations.insert(dp)
+        val vg = new PToken(Util.newGuid, k.decision.id, Some(u.id))
+        pTokens.insert(vg)
+        (u.email.get, vg.id)
+      }
+      
+    Mailer.sendVoterEmails(k.decision, choices, owner, publicGuid, recipientsAndGuids)
+  })
+  
   
   def getDecision(k: AccessKey) = k.attemptAdmin(k.decision.toModel(k.accessGuid))
 
@@ -137,6 +189,14 @@ object DecisionManager {
     ) != 1) sys.error("Could not mark vote as complete " + k.decision.id + "," + k.userId)
   })
 
+  def confirmParticipation(k: AccessKey) = k.attemptVote((userId: Long) => transaction {
+    
+     decisionParticipations.update(dp => 
+       where(dp.decisionId === k.decision.id and dp.voterId === userId)
+       set(dp.confirmed := true)
+     )
+  })
+  
   def updateAlternative(k: AccessKey, alternativeId: Long, title: String) = k.attemptAdmin(inTransaction {
     update(decisionAlternatives)(a =>
       where(a.id === alternativeId)
@@ -173,21 +233,12 @@ object DecisionManager {
              case None => pubTok.id
              case Some(adminOrVoteTok) => adminOrVoteTok.id
            }
-        }        
-  /*
-      val ds = 
-        from(decisionParticipations, decisions)((dp, d) =>
-          where(dp.voterId === userId and dp.decisionId === d.id)
-          select(d)
-          orderBy(dp.lastModifTime desc)
-        ).page(0, 10).toList
-  */
+        }
+
       val res = 
         for(t <- toks)
            yield Map("decisionId" -> t)
-      
-      println("------------------->" + res)
-      
+
       res
     }
   
@@ -202,40 +253,18 @@ object DecisionManager {
         where(dp.decisionId === k.decision.id)
         compute(count())
       )
-/*      
-    val numVoted = 
-      from(votes)(v =>
-        where(v.decisionId === k.decision.id)
-        compute(countDistinct(v.voterId))
-      ).toInt
 
-    val viewerIsParticipant = 
-      (from(decisionParticipations)(dp =>
-        where(dp.decisionId === tok.decisionId and dp.voterId === currentUserId)
-        compute(count())
-      ): Long) > 0
-*/
     val numVoted = 
       from(decisionParticipations)(dp =>
-        where(dp.decisionId === k.decision.id and dp.voterId === k.userId and dp.completedOn.isNotNull)
+        where(dp.decisionId === k.decision.id and dp.completedOn.isNotNull)
         compute(count())
       ).toInt
 
-    val currentUserCanVote = k.attemptVote(Unit).isLeft
-    val currentUserCanAdmin = k.attemptAdmin(Unit).isLeft
-    
     val part = 
       decisionParticipations.where(dp => 
         dp.decisionId === k.decision.id and 
         dp.voterId === k.userId).headOption
-/*    
-    val currentUserHasVoted =
-      currentUserCanVote &&
-      (from(votes)(v =>
-        where(v.decisionId === k.decision.id and v.voterId === k.userId)
-        compute(countDistinct(v.voterId))
-       ).toInt > 0)
-*/
+
     val alts = 
       if(false) //d.resultsCanBeDisplayed)
         None
@@ -262,9 +291,9 @@ object DecisionManager {
       title = d.title, 
       owner = owner.display,
       ownerId = d.ownerId,
-      viewerCanVote = currentUserCanVote,
+      viewerCanVote = k.canVote,
       viewerHasVoted = part.map(_.completedOn.isDefined).getOrElse(false),
-      viewerCanAdmin = currentUserCanAdmin, 
+      viewerCanAdmin = k.canAdmin, 
       numberOfVoters = numParticipants,
       numberOfVotesExercised = numVoted,
       results = alts.map(_.toSeq))

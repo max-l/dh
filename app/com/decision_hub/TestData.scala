@@ -109,10 +109,10 @@ object TestData {
   
   val secret = "X1e3?nwXg`/^?2ckh>QDWN86iEms3eCM4n_]:Gi3gWv4yc^TiuGyQn3OY>N4Sxr:" : CryptoField
   
-  def fakeAnonDecision(title: String, alternatives : Seq[String]) = {
+  def fakeEmailDecision(title: String, alternatives : Seq[String]) = {
      
      val guid = JSonRestApi.newSignedGuid(secret)
-     val u = User(nickName = Some("Anon Owner of " + guid))
+     val u = User(nickName = Some("Bonzo"), email = Some("maxime.levesque@gmail.com"))
      users.insert(u)
 
      val guids = JSonRestApi.newSignedGuid(secret)
@@ -259,7 +259,7 @@ object TestData {
   def testEmailPrivateDecision = {
     
     val (emailDecision, publicKey, adminKey) = 
-      fakeAnonDecision("Email private decision", Seq("this", "that", "or that"))
+      fakeEmailDecision("Email private decision", Seq("this", "that", "or that"))
 
     println("AdminGUId: " + adminKey.get.id)
     println("PublicGUId: " + publicKey.id)

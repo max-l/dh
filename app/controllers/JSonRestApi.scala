@@ -57,7 +57,7 @@ object JSonRestApi extends BaseDecisionHubController {
     val k = accessKey(accessGuid, session)
 
     doIt(DecisionManager.updateDecision(k, r.body))(
-      z => if(z) NotFound else Ok
+      z => if(z) Ok else NotFound
     )
   }
   
@@ -65,27 +65,16 @@ object JSonRestApi extends BaseDecisionHubController {
     
     val cd = r.body
 
-    val res: Either[(User,DecisionPrivacyMode.Value), String] = 
-      if(! hasValidGuid(r.body)) Right("InvalidGuid")
+    val userAndMode: Either[(User,DecisionPrivacyMode.Value), String] = 
+      if(! hasValidGuid(cd)) 
+        Right("InvalidGuid")
       else (cd.fbAuth, cd.ownerEmail, cd.ownerName) match {
-        case (Some(fbAuth), None, None) => FacebookProtocol.authenticateSignedRequest(fbAuth.signedRequest) match {
-          case None => Right("Invalid FB signedRequest.")
-          case Some(req) =>
-            val fbUserId = java.lang.Long.parseLong((req \ "user_id").as[String])
-            FacebookParticipantManager.lookupFacebookUser(fbUserId) match {
-              case Some(user) => Left((user, DecisionPrivacyMode.FBAccount))
-              case None =>
-                val mi = FacebookProtocol.facebookOAuthManager.obtainMinimalInfo(fbAuth.accessToken)
-                mi match {
-                  case Left(userInfo) =>
-                    val user = userInfo : User
-                    Left((user, DecisionPrivacyMode.FBAccount)) 
-                  case Right(_) => Right("Failed FB info retrieval") 
-                }
-            }
-        }
+        case (Some(fbAuth), None, None) => 
+          authenticateFbAuth(fbAuth) match {
+            case Some(user) => Left((user, DecisionPrivacyMode.FBAccount)) 
+            case None => Right("Failed FB info retrieval")
+          }
         case (None, Some(ownerEmail), ownerName) =>
-          //TODO: Send confirmation email
           EmailParticipantManager.lookupUserByEmail(ownerEmail) match {
             case Some(user) =>
               Left((user, DecisionPrivacyMode.EmailAccount))
@@ -97,16 +86,29 @@ object JSonRestApi extends BaseDecisionHubController {
         case _ => Right("Invalid information to create decision " + cd)
       }
 
-    res.fold( left => {  
-          val (user, mode) = left
-          DecisionManager.newDecision(cd, user, mode)
-          js(mode.toString)
-        },
-        errorMsg => {
-          logger.error(errorMsg)
-          BadRequest
-        }
+    userAndMode.fold( 
+      left => {  
+        val (user, mode) = left
+        DecisionManager.newDecision(cd, user, mode)
+        js(mode.toString)
+      },
+      errorMsg => {
+        logger.error(errorMsg)
+        BadRequest
+      }
     )
+  }
+  
+  def inviteByEmail(accessGuid: String) = MaybeAuthenticated(expectJson[Seq[String]]) { session => req =>
+    val k = accessKey(accessGuid, session)
+    
+    doIt(DecisionManager.createEmailParticipantsAndSentInvites(k, req.body.toSet))(z => Ok)
+  }
+  
+  def requestEnableEmailInvites(accessGuid: String) = MaybeAuthenticated { session => req =>
+    
+    val k = accessKey(accessGuid, session)
+    Ok
   }
 
   def getDecision(accessGuid: String) = MaybeAuthenticated { session => req =>

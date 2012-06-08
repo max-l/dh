@@ -7,13 +7,13 @@ GET      /vote/:did                             controllers.MainPage.voterScreen
 
 
 # Public View :
-GET  /d/:tok                                    controllers.MainPage.app(tok: String) 
+GET  /d/:guid                                    controllers.MainPage.app(guid: String) 
 
 # Admin Link :
-GET  /admin/:tok                                controllers.MainPage.app(tok: String)
+GET  /admin/:guid                                controllers.MainPage.app(guid: String)
 
 # Voter Link :
-GET  /voter/:tok                                controllers.MainPage.app(tok: String)
+GET  /vote/:guid                                controllers.MainPage.appVoter(guid: String)
 
 GET      /guid                                  controllers.JSonRestApi.newSignedGuidJson
 
@@ -36,7 +36,9 @@ GET      /submitVote/:did                       controllers.JSonRestApi.submitVo
 
 GET      /myDecisionIds                         controllers.JSonRestApi.myDecisionIds
 
+POST     /requestEnableEmailInvites/:did        controllers.JSonRestApi.requestEnableEmailInvites(did: String)
 
+POST     /inviteByEmail/:did                    controllers.JSonRestApi.inviteByEmail(did: String)
 
 
 # Map static resources from the /public folder to the /assets URL path

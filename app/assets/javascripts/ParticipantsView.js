@@ -4,7 +4,7 @@
  */
 
 
-ParticipantsView = function(decisionId, fbAppRerquestTitle) {
+ParticipantsView = function(decisionId, fbAppRerquestTitle, decisionModel) {
 	
 	if(! decisionId) throw new Error('decisionId is null.');
 		
@@ -48,7 +48,38 @@ ParticipantsView = function(decisionId, fbAppRerquestTitle) {
         events: {
            'click #inviteFromFB' : function() {
         	   this.validateFbStatusAndPopInviteDialog()
+           },
+           'click #sendEmailInvitations': function() {
+        	   var zis = this
+        	   if(decisionModel.get('canInviteByEmail'))
+        	     this.sendEmailInvitations()
+        	   else if(decisionModel.get('mode') == "private-fb") {
+            	   FB.login(function(response) {
+            		   zis.sendEmailInvitations()
+            	   }, {scope: 'email'})
+        	   }
            }
+        },
+        sendEmailInvitations: function() {
+        	var zis = this
+        	var emailList = this.$('textarea[name=emailInvitations]').val().split(',')
+        	var invalidemails = _.filter(emailList, function(e) {return ! validateEmail(e)})
+        	if(invalidemails.length > 0)
+        		alert("there are invalid emails: " + 
+        			_.reduce(invalidemails, function(e1,e2){return e1 + ' ' + e2}))
+        	else {
+                $.ajax({
+                    type: 'POST',
+                    url: "/inviteByEmail/" + decisionId,
+                    data: JSON.stringify(emailList),
+                    success: function() {
+                  	  zis.model.fetch()
+                    },
+                    error: function() {},
+                    contentType: "application/json; charset=utf-8",
+                    dataType: 'json'
+                  })
+        	}
         },
         loggedInFacebook: function(meResp, fbAuthResponse) {
         	var zis = this;
@@ -133,5 +164,11 @@ ParticipantsView = function(decisionId, fbAppRerquestTitle) {
         }
     });
 
+    var validateEmail = function (email) { 
+      // http://stackoverflow.com/a/46181/11236
+        var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(email);
+    }
+    
     return new V()
 }

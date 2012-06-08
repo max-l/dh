@@ -1,0 +1,17 @@
+@(decision: Decision, choices: Seq[String], owner: User, voterGuid: String, viewGuid: String, domain: String)
+
+Hi, you have been invited by @owner.displayableName to vote 
+on @decision.title, on http://clearvote.net an onling voting system that
+uses score voting. 
+
+In order to vote, you must access this link :
+
+  https://@domain/vote/@voterGuid
+
+Don't share this link, because anyone who has it will be able to alter your vote.
+
+For sharing this decision with others, use the decision's public link:
+
+  http://@domain/d/@viewGuid
+
+Happy voting !
