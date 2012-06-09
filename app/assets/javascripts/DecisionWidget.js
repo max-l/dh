@@ -32,7 +32,7 @@ DecisionWidget = function(decisionId) {
      var V = Backbone.View.extend({
         model: decisionModel,
         events: {
-         "click a[id=phaseZ]": function() {
+         "click a[id=phaseBtn]": function() {
                	var m = this.model
                	var currentPhase = m.get('phase')
         			var nextPhase = null;
@@ -55,17 +55,21 @@ DecisionWidget = function(decisionId) {
         },
         displayPhase: function(btn) {
 			var p = this.model.get('phase')
+			var phaseText = this.$('#phase')
 
 			if(p == "Draft") {
+				phaseText.text("Draft")
 				btn.text("Start Voting")
 				btn.addClass('btn-success')
 			}
 			else if(p == "VoteStarted") {
+				phaseText.text("Vote Started")
 				btn.text("End Vote and reveal results")
 				btn.removeClass('btn-success')
 				btn.addClass('btn-danger')
 			}
 			else if(p == "Ended") {
+				phaseText.text("Vote Ended")
 				btn.text("Extend Voting")
 				btn.removeClass('btn-danger')
 				btn.addClass('btn-success')
@@ -107,7 +111,7 @@ DecisionWidget = function(decisionId) {
 
             var zis = this
 
-			var phaseBtn = this.$('#phaseZ')
+			var phaseBtn = this.$('#phaseBtn')
 			if(zis.model.hasChanged('phase')) zis.displayPhase(phaseBtn)
 			
 			if(zis.model.hasChanged('numberOfVoters'))
@@ -183,13 +187,7 @@ DecisionWidget = function(decisionId) {
     	events: {
     	  "click #voteNow" : "popupBallot",
           "click #admin" : function() {
-    	
-	    		var dsv = new DecisionSettingsView(decisionId);
-	    		dsv.model.fetch({
-	    			success: function() {
-	 			      $('body').append(dsv.render().el)
-	 		       }
-	 		    })
+	    	  new DecisionSettingsView(decisionId);
           },
           "click #inviteParticipants": function() {
         	  
@@ -210,18 +208,14 @@ DecisionWidget = function(decisionId) {
         	
     	}, 	
     	render: function() {
-    		var zis = this
-    		var el = $(this.el);
-    		var e = $('<div class="decisionWidget"></div>')
-    		el.append(e)
-    		
+    		var zis = this 
     		var d = new DecisionPublicInfo({id: decisionId});
     		this.decisionPublicInfo = d
 
     		d.fetch({
     			success: function() {
     			   var p = DecisionView(d);
-    			   e.html(p.render().el);
+    			   $(zis.el).html(p.render().el);
     		    }
     		})
 

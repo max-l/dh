@@ -71,28 +71,27 @@ object DecisionManager {
 
       update(decisions)(d =>
         where(d.id === k.decision.id)
-        set(d.title := decision.title, 
+        set(d.title := decision.title,
+            d.automaticEnd := decision.automaticEnd,
             d.endsOn := decision.endsOn)
       ) == 1
   })
   
   def setDecisionPhase(k: AccessKey, phase: DecisionPhase.Value) = k.attemptAdmin (transaction {
     
-      assert(update(decisions)(d =>
-        where(d.id === k.decision.id)
-        set(d.phase := phase)
-      ) == 1 )
-      
+    assert(update(decisions)(d =>
+      where(d.id === k.decision.id)
+      set(d.phase := phase)
+    ) == 1 )
+
     phase match {
         case DecisionPhase.Ended => Some {
           val numVoted = numberOfVotesSubmited(k.decision.id)
-      
           val part = 
             decisionParticipations.where(dp => 
               dp.decisionId === k.decision.id and 
               dp.voterId === k.userId).headOption
-  
-              
+
           decisionResults(k.decision.id, numVoted)
         }
         case _ => None

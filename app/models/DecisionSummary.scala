@@ -8,7 +8,7 @@ import java.util.Calendar
 import com.decision_hub.FBAuthResponse
 import com.decision_hub.FBAppRequestInfo
 
-case class DecisionAlternativeM(decisionId: String, title: String)
+case class DecisionAlternativeM(id: Long, decisionId: String, title: String)
 
 case class DecisionM(
   id: String, 

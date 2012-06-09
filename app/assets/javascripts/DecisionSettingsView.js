@@ -3,7 +3,7 @@
 DecisionSettingsView = function(decisionId) {
 	
 	
-    var DecisionView = Backbone.View.extend({
+    var V = Backbone.View.extend({
     	model: new Decision({id: decisionId}),
         _choicesListView: new EditableListView({
         	collectionModel: new ChoiceList(decisionId),
@@ -15,43 +15,48 @@ DecisionSettingsView = function(decisionId) {
     	        this.model.set('title', title)
     	        this.model.save()
             },
-            "click #toggleEndsWhenComplete" : "toggleEndsWhenComplete",
-            "click #toggleEndsAt" : "toggleEndsAt"
-        },
-        setVotePossible: function(trueOrFalse) {
-        	var b = 0
-        	if(trueOrFalse) b = 1
-        	else b = 0
-        	var zis = this
-        	$.get('/setVotePossible/' + decisionId + '/' + b, function() {
-        		//zis.model.set('votingInProgress', trueOrFalse)
-        		zis.model.reset()
-        	})
+            "click #ok": "close",
+            "click .close": "close",
+            "click #terminateAutomaticYes" : function() {
+            	this.model.set('automaticEnd', true)
+            	this.model.save()
+            },
+            "click #terminateAutomaticNo" : function() {
+            	this.model.set('automaticEnd', false)
+            	this.model.save()
+            }
         },
         initialize: function() {
+        	var zis = this
+    		this.model.fetch({
+    			success: function() {
+ 			      $('body').append(zis.render().el)
+    			  zis.modal = this.$('#adminDialog').modal({backdrop: false})
+ 		       }
+ 		    })
+ 		    /*
+ 		    this.model.on('change', function() {
+ 		    	if(zis.model.hasChanged('automaticEnd')) {
+ 		    		debugger
+ 		    		if(zis.model.get('automaticEnd'))
+ 		    		  zis.$('#terminateAutomaticYes').button('toggle')
+ 		    		else
+ 		    		  zis.$('#terminateAutomaticNo').button('toggle')
+ 		    	}
+ 		    })
+ 		    */
         },
-        toggleEndsWhenComplete: function(e) {
-        	this.model.set('endsOn', null);
-          	this.model.save()
-          	this.endsOnField.hide();
-        },
-        toggleEndsAt: function(e) {
-        	if(! this.model.get('endsOn')) {
-      	      this.model.set('endsOn', (new Date()).getTime());
-        	}
-      	    this.model.save()
-      	    this.endsOnField.show();
+        close: function() {
+        	this.$('#adminDialog').modal('hide')
+        	this.modal.remove()
         },
         render: function() {
         	//this.model.off('change');
         	var decision = this.model.toJSON();
         	$(this.el).html(Templates.decisionAdminTemplate(decision));
 
-        	if(decision.endsOn) this.$('#toggleEndsAt').button('toggle');
-        	else this.$('#toggleEndsWhenComplete').button('toggle');
-
-        	this.endsOnField = 
-        	  this.$('#endTime').collapse({toggle: ! decision.endsOn}).data('collapse')
+//        	this.endsOnField = 
+//        	  this.$('#endTime').collapse({toggle: ! decision.endsOn}).data('collapse')
 
             var zis = this;
             var dateTimePickerOptions = {
@@ -75,5 +80,5 @@ DecisionSettingsView = function(decisionId) {
         }
     })
 
-    return new DecisionView()
+    return new V()
 }

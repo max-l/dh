@@ -187,7 +187,7 @@ case class DecisionAlternative(
   decisionId: Long,
   title: String) extends DecisionHubEntity {
   
-  def toModel(guid: String) = DecisionAlternativeM(guid, title)
+  def toModel(guid: String) = DecisionAlternativeM(id, guid, title)
 }
   
 object DecisionParticipationStatus extends Enumeration {
