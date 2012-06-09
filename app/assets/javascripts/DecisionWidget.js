@@ -31,7 +31,47 @@ DecisionWidget = function(decisionId) {
 	
      var V = Backbone.View.extend({
         model: decisionModel,
-        events: {},
+        events: {
+         "click a[id=phaseZ]": function() {
+               	var m = this.model
+               	var currentPhase = m.get('phase')
+        			var nextPhase = null;
+        			if(currentPhase == "Draft") {
+        				nextPhase = 'VoteStarted'
+        			}
+        			else if(currentPhase == "VoteStarted") {
+        				nextPhase = 'Ended'
+        			}
+        			else if(currentPhase == "Ended") {
+        				nextPhase = 'VoteStarted'
+        			} 
+        			else throw Error('invalid phase')
+        
+        			$.get('/setDecisionPhase/' + decisionId + '/' + nextPhase, function(res) {
+        				var r = JSON.parse(res)
+        				m.set({'phase': nextPhase, results: r})
+           		})
+               }
+        },
+        displayPhase: function(btn) {
+			var p = this.model.get('phase')
+
+			if(p == "Draft") {
+				btn.text("Start Voting")
+				btn.addClass('btn-success')
+			}
+			else if(p == "VoteStarted") {
+				btn.text("End Vote and reveal results")
+				btn.removeClass('btn-success')
+				btn.addClass('btn-danger')
+			}
+			else if(p == "Ended") {
+				btn.text("Extend Voting")
+				btn.removeClass('btn-danger')
+				btn.addClass('btn-success')
+			}
+			else throw Error("invalid phase")
+        },
         initialize: function() {
         	this.model.on('change', this.render, this)
         },
@@ -62,8 +102,18 @@ DecisionWidget = function(decisionId) {
         		else
         		  r.pos = r.percent
         	})
-
+        	
             $(this.el).html(Templates.decisionPanelTemplate(decisionPublicDisplay));
+
+            var zis = this
+
+			var phaseBtn = this.$('#phaseZ')
+			if(zis.model.hasChanged('phase')) zis.displayPhase(phaseBtn)
+			
+			if(zis.model.hasChanged('numberOfVoters'))
+				zis.$('#numberOfVoters').text(zis.model.get('numberOfVoters'))
+
+    		zis.displayPhase(phaseBtn)
 
             return this;
         }
@@ -145,25 +195,6 @@ DecisionWidget = function(decisionId) {
         	  
               var fbPartsView = new ParticipantsView(decisionId, "Invitation to vote on " + this.decisionPublicInfo.get('title'), this.decisionPublicInfo)
               $('body').append(fbPartsView.render().el)
-          },
-          "click a[id=phaseZ]": function() {
-          	var m = this.decisionPublicInfo
-          	var currentPhase = m.get('phase')
-  			var nextPhase = null;
-  			if(currentPhase == "Draft") {
-  				nextPhase = 'VoteStarted'
-  			}
-  			else if(currentPhase == "VoteStarted") {
-  				nextPhase = 'Ended'
-  			}
-  			else if(currentPhase == "Ended") {
-  				nextPhase = 'VoteStarted'
-  			} 
-  			else throw Error('invalid phase')
-
-  			$.get('/setDecisionPhase/' + decisionId + '/' + nextPhase, function() {
-  				m.set('phase', nextPhase)
-      		})
           }
         },
         popupBallot:function() {
@@ -177,26 +208,7 @@ DecisionWidget = function(decisionId) {
         },
     	initialize: function() {
         	
-    	},
-        displayPhase: function(btn) {
-			var p = this.decisionPublicInfo.get('phase')
-
-			if(p == "Draft") {
-				btn.text("Start Voting")
-				btn.addClass('btn-success')
-			}
-			else if(p == "VoteStarted") {
-				btn.text("End Vote and reveal results")
-				btn.removeClass('btn-success')
-				btn.addClass('btn-danger')
-			}
-			else if(p == "Ended") {
-				btn.text("Extend Voting")
-				btn.removeClass('btn-danger')
-				btn.addClass('btn-success')
-			}
-			else throw Error("invalid phase")
-        },    	
+    	}, 	
     	render: function() {
     		var zis = this
     		var el = $(this.el);
@@ -210,17 +222,6 @@ DecisionWidget = function(decisionId) {
     			success: function() {
     			   var p = DecisionView(d);
     			   e.html(p.render().el);
-
-            		d.on('change', function() {
-            			
-            			var phaseBtn = p.$('#phaseZ')
-            			if(zis.decisionPublicInfo.hasChanged('phase')) zis.displayPhase(phaseBtn)
-            			
-            			if(zis.decisionPublicInfo.hasChanged('numberOfVoters'))
-            				zis.$('#numberOfVoters').text(zis.decisionPublicInfo.get('numberOfVoters'))
-            		})
-            		var phaseBtn = p.$('#phaseZ')
-            		zis.displayPhase(phaseBtn)
     		    }
     		})
 

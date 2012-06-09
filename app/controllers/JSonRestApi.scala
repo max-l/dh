@@ -69,7 +69,7 @@ object JSonRestApi extends BaseDecisionHubController {
         val k = accessKey(accessGuid, session)
 
         doIt(DecisionManager.setDecisionPhase(k, p))(
-          z => if(z) Ok else NotFound
+          js(_)
         )
     }
   }

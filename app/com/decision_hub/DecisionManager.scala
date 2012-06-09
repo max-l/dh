@@ -78,10 +78,25 @@ object DecisionManager {
   
   def setDecisionPhase(k: AccessKey, phase: DecisionPhase.Value) = k.attemptAdmin (transaction {
     
-      update(decisions)(d =>
+      assert(update(decisions)(d =>
         where(d.id === k.decision.id)
         set(d.phase := phase)
-      ) == 1    
+      ) == 1 )
+      
+    phase match {
+        case DecisionPhase.Ended => Some {
+          val numVoted = numberOfVotesSubmited(k.decision.id)
+      
+          val part = 
+            decisionParticipations.where(dp => 
+              dp.decisionId === k.decision.id and 
+              dp.voterId === k.userId).headOption
+  
+              
+          decisionResults(k.decision.id, numVoted)
+        }
+        case _ => None
+    }
   })
   
   def requestEnableOfEmailInvitations(k: AccessKey) = k.attemptAdmin (transaction {
@@ -266,11 +281,7 @@ object DecisionManager {
         compute(count())
       )
 
-    val numVoted = 
-      from(decisionParticipations)(dp =>
-        where(dp.decisionId === k.decision.id and dp.completedOn.isNotNull)
-        compute(count())
-      ).toInt
+    val numVoted = numberOfVotesSubmited(k.decision.id)
 
     val part = 
       decisionParticipations.where(dp => 
@@ -281,22 +292,8 @@ object DecisionManager {
       if(d.phase == DecisionPhase.VoteStarted)
         None
       else Some(
+          decisionResults(k.decision.id, numVoted)
         // participants that have not voted (no rows in votes table, don't contribute to totals)
-        join(decisionAlternatives, votes.leftOuter)((a,v) => 
-          where(a.decisionId === k.decision.id)
-          groupBy(a.title)
-          compute(sum(v.map(_.score)))
-          orderBy(nvl(sum(v.map(_.score)),Int.MinValue) desc)
-          on(a.id === v.map(_.alternativeId))
-        ) map { t =>
-          val minScore = numVoted * -2
-          val maxScore = numVoted *  2
-          val score = t.measures.getOrElse(minScore)
-          val percent =
-            if(maxScore == 0) 0
-            else ((score + maxScore  : Double) / (maxScore * 2  : Double)) * 100
-          FinalScore(t.key, score, percent.toInt)
-        }
       )
 
     DecisionPublicView(
@@ -315,6 +312,30 @@ object DecisionManager {
       phase = k.decision.phase.toString)
   })
   
+  private def numberOfVotesSubmited(decisionId: Long) =
+      from(decisionParticipations)(dp =>
+        where(dp.decisionId === decisionId and dp.completedOn.isNotNull)
+        compute(count())
+      ).toInt    
+  
+  private def decisionResults(decisionId: Long, numberOfVotesSubmited: Int) = {
+    
+        join(decisionAlternatives, votes.leftOuter)((a,v) => 
+          where(a.decisionId === decisionId)
+          groupBy(a.title)
+          compute(sum(v.map(_.score)))
+          orderBy(nvl(sum(v.map(_.score)),Int.MinValue) desc)
+          on(a.id === v.map(_.alternativeId))
+        ) map { t =>
+          val minScore = numberOfVotesSubmited * -2
+          val maxScore = numberOfVotesSubmited *  2
+          val score = t.measures.getOrElse(minScore)
+          val percent =
+            if(maxScore == 0) 0
+            else ((score + maxScore  : Double) / (maxScore * 2  : Double)) * 100
+          FinalScore(t.key, score, percent.toInt)
+        }    
+  }
 //  private implicit def tuple2Dp(t: (DecisionParticipation, User)) = 
 //    t._1.display(t._2)
 
