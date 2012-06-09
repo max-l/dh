@@ -11,10 +11,6 @@
   </div>
 </script>
 
-<script id="choiceTemplate" type="text/x-handlebars-template">
-  <input type="text" value="{{text}}"/><i class="icon-remove"></i>
-</script>
-
 <script id="participantsDialogTemplate" type="text/x-handlebars-template">
 
   <div id="participantsDialog" class="modal">
@@ -99,17 +95,6 @@
 
 <script id="choiceTemplate" type="text/x-handlebars-template">
   <input type="text" value="{{title}}"/><i class="icon-remove"></i>'
-</script>
-
-<script id="decisionEditorTemplate" type="text/x-handlebars-template">
-  <div>
-    <div class="tab-pane active" id="adminTab"></div>
-    <div class="tab-pane" id="participantsTab"></div>
-  </div>
-</script>
-
-<script id="participantTabTemplate" type="text/x-handlebars-template">
-
 </script>
 
 
@@ -283,30 +268,6 @@
 </script>
 
 
-
-
-<script id="decisionWidgetTemplate" type="text/x-handlebars-template">
-
-     <div class="tabbable">
-       <ul class="nav nav-tabs">
-         <li class="active">
-           <a href="#decisionPublicView{{id}}" data-toggle="tab">Decision</a></li>
-         <li>
-           <a href="#settings{{id}}" data-toggle="tab">Settings</a><i class='icon-wrench'></i></li>
-       </ul>
-       <div class="tab-content">
-         <br>
-         <div class="tab-pane active" id="decisionPublicView{{id}}">
-           <a id='voteButton' class='btn'>Vote</a>
-         </div>
-         <div class="tab-pane" id="settings{{id}}">
-         </div>
-       </div>
-     </div>
-
-</script>
-
-
 <script id="voteTemplate" type="text/x-handlebars-template">
 
       <div id="votePanel" class="modal hide">
@@ -358,16 +319,6 @@
       <a class='btn'>Dismiss</a>
   </div>
 </script>
-
-
-<!-- 
-    title: String, 
-    owner: ParticipantDisplay,
-    ownerId: Long,
-    numberOfVoters: Long,
-    numberOfVotesExercised: Long,
-    results: Option[Seq[FinalScore]]
--->
 
 <script id="decisionPanelTemplate" type="text/x-handlebars-template">
 
