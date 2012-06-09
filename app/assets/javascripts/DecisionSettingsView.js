@@ -85,7 +85,7 @@ DecisionSettingsView = function(decisionId) {
         render: function() {
         	//this.model.off('change');
         	var decision = this.model.toJSON();
-        	$(this.el).html(Templates.decisionViewTemplate(decision));
+        	$(this.el).html(Templates.decisionAdminTemplate(decision));
         	
         	this.displayPhase()
 
@@ -111,9 +111,6 @@ DecisionSettingsView = function(decisionId) {
 
             zis.$('#choiceList').html(zis._choicesListView.render().el)
             zis._choicesListView.model.fetch()
-
-            var fbPartsView = new ParticipantsView(decisionId, "Invitation to vote on " + decision.title, this.model)
-            $(this.el).append(fbPartsView.render().el)
 
             this.model.trigger('change')
             return this;

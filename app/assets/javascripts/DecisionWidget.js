@@ -131,7 +131,21 @@ DecisionWidget = function(decisionId) {
 
     var V = Backbone.View.extend({
     	events: {
-    	  "click #voteNow" : "popupBallot" 
+    	  "click #voteNow" : "popupBallot",
+          "click #admin" : function() {
+    	
+	    		var dsv = new DecisionSettingsView(decisionId);
+	    		dsv.model.fetch({
+	    			success: function() {
+	 			      $('body').append(dsv.render().el)
+	 		       }
+	 		    })
+          },
+          "click #inviteParticipants": function() {
+        	  
+              var fbPartsView = new ParticipantsView(decisionId, "Invitation to vote on " + this.decisionPublicInfo.get('title'), this.decisionPublicInfo)
+              $('body').append(fbPartsView.render().el)
+          }
         },
         popupBallot:function() {
     	    var b = new BallotModel({id: decisionId})
@@ -146,18 +160,25 @@ DecisionWidget = function(decisionId) {
         	
     	},
     	render: function() {
+    		var zis = this
     		var el = $(this.el);
     		var e = $('<div class="decisionWidget"></div>')
     		el.append(e)
     		
     		var d = new DecisionPublicInfo({id: decisionId});
+    		this.decisionPublicInfo = d
+    		
+    		this.decisionPublicInfo.on('change', function() {
+    			if(zis.decisionPublicInfo.hasChanged('numberOfVoters'))
+    				zis.$('#numberOfVoters').text(zis.decisionPublicInfo.get('numberOfVoters'))
+    		})
 
     		d.fetch({
     			success: function() {
     			
     			   var p = DecisionView(d);
     			   
-    			   if(d.get('viewerCanAdmin')) {
+    			   if(d.get('viewerCanAdminZ')) {
     				    var z = d.toJSON()
     				    e.html($(Templates.decisionWidgetTemplate(z)));
         			    var dpvTab = this.$('#decisionPublicView'+decisionId);

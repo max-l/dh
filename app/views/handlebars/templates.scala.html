@@ -15,42 +15,86 @@
   <input type="text" value="{{text}}"/><i class="icon-remove"></i>
 </script>
 
-<script id="decisionViewTemplate" type="text/x-handlebars-template">
-  <form class="form-horizontal">
+<script id="participantsDialogTemplate" type="text/x-handlebars-template">
 
-    {{# applyTemplate "rowT" label="Public link"}}
-        <span class='guidLink'>
-          http://clearvote.net/d/{{publicGuid}}
-        </span>
-    {{/ applyTemplate}}
+  <div id="participantsDialog" class="modal">
+    <div class="modal-header">
+       <button id='closeWizard' class="close" data-dismiss="modal">×</button>
+       <h3>Participants</h3>
 
-    {{# applyTemplate "rowT" label=""}}
-        <a class='btn btn-large' id='phase' ></a>
-      </div>
-    {{/ applyTemplate}}
-
-    {{# applyTemplate "rowT" label="Title"}}
-      <input name='title' type="text" value="{{title}}" placeholder="What is the decision about ?"/>
-    {{/ applyTemplate}}
-
-    {{# applyTemplate "rowT" label="Choices"}}
-      <div id="choiceList"></div>          ​
-    {{/ applyTemplate}}
-
-    {{# applyTemplate "rowT" label="Election ends"}}
-      <div class="btn-group" data-toggle="buttons-radio">
-        <a button class="btn" id='toggleEndsWhenComplete'> when every one has voted</a>
-        <a button class="btn" id='toggleEndsAt'> at fixed date time</a>
-      </div>
-    {{/ applyTemplate}}
-
-    <div id='endTime'>
-       {{# applyTemplate "rowT" label="Ends Time"}}
-         <div data-provide='datetimepicker'></div>
-       {{/ applyTemplate}}
     </div>
+    <div class="modal-body">
 
-  </form>
+         <div class="tab-pane">
+                <button id='inviteFromFB' class="btn">Invite participants from Facebook</button>
+
+                {{#if canInviteByEmail}}
+                  <form class="form-horizontal">
+                    {{# applyTemplate "rowT" label="Email Invitations"}}
+                      <textarea name='emailInvitations' placeholder= 'enter list or email address separated by commas' class='input-xlarge' type="textarea"></textarea>
+                    {{/ applyTemplate}}
+                    <a id='sendEmailInvitations' class="btn">Send email invitations</a>
+                  </form>
+                {{/if}}
+                <div>
+                  <ul></ul>
+                </div>
+         </div>
+    </div>
+    <div class="modal-footer">
+      <a id='ok' class='btn'>Ok</a>
+    </div>
+  </div>
+</script>
+
+<script id="decisionAdminTemplate" type="text/x-handlebars-template">
+
+  <div id="adminDialog" class="modal">
+    <div class="modal-header">
+       <h3>Admin</h3>
+      <button id='closeWizard' class="close" data-dismiss="modal">×</button></div>
+    <div class="modal-body">
+
+             <form class="form-horizontal">
+           
+               {{# applyTemplate "rowT" label="Public link"}}
+                   <span class='guidLink'>
+                     http://clearvote.net/d/{{publicGuid}}
+                   </span>
+               {{/ applyTemplate}}
+           
+               {{# applyTemplate "rowT" label=""}}
+                   <a class='btn btn-large' id='phase' ></a>
+                 </div>
+               {{/ applyTemplate}}
+           
+               {{# applyTemplate "rowT" label="Title"}}
+                 <input name='title' type="text" value="{{title}}" placeholder="What is the decision about ?"/>
+               {{/ applyTemplate}}
+           
+               {{# applyTemplate "rowT" label="Choices"}}
+                 <div id="choiceList"></div>          ​
+               {{/ applyTemplate}}
+           
+               {{# applyTemplate "rowT" label="Election ends"}}
+                 <div class="btn-group" data-toggle="buttons-radio">
+                   <a button class="btn" id='toggleEndsWhenComplete'> when every one has voted</a>
+                   <a button class="btn" id='toggleEndsAt'> at fixed date time</a>
+                 </div>
+               {{/ applyTemplate}}
+           
+               <div id='endTime'>
+                  {{# applyTemplate "rowT" label="Ends Time"}}
+                    <div data-provide='datetimepicker'></div>
+                  {{/ applyTemplate}}
+               </div>
+             </form>
+
+    </div>
+    <div class="modal-footer">
+      <a id='close' class='btn'>Ok</a>
+    </div>
+  </div>
 </script>
 
 <script id="choiceTemplate" type="text/x-handlebars-template">
@@ -66,21 +110,6 @@
 
 <script id="participantTabTemplate" type="text/x-handlebars-template">
 
-  <div class='participantPanel'>   
-     <button id='inviteFromFB' class="btn">Invite participants from Facebook</button>
-
-     {{#if canInviteByEmail}}
-       <form class="form-horizontal">
-         {{# applyTemplate "rowT" label="Email Invitations"}}
-           <textarea name='emailInvitations' placeholder= 'enter list or email address separated by commas' class='input-xlarge' type="textarea"></textarea>
-         {{/ applyTemplate}}
-         <a id='sendEmailInvitations' class="btn">Send email invitations</a>
-       </form>
-     {{/if}}
-     <div>
-       <ul></ul>
-     </div>
-  </div>
 </script>
 
 
@@ -360,11 +389,17 @@
          {{/if}}
          <b>{{owner.displayName}}</b> 
        </div>
-         
+
        {{#if viewerHasVoted}}You have voted{{/if}}
        {{#if viewerCanVote}}<a class='btn' id='voteNow'>Vote</a>{{/if}}
 
-       {{numberOfVoters}} participants<br>
+       {{#if viewerCanAdmin}}
+           <a class='btn' id='admin'>Admin</a>
+           <a class='btn' id='inviteParticipants'>Invite Participants</a>
+       {{/if}}
+       
+
+       <span id='numberOfVoters'>{{numberOfVoters}} participants</span><br>
        {{numberOfVotesExercised}} have voted<br>
      </div>
      <div>

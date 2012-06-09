@@ -305,7 +305,9 @@ object DecisionManager {
       numberOfVoters = numParticipants,
       numberOfVotesExercised = numVoted,
       results = alts.map(_.toSeq),
-      publicGuid = k.publicGuid)
+      publicGuid = k.publicGuid,
+      canInviteByEmail = k.decision.canInviteByEmail,
+      mode = k.decision.mode.toString)
   })
   
 //  private implicit def tuple2Dp(t: (DecisionParticipation, User)) = 
