@@ -61,6 +61,19 @@ object JSonRestApi extends BaseDecisionHubController {
     )
   }
   
+  def setDecisionPhase(accessGuid: String, phase: String) = MaybeAuthenticated { session => r =>
+
+    DecisionPhase.values.find(_.toString == phase) match {
+      case None => BadRequest
+      case Some(p) =>
+        val k = accessKey(accessGuid, session)
+
+        doIt(DecisionManager.setDecisionPhase(k, p))(
+          z => if(z) Ok else NotFound
+        )
+    }
+  }
+  
   def createDecision = Action(expectJson[CreateDecision]) { r =>
     
     val cd = r.body

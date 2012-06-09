@@ -47,23 +47,13 @@
 
   <div id="adminDialog" class="modal">
     <div class="modal-header">
+       <button id='closeWizard' class="close" data-dismiss="modal">×</button>
        <h3>Admin</h3>
-      <button id='closeWizard' class="close" data-dismiss="modal">×</button></div>
+    </div>
     <div class="modal-body">
 
              <form class="form-horizontal">
-           
-               {{# applyTemplate "rowT" label="Public link"}}
-                   <span class='guidLink'>
-                     http://clearvote.net/d/{{publicGuid}}
-                   </span>
-               {{/ applyTemplate}}
-           
-               {{# applyTemplate "rowT" label=""}}
-                   <a class='btn btn-large' id='phase' ></a>
-                 </div>
-               {{/ applyTemplate}}
-           
+
                {{# applyTemplate "rowT" label="Title"}}
                  <input name='title' type="text" value="{{title}}" placeholder="What is the decision about ?"/>
                {{/ applyTemplate}}
@@ -90,7 +80,9 @@
     <div class="modal-footer">
       <a id='close' class='btn'>Ok</a>
     </div>
+    
   </div>
+  
 </script>
 
 <script id="choiceTemplate" type="text/x-handlebars-template">
@@ -347,6 +339,7 @@
        {{#if viewerCanAdmin}}
            <a class='btn' id='admin'>Admin</a>
            <a class='btn' id='inviteParticipants'>Invite Participants</a>
+           <a class='btn' id='phaseZ'></a>
        {{/if}}
        
 

@@ -145,6 +145,25 @@ DecisionWidget = function(decisionId) {
         	  
               var fbPartsView = new ParticipantsView(decisionId, "Invitation to vote on " + this.decisionPublicInfo.get('title'), this.decisionPublicInfo)
               $('body').append(fbPartsView.render().el)
+          },
+          "click a[id=phaseZ]": function() {
+          	var m = this.decisionPublicInfo
+          	var currentPhase = m.get('phase')
+  			var nextPhase = null;
+  			if(currentPhase == "Draft") {
+  				nextPhase = 'VoteStarted'
+  			}
+  			else if(currentPhase == "VoteStarted") {
+  				nextPhase = 'Ended'
+  			}
+  			else if(currentPhase == "Ended") {
+  				nextPhase = 'VoteStarted'
+  			} 
+  			else throw Error('invalid phase')
+
+  			$.get('/setDecisionPhase/' + decisionId + '/' + nextPhase, function() {
+  				m.set('phase', nextPhase)
+      		})
           }
         },
         popupBallot:function() {
@@ -159,6 +178,25 @@ DecisionWidget = function(decisionId) {
     	initialize: function() {
         	
     	},
+        displayPhase: function(btn) {
+			var p = this.decisionPublicInfo.get('phase')
+
+			if(p == "Draft") {
+				btn.text("Start Voting")
+				btn.addClass('btn-success')
+			}
+			else if(p == "VoteStarted") {
+				btn.text("End Vote and reveal results")
+				btn.removeClass('btn-success')
+				btn.addClass('btn-danger')
+			}
+			else if(p == "Ended") {
+				btn.text("Extend Voting")
+				btn.removeClass('btn-danger')
+				btn.addClass('btn-success')
+			}
+			else throw Error("invalid phase")
+        },    	
     	render: function() {
     		var zis = this
     		var el = $(this.el);
@@ -167,34 +205,22 @@ DecisionWidget = function(decisionId) {
     		
     		var d = new DecisionPublicInfo({id: decisionId});
     		this.decisionPublicInfo = d
-    		
-    		this.decisionPublicInfo.on('change', function() {
-    			if(zis.decisionPublicInfo.hasChanged('numberOfVoters'))
-    				zis.$('#numberOfVoters').text(zis.decisionPublicInfo.get('numberOfVoters'))
-    		})
 
     		d.fetch({
     			success: function() {
-    			
     			   var p = DecisionView(d);
-    			   
-    			   if(d.get('viewerCanAdminZ')) {
-    				    var z = d.toJSON()
-    				    e.html($(Templates.decisionWidgetTemplate(z)));
-        			    var dpvTab = this.$('#decisionPublicView'+decisionId);
-        			    dpvTab.html(p.render().el)
-        			    var settingsTab = this.$('#settings'+ decisionId)
-    				    
-    		    		var dsv = new DecisionSettingsView(decisionId);
-    		    		dsv.model.fetch({
-    		    			success: function() {
-    		 			      settingsTab.html(dsv.render().el)
-    		 		       }
-    		 		    })
-    			   }
-    			   else {
-    				   e.html(p.render().el);
-    			   }
+    			   e.html(p.render().el);
+
+            		d.on('change', function() {
+            			
+            			var phaseBtn = p.$('#phaseZ')
+            			if(zis.decisionPublicInfo.hasChanged('phase')) zis.displayPhase(phaseBtn)
+            			
+            			if(zis.decisionPublicInfo.hasChanged('numberOfVoters'))
+            				zis.$('#numberOfVoters').text(zis.decisionPublicInfo.get('numberOfVoters'))
+            		})
+            		var phaseBtn = p.$('#phaseZ')
+            		zis.displayPhase(phaseBtn)
     		    }
     		})
 

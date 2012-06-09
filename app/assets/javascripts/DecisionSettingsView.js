@@ -16,23 +16,7 @@ DecisionSettingsView = function(decisionId) {
     	        this.model.save()
             },
             "click #toggleEndsWhenComplete" : "toggleEndsWhenComplete",
-            "click #toggleEndsAt" : "toggleEndsAt",
-            "click a[id=phase]": function() {
-            	var m = this.model
-    			var p = m.get('phase')
-    			if(p == "Draft") {
-    				m.set('phase', 'VoteStarted')
-    			}
-    			else if(p == "VoteStarted") {
-    				m.set('phase', 'Ended')
-    			}
-    			else if(p == "Ended") {
-    				m.set('phase', 'VoteStarted')
-    			}
-    			this.model.save({success: function() {
-    				debugger
-    			}})
-            }
+            "click #toggleEndsAt" : "toggleEndsAt"
         },
         setVotePossible: function(trueOrFalse) {
         	var b = 0
@@ -44,31 +28,7 @@ DecisionSettingsView = function(decisionId) {
         		zis.model.reset()
         	})
         },
-        displayPhase: function() {
-			var p = this.model.get('phase')
-			var btn = this.$('a[id=phase]')
-			
-			if(p == "Draft") {
-				btn.text("Start Voting")
-				btn.addClass('btn-success')
-			}
-			else if(p == "VoteStarted") {
-				btn.text("End Vote and reveal results")
-				btn.removeClass('btn-success')
-				btn.addClass('btn-danger')
-			}
-			else if(p == "Ended") {
-				btn.text("Extend Voting")
-				btn.removeClass('btn-danger')
-				btn.addClass('btn-success')
-			}
-			else throw Error("invalid phase")
-        },
         initialize: function() {
-        	var zis = this
-        	this.model.on('change', function() {
-        		if(zis.model.hasChanged('phase')) zis.displayPhase()
-        	})
         },
         toggleEndsWhenComplete: function(e) {
         	this.model.set('endsOn', null);
@@ -86,8 +46,6 @@ DecisionSettingsView = function(decisionId) {
         	//this.model.off('change');
         	var decision = this.model.toJSON();
         	$(this.el).html(Templates.decisionAdminTemplate(decision));
-        	
-        	this.displayPhase()
 
         	if(decision.endsOn) this.$('#toggleEndsAt').button('toggle');
         	else this.$('#toggleEndsWhenComplete').button('toggle');

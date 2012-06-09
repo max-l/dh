@@ -35,6 +35,7 @@ GET      /vote/:did/:altId/:score               controllers.JSonRestApi.vote(did
 GET      /submitVote/:did                       controllers.JSonRestApi.submitVote(did: String)
 
 GET      /myDecisionIds                         controllers.JSonRestApi.myDecisionIds
+GET      /setDecisionPhase/:did/:phase          controllers.JSonRestApi.setDecisionPhase(did: String, phase: String)
 
 POST     /requestEnableEmailInvites/:did        controllers.JSonRestApi.requestEnableEmailInvites(did: String)
 

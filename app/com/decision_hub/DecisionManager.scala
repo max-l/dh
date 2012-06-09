@@ -68,16 +68,20 @@ object DecisionManager {
   }
 
   def updateDecision(k: AccessKey, decision: DecisionM) = k.attemptAdmin(inTransaction {
-    
-    val phase = 
-      DecisionPhase.values.find(_.toString == decision.phase).get
-      
+
       update(decisions)(d =>
         where(d.id === k.decision.id)
-        set(d.title := decision.title,
-            d.phase := phase, 
+        set(d.title := decision.title, 
             d.endsOn := decision.endsOn)
       ) == 1
+  })
+  
+  def setDecisionPhase(k: AccessKey, phase: DecisionPhase.Value) = k.attemptAdmin (transaction {
+    
+      update(decisions)(d =>
+        where(d.id === k.decision.id)
+        set(d.phase := phase)
+      ) == 1    
   })
   
   def requestEnableOfEmailInvitations(k: AccessKey) = k.attemptAdmin (transaction {
@@ -307,7 +311,8 @@ object DecisionManager {
       results = alts.map(_.toSeq),
       publicGuid = k.publicGuid,
       canInviteByEmail = k.decision.canInviteByEmail,
-      mode = k.decision.mode.toString)
+      mode = k.decision.mode.toString,
+      phase = k.decision.phase.toString)
   })
   
 //  private implicit def tuple2Dp(t: (DecisionParticipation, User)) = 

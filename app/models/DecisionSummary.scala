@@ -42,7 +42,8 @@ case class DecisionPublicView(
     results: Option[Seq[FinalScore]], 
     publicGuid: String,
     canInviteByEmail: Boolean, 
-    mode: String)
+    mode: String,
+    phase: String)
 
 
 case class ParticipantDisplay(displayName: String, facebookId: Option[Long], accepted: Boolean, email: Option[String], isConfirmed: Boolean)
