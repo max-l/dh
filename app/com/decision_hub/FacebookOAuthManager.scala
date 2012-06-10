@@ -133,7 +133,7 @@ object FacebookProtocol extends CryptoUtil {
   private def mandatoryStringConfig(n: String) =
     Play.current.configuration.getString(n).getOrElse("missing config '"+n + "'")
   
-  private def facebookAppId = 
+  def facebookAppId = 
     mandatoryStringConfig("application.FacebookAppId")
 
   private def facebookSecret = 

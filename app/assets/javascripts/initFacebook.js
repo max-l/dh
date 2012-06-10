@@ -5,10 +5,12 @@
 // loggedInFacebook(meResp, response.authResponse)
 // loggedOutFacebook()
 
+//FB_APP_ID = '...'
+
 function initFacebook(fbAuthStatusListener, subscribeToScatusChange) {
     window.fbAsyncInit = function() {
       FB.init({
-        appId      : '300426153342097',
+        appId      : FB_APP_ID,
         status     : true, // check login status
         channelUrl : '//'+window.location.hostname+'/channel', // Path to your Channel File
         cookie     : true, // enable cookies to allow the server to access the session
