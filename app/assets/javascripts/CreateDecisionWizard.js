@@ -109,8 +109,8 @@ CreateDecisionWizard = function() {
 
         			  zis.$('#privateConfirmationMessage').html(
         				  $("<p>The decision <b>" + zis.model.get('title') + 
-        					"</b> will be tied to your Facebook account. You can access it here http://apps.facebook.com/equivote" +
-        					" or by logging with facebook here : here http://equivote.net</p>")
+        					"</b> will be tied to your Facebook account. You can access it here http://apps.facebook.com/clearvote" +
+        					" or by logging with facebook here : here https://clearvote.net</p>")
         			  )
 
         			  onValid()
@@ -244,11 +244,11 @@ CreateDecisionWizard = function() {
             		  zis.pleaseReplyToEmailDialog()
                   else if(returnCode == "private-fb") {
                 	  zis.close()
-                	  new ApplicationView(zis.model.get('linkGuids').publicGuid)
+                	  window.location.href = '/admin/' + zis.model.get('linkGuids').publicGuid
                   }
                   else if(returnCode == "public") {
                 	  zis.close()
-                	  new ApplicationView(zis.model.get('linkGuids').adminGuid)
+                	  window.location.href = '/admin/' + zis.model.get('linkGuids').publicGuid
                   } 
                   else throw Error("Invalid return code " + returnCode)
                 },
@@ -470,10 +470,14 @@ CreateDecisionWizard = function() {
         },
         checkFacebookStatus: function(notLoggedInFunc) {
         	var zis = this;
+        	
         	FB.getLoginStatus(function(response) {
-        		if(response.status === 'not_authorized') { 
+        		
+        		if(response.status === 'not_authorized') {
+        			// logged in FB but not authorized
         			zis.loggedInFacebook()
         			zis.model.set('fbAuth', null)
+        			if(notLoggedInFunc) notLoggedInFunc()
         	    }
         		else if (response.status === 'connected') {
         			//Connected to FB and App Authorized

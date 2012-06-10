@@ -29,16 +29,13 @@ import html.recuperateRegisteredUserInfo
 
 object MainPage extends BaseDecisionHubController {
 
-  def home = Action { r =>
+  def home = MaybeAuthenticated { s => r =>
     Ok(html.home())
   }
-
-/**
-  def newDecision = Action { req =>
-    val d = DecisionManager.newDecision
-    Redirect(routes.MainPage.decisionAdmin(d.id))
+  
+  def logout = Action { r =>
+    Redirect("/").withNewSession
   }
-*/
 
   def app(accessGuid: String) = MaybeAuthenticated { session => r =>
     
@@ -110,18 +107,3 @@ object MainPage extends BaseDecisionHubController {
 
 }
 
-
-/*
-
-
-{"linkGuids":{"adminGuid":"07ed3qWBr2eos9dk6vEF64","publicGuid":"RZe6BykT1qemi5E_Zaq4a5",
- "guidSignatures":"BrgU92IXfYYIEl4fUfTqhvEtbKy85Ao2Hdu3UtLe/C0="},
- "isPublic":false,
- "fbAuth":{"accessToken":"AAAERPGomtJEBAObgISQW3Nhez6XmOzkZBPO7kudT52wGHQLufQpQA5Y0UeSEM1AfOkH560pZBazOlEVXLoCAw7LbG1Qh4P6oGmzuknxEs9k4hupKND","userID":"100003718310868","expiresIn":6398,"signedRequest":"AYdahvrRdveqErlR3vr6Ui1R_0cjnXW5Hy_rnsHeoJ0.eyJhbGdvcml0aG0iOiJITUFDLVNIQTI1NiIsImNvZGUiOiIyLkFRRHJjNkh6a0JFOFBVYnYuMzYwMC4xMzM5MTc4NDAwLjUtMTAwMDAzNzE4MzEwODY4fEI2S2VnMVFuRlp3RWxxY2dFdGJWMFlOaWtfTSIsImlzc3VlZF9hdCI6MTMzOTE3MjAwMiwidXNlcl9pZCI6IjEwMDAwMzcxODMxMDg2OCJ9"},
- "title":"zozo",
- "choices":[{"title":"1"},{"title":"2"},{"title":"3"}]
- }
-
-
-
-*/

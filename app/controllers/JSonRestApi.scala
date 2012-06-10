@@ -30,7 +30,9 @@ object JSonRestApi extends BaseDecisionHubController {
   lazy val serverSecret = 
     Play.current.configuration.getString("application.secret").
       map(s =>  s : CryptoField).getOrElse(sys.error("missing config 'application.secret'"))
-      
+
+  def logoutRest = Action(Ok.withNewSession)
+  
   def newSignedGuidJson = Action {
     js(newSignedGuid(serverSecret))
   }
@@ -74,7 +76,7 @@ object JSonRestApi extends BaseDecisionHubController {
     }
   }
   
-  def createDecision = Action(expectJson[CreateDecision]) { r =>
+  def createDecision = MaybeAuthenticated(expectJson[CreateDecision]) { sess => implicit r =>
     
     val cd = r.body
 
@@ -103,7 +105,12 @@ object JSonRestApi extends BaseDecisionHubController {
       left => {  
         val (user, mode) = left
         DecisionManager.newDecision(cd, user, mode)
-        js(mode.toString)
+        mode match {
+          case DecisionPrivacyMode.FBAccount =>
+            AuthenticationSuccess(Ok(Json.generate(mode.toString)), new DecisionHubSession(user, r))
+          case _ => 
+            js(mode.toString)
+        }
       },
       errorMsg => {
         logger.error(errorMsg)

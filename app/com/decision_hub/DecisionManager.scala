@@ -14,9 +14,7 @@ import java.util.Date
 object DecisionManager {
 
   def logger = Logger("application")
-  
-  //def newDecision = inTransaction {decisions.insert(Decision(0L, ""))}
-  
+
   def newDecision(cd: CreateDecision, u: User, mode: DecisionPrivacyMode.Value) = inTransaction {
 
     assert(cd.title.length > 3)
@@ -178,9 +176,6 @@ object DecisionManager {
           case Some(s) => Score(a.id, a.title, Some(s.score))
         }
 
-        
-
-
     new Ballot(k.accessGuid, k.decision.title, resAlts)
   })
   
@@ -197,16 +192,9 @@ object DecisionManager {
   })
 
   def createAlternative(k: AccessKey, title: String) = k.attemptAdmin(inTransaction {
-    
     decisionAlternatives.insert(DecisionAlternative(k.decision.id, title))
   })
-  
-  
-//  def addParticipant(k: AccessKey, participantUserId: Long) = k.attemptAddParticipant(inTransaction {
-//    val dp = DecisionParticipation(k.decision.id, 0)
-//    decisionParticipations.insert(dp)
-//  }
-  
+
   def voteIsComplete(k: AccessKey) = k.attemptVote(transaction {
 
     if(update(Schema.decisionParticipations)(dp =>
@@ -237,25 +225,18 @@ object DecisionManager {
   
   def decisionIdsOf(userId: Long) = transaction {
 
-      val toks0 = 
-        from(decisionParticipations, pTokens)((dp, tok) =>
-          where(tok.userId === userId and dp.decisionId === tok.decisionId and dp.voterId === userId)
-          select(tok)
-          orderBy(dp.lastModifTime desc)
-        )
-
       val toks = 
-        join(decisions, decisionParticipations, pTokens, pTokens.leftOuter)((d, dp, pubTok, tok) =>
-          where(dp.voterId === userId)
-          select(d, dp, pubTok, tok)
+        join(decisions, decisionParticipations, pTokens, pTokens.leftOuter)((d, dp, pubTok, personalToken) =>
+          where(dp.voterId === userId and pubTok.userId.isNull)
+          select(d, dp, pubTok, personalToken)
           orderBy(dp.lastModifTime desc)
           on(d.id === dp.decisionId,
              pubTok.decisionId === d.id,
-             tok.map(_.userId).get === Some(userId))
+             personalToken.map(_.userId).get === Some(userId))
         ).map { t =>
-         val (d, dp, pubTok, tok) = t
+         val (d, dp, pubTok, personalToken) = t
            
-           tok match {
+           personalToken match {
              case None => pubTok.id
              case Some(adminOrVoteTok) => adminOrVoteTok.id
            }
@@ -287,13 +268,11 @@ object DecisionManager {
         dp.decisionId === k.decision.id and 
         dp.voterId === k.userId).headOption
 
-    val alts = 
-      if(d.phase == DecisionPhase.VoteStarted)
-        None
-      else Some(
-          decisionResults(k.decision.id, numVoted)
-        // participants that have not voted (no rows in votes table, don't contribute to totals)
-      )
+    val alts =
+      d.phase match {
+         case DecisionPhase.Ended => Some(decisionResults(k.decision.id, numVoted))
+         case _ => None
+      } 
 
     DecisionPublicView(
       title = d.title, 
@@ -318,7 +297,7 @@ object DecisionManager {
       ).toInt    
   
   private def decisionResults(decisionId: Long, numberOfVotesSubmited: Int) = {
-    
+        // participants that have not voted (no rows in votes table, don't contribute to totals)    
         join(decisionAlternatives, votes.leftOuter)((a,v) => 
           where(a.decisionId === decisionId)
           groupBy(a.title)
@@ -335,9 +314,6 @@ object DecisionManager {
           FinalScore(t.key, score, percent.toInt)
         }    
   }
-//  private implicit def tuple2Dp(t: (DecisionParticipation, User)) = 
-//    t._1.display(t._2)
-
 
   def participants(k: AccessKey, page: Int, size: Int) = k.attemptView( transaction {
 

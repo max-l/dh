@@ -9,6 +9,7 @@
 
 function initFacebook(fbAuthStatusListener, subscribeToScatusChange) {
     window.fbAsyncInit = function() {
+
       FB.init({
         appId      : FB_APP_ID,
         status     : true, // check login status
@@ -21,7 +22,7 @@ function initFacebook(fbAuthStatusListener, subscribeToScatusChange) {
 
       if(subscribeToScatusChange) {
           FB.Event.subscribe('auth.statusChange', function(response) {
-    
+
              if(response.authResponse) {
                  FB.api('/me', function(meResp) {
                 	 fbAuthStatusListener.loggedInFacebook(meResp, response.authResponse)

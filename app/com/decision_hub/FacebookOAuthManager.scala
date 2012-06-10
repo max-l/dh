@@ -300,12 +300,4 @@ case class FBAppRequestInfo(id: String, from: FBAppRequestInfoFrom, created_time
     "https://graph.facebook.com/"+from.id+"/picture"
 }
 
-  /* 
-   *   {"accessToken":"...",
-   *    "userID":"100003718310868",
-   *    "expiresIn":4605,
-   *    "signedRequest":"..."}
-   */
-case class FBAuthResponse(accessToken: String, userID: Long, expiresIn: Int, signedRequest: String)
-
   

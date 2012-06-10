@@ -38,17 +38,20 @@ trait Secured[S] {
   def sslSessionIdHeaderName: Option[String]
 
   private def validateToken(request: RequestHeader) = 
-    for(authenticatonToken <-request.session.get(authenticatonTokenName); 
-      userId <- toughCookieBakery.validate(authenticatonToken,sslSessionId((request))) match {
-        case (ToughCookieStatus.Valid, Some((_, dataInCookie, userIdInCookie))) =>
-          logger.debug("Autenticator cookie valid, userId:" + userIdInCookie)
-          Some(loadSession(userIdInCookie,dataInCookie, request))
-        case (status, _) => 
-          logger.debug("Autenticator invalid or expired : " + status)
-          None
+    request.session.get(authenticatonTokenName) match {
+      case None => None
+      case Some(authenticatonToken) => Some {
+        toughCookieBakery.validate(authenticatonToken,sslSessionId((request))) match {
+          case (ToughCookieStatus.Valid, Some((_, dataInCookie, userIdInCookie))) =>
+            logger.debug("Autenticator cookie valid, userId:" + userIdInCookie)
+            Left(loadSession(userIdInCookie,dataInCookie, request))
+          case (status, _) => 
+            logger.debug("Autenticator invalid or expired : " + status)
+            Right(status)
+        }
       }
-    )
-    yield userId
+    }
+    
 
   protected def sslSessionId(request: RequestHeader) =
     (for(hn <- sslSessionIdHeaderName;
@@ -71,10 +74,20 @@ trait Secured[S] {
   def MaybeAuthenticated[A](bp: BodyParser[A])(block: Option[S] => Request[A] => Result): Action[A] =
     Action(bp) { request =>
       validateToken(request) match {
-        case Some(session) => 
+        case Some(Left(session)) => 
           val result = block(Some(session))(request)
           createOrExtendAuthenticator(request, session, result, false)
+        case Some(Right(_)) =>
+          //session invalid or expired, we clear the session's content
+          val r = (block(None)(request))
+
+          r match {
+            case pr:PlainResult => pr.withNewSession
+            case ar:AsyncResult =>
+            AsyncResult(ar.result.map(res => res.asInstanceOf[PlainResult].withNewSession))
+          }
         case None =>
+          //no authenticator, we pass through
           block(None)(request)
       }
     }
@@ -128,17 +141,18 @@ trait Secured[S] {
   }
 
   private def authenticated[A](
-    tokenValidator: RequestHeader => Option[S],
+    tokenValidator: RequestHeader => Option[Either[S,_]],
     onUnauthorized: RequestHeader => Result)(action: S => Action[A]): Action[(Action[A], A)] = {
 
     val authenticatedBodyParser = BodyParser { request =>
-      tokenValidator(request).map { user =>
-        val innerAction = action(user)
-        innerAction.parser(request).mapDone { body =>
-          body.right.map(innerBody => (innerAction, innerBody))
-        }
-      }.getOrElse {
-        Done(Left(onUnauthorized(request)), Input.Empty)
+      tokenValidator(request) match {
+        case Some(Left(user)) => 
+          val innerAction = action(user)
+          innerAction.parser(request).mapDone { body =>
+            body.right.map(innerBody => (innerAction, innerBody))
+          }
+        case _ =>
+          Done(Left(onUnauthorized(request)), Input.Empty)
       }
     }
 
