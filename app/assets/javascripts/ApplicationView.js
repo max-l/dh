@@ -32,22 +32,27 @@ ApplicationView = function(token, popBallot) {
         },
         ready: function() {
         	var zis = this
-        	FB.Event.subscribe('auth.statusChange', function(response) {
-                if(response.authResponse) {
-                	zis.loggedInFacebook(response.authResponse)
-                }
-                else {
-                	zis.loggedOutFacebook()
-                }
-
+        	FB.Event.subscribe('auth.login', function(response) {
+                zis.loggedInFacebook(response.authResponse)
                 var bv = new DecisionWidgetList(token, popBallot);
-                
-                bv.model.fetch({success: function() {
-                	
-                }});
-                
-                zis.$('#mainPanel').html(bv.render().el);
+                bv.model.fetch({success: function() {}});
+                zis.$('#mainPanel').html(bv.render().el);                
         	})
+        	FB.Event.subscribe('auth.logout', function(response) {
+        		zis.loggedOutFacebook()
+        	})
+
+            FB.getLoginStatus(function(response) {
+            	if (response.status === 'connected') {
+            		FB_AUTH = response.authResponse
+            	}
+
+            	this.$('#topSubPanel').html('')
+                var bv = new DecisionWidgetList(token, popBallot);
+                bv.model.fetch({success: function() {}});
+                zis.$('#mainPanel').html(bv.render().el);
+            });
+            
         },
         loggedInFacebook: function(authResponse) {
         	var zis = this
@@ -58,7 +63,8 @@ ApplicationView = function(token, popBallot) {
         	FB_AUTH = null
         	this.$('#signIn').text('Sign in')
         	this.displayNotLoggedInPanel()
-        	//if(this.logOutMenuItem) this.logOutMenuItem.remove()
+        	if(this.logOutMenuItem) this.logOutMenuItem.remove()
+        	if(this.myFacebookDecisions) this.myFacebookDecisions.remove()
         },
         displayNotLoggedInPanel: function() {
         	var topPanel = $(Templates.welcomPanelTemplate())
@@ -80,7 +86,19 @@ ApplicationView = function(token, popBallot) {
   			  zis.logOutMenuItem.click(function() {
   				  FB.logout(function(){window.location.href = '/logout'})
   			  })
+
   			  zis.$('#menuBar').append(zis.logOutMenuItem)
+  			  
+  			  zis.myFacebookDecisions = $("<li><a>My Decisions on Facebook</a></li>")
+  			  
+  			  zis.myFacebookDecisions.click(function() {
+                  var bv = new DecisionWidgetList();
+                  bv.model.fetch()
+                  zis.$('#mainPanel').html(bv.render().el);
+  			  })
+  			  
+  			  zis.$('#menuBar').append(zis.myFacebookDecisions)
+  			  
   			  zis.$('#topSubPanel').empty()
   			})
         }
