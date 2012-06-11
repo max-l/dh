@@ -82,19 +82,17 @@ object DecisionManager {
       set(d.phase := phase)
     ) == 1 )
 
+    getResultsIfVoteInProgress(k.decision.id, phase)
+  })
+  
+  private def getResultsIfVoteInProgress(decisionId: Long, phase: DecisionPhase.Value) =
     phase match {
         case DecisionPhase.Ended => Some {
-          val numVoted = numberOfVotesSubmited(k.decision.id)
-          val part = 
-            decisionParticipations.where(dp => 
-              dp.decisionId === k.decision.id and 
-              dp.voterId === k.userId).headOption
-
-          decisionResults(k.decision.id, numVoted)
+          val numVoted = numberOfVotesSubmited(decisionId)
+          decisionResults(decisionId, numVoted)
         }
         case _ => None
-    }
-  })
+    }    
   
   def requestEnableOfEmailInvitations(k: AccessKey) = k.attemptAdmin (transaction {
       
@@ -103,7 +101,7 @@ object DecisionManager {
     
   })
 
-  def createEmailParticipantsAndSentInvites(k: AccessKey, emailList: Set[String]) = k.attemptAdmin((userId: Long) => transaction {
+  def createEmailParticipantsAndSentInvites(k: AccessKey, emailList: Set[String]) = k.attemptInvite(transaction {
     
     val existingUsers = 
       users.where(_.email in(emailList)).toSeq
@@ -121,6 +119,10 @@ object DecisionManager {
         select(dp)
       ).toSeq
     
+    if(alreadyParticipant != Nil) {
+      logger.debug("already participants users won't be reinvited : " + alreadyParticipant)
+    }
+    
     val toInvite = 
       nonExisting.toSeq ++
       existingUsers.filter(eu => ! alreadyParticipant.exists(_.id == eu.id))
@@ -131,7 +133,7 @@ object DecisionManager {
         select(a.title)
       ).toSeq
     
-    val owner = users.lookup(userId).get
+    val owner = users.lookup(k.decision.ownerId).get
     
     val publicGuid = 
       pTokens.where(t => t.decisionId === k.decision.id and t.userId.isNull).single/*Option*/.id
@@ -189,18 +191,21 @@ object DecisionManager {
       
     if(v < 1) 
       votes.insert(new Vote(k.decision.id, alternativeId, userId, score))
+
   })
 
   def createAlternative(k: AccessKey, title: String) = k.attemptAdmin(inTransaction {
     decisionAlternatives.insert(DecisionAlternative(k.decision.id, title))
   })
 
-  def voteIsComplete(k: AccessKey) = k.attemptVote(transaction {
+  def submitVote(k: AccessKey) = k.attemptVote(transaction {
 
     if(update(Schema.decisionParticipations)(dp =>
         where(dp.decisionId === k.decision.id and dp.voterId === k.userId)
         set(dp.completedOn := Some(new Timestamp(System.currentTimeMillis)))
     ) != 1) sys.error("Could not mark vote as complete " + k.decision.id + "," + k.userId)
+    
+    numberOfVotesSubmited(k.decision.id)
   })
 
   def confirmParticipation(k: AccessKey) = k.attemptVote((userId: Long) => transaction {
@@ -273,23 +278,30 @@ object DecisionManager {
          case DecisionPhase.Ended => Some(decisionResults(k.decision.id, numVoted))
          case _ => None
       } 
+    
+    val canAdmin = k.canAdmin
+    val notEnded = k.decision.phase != DecisionPhase.Ended
+    val canVote = k.canVote
 
     DecisionPublicView(
       title = d.title, 
       owner = owner.display,
       ownerId = d.ownerId,
-      viewerCanVote = k.canVote,
+      viewerCanVote = canVote && k.decision.phase == DecisionPhase.VoteStarted,
       viewerHasVoted = part.map(_.completedOn.isDefined).getOrElse(false),
-      viewerCanAdmin = k.canAdmin, 
+      viewerCanAdmin = canAdmin, 
       numberOfVoters = numParticipants,
       numberOfVotesExercised = numVoted,
       results = alts.map(_.toSeq),
       publicGuid = k.publicGuid,
       canInviteByEmail = k.decision.canInviteByEmail,
       mode = k.decision.mode.toString,
-      phase = k.decision.phase.toString)
+      phase = k.decision.phase.toString,
+      viewerCanRegister =
+        notEnded &&
+        k.decision.mode == DecisionPrivacyMode.Public && (! canAdmin) && (! canVote))
   })
-  
+
   private def numberOfVotesSubmited(decisionId: Long) =
       from(decisionParticipations)(dp =>
         where(dp.decisionId === decisionId and dp.completedOn.isNotNull)

@@ -61,7 +61,8 @@ case class DecisionPublicView(
     publicGuid: String,
     canInviteByEmail: Boolean, 
     mode: String,
-    phase: String)
+    phase: String,
+    viewerCanRegister: Boolean)
 
 
 case class ParticipantDisplay(displayName: String, facebookId: Option[Long], accepted: Boolean, email: Option[String], isConfirmed: Boolean)

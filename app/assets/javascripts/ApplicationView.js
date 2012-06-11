@@ -89,6 +89,34 @@ ApplicationView = function(token, popBallot) {
    return new V()
 }
 
+GenericDialog = function(options, okCallback) {
+	
+   if(! options.okCaption) options.okCaption = "Ok"
+
+   if(! options.cancelCaption) options.cancelCaption = "Cancel"
+
+    var V = Backbone.View.extend({
+    	events: {
+           "click #ok": function() {
+    	      if(okCallback) okCallback(this)
+           },
+           "click #cancel" : function() {
+             this.modal.hide();
+             $(this.el).remove()
+           }
+        },
+        initialize: function() {
+        	$(this.el).html($(Templates.genericDialogTemplate(options)))
+        	
+        	this.$('.modal-body').append(options.body);
+        	this.modal = $(this.el).modal({backdrop: 'static'}).data('modal')
+        	$('body').append(this.render().el)
+        }
+   })
+   
+   return new V()
+}
+
 GlobalUtils = {
 
     createCookie: function (name,value,days) {
@@ -120,4 +148,3 @@ GlobalUtils = {
           return re.test(email);
     }
 }
-

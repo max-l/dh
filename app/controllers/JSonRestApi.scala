@@ -124,7 +124,7 @@ object JSonRestApi extends BaseDecisionHubController {
     
     doIt(DecisionManager.createEmailParticipantsAndSentInvites(k, req.body.toSet))(z => Ok)
   }
-  
+
   def requestEnableEmailInvites(accessGuid: String) = MaybeAuthenticated { session => req =>
     
     val k = accessKey(accessGuid, session)
@@ -156,7 +156,7 @@ object JSonRestApi extends BaseDecisionHubController {
     
     val k = accessKey(accessGuid, session)
     
-    doIt(DecisionManager.voteIsComplete(k))(z => Ok)
+    doIt(DecisionManager.submitVote(k))(js(_))
   }
   
   def createAlternative(accessGuid: String) = MaybeAuthenticated(BodyParsers.parse.json) { session => r =>

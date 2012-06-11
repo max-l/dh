@@ -4,6 +4,8 @@
 
 @app {
 
+  insideFbCanvas = true;
+  
   @if(invitationInfoWhenUnAuthorized != None) {
     new FacebookAuthorizeDialog(@Html(generate(invitationInfoWhenUnAuthorized.get)))
   } else {

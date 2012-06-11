@@ -1,8 +1,8 @@
 
 
 
-DecisionWidget = function(decisionId) {
-
+DecisionWidget = function(decisionId, popBallot) {
+	
   var DecisionView = function(decisionModel) {
 
         function rgbColor(rc, gc, bc) {
@@ -32,6 +32,7 @@ DecisionWidget = function(decisionId) {
      var V = Backbone.View.extend({
         model: decisionModel,
         events: {
+    	 "click #voteNow" : "popupBallot",
          "click a[id=phaseBtn]": function() {
                	var m = this.model
                	var currentPhase = m.get('phase')
@@ -49,9 +50,45 @@ DecisionWidget = function(decisionId) {
         
         			$.get('/setDecisionPhase/' + decisionId + '/' + nextPhase, function(res) {
         				var r = JSON.parse(res)
-        				m.set({'phase': nextPhase, results: r})
+        				m.set({'phase': nextPhase, results: r, viewerCanVote: ! r})
            		})
-               }
+           },
+           "click #registerToVote": function() {
+        	   var b = $(Templates.sendEmailRegistrationTemplate())
+        	   GenericDialog({title: "Register to Vote",body: b}, function(zisDialog) {
+
+        		   var t = b.find('input').val()
+
+                    $.ajax({
+                        type: 'POST',
+                        url: "/inviteByEmail/" + decisionId,
+                        data: "[" + JSON.stringify(t) + "]",
+                        success: function() {
+                    	  zisDialog.modal.hide()
+                    	  
+                    	  GenericDialog({
+                    		    title: "Registration was sent",
+                    		    body: $(Templates.registrationSentTemplate({emailAddress: t})),
+                    		    hideCancel: true
+                    		  },
+                    		  function(zisConfDialog) {zisConfDialog.modal.hide()}
+                          )
+                        },
+                        error: function() {},
+                        contentType: "application/json; charset=utf-8",
+                        dataType: 'json'
+                    })
+        	   })
+           }
+        },
+        popupBallot: function() {
+    	    var b = new BallotModel({id: decisionId})
+    	    var zis = this;
+    	    b.fetch({success: function() {
+        	    var bv = new BallotView(b, decisionModel);
+        	    $(zis.el).append(bv.render().el)
+        	    bv.show()
+    	    }})
         },
         displayPhase: function(btn) {
 			var p = this.model.get('phase')
@@ -63,14 +100,14 @@ DecisionWidget = function(decisionId) {
 				btn.addClass('btn-success')
 			}
 			else if(p == "VoteStarted") {
-				phaseText.text("Vote Started")
+				phaseText.text("Vote in progress")
 				btn.text("End Vote and reveal results")
 				btn.removeClass('btn-success')
 				btn.addClass('btn-danger')
 			}
 			else if(p == "Ended") {
 				phaseText.text("Vote Ended")
-				btn.text("Extend Voting")
+				btn.text("Extend Voting (allow vote to continue)")
 				btn.removeClass('btn-danger')
 				btn.addClass('btn-success')
 			}
@@ -78,6 +115,8 @@ DecisionWidget = function(decisionId) {
         },
         initialize: function() {
         	this.model.on('change', this.render, this)
+        	this.render()
+        	if(popBallot && (! decisionModel.get('viewerHasVoted'))) this.popupBallot()
         },
         render: function() {
 
@@ -106,8 +145,23 @@ DecisionWidget = function(decisionId) {
         		else
         		  r.pos = r.percent
         	})
-        	
+
+            if(decisionPublicDisplay.viewerCanAdmin) {
+            	if(decisionPublicDisplay.mode == "private-fb")
+            		decisionPublicDisplay.adminPermissionsExplanation = "You created this decision, you can administer it, and vote because you have signed in with Facebook"
+            	else
+            		decisionPublicDisplay.adminPermissionsExplanation = "You are viewing this decision via it's administration link, you can modity it's settings and vote from this link."
+            }
+            
+            if(decisionPublicDisplay.viewerCanVote && (! decisionPublicDisplay.viewerCanAdmin)) {
+            	if(decisionPublicDisplay.mode == "private-fb")
+            		decisionPublicDisplay.votePermissionsExplanation = "You are a participant in this decision, you can vote in it because you have signed in with Facebook"
+            	else 
+            		decisionPublicDisplay.votePermissionsExplanation = "You are viewing this decision with your personal voter's link, you can vote with this link."
+            }
+
             $(this.el).html(Templates.decisionPanelTemplate(decisionPublicDisplay));
+            
 
             var zis = this
 
@@ -127,7 +181,7 @@ DecisionWidget = function(decisionId) {
    }
 	
 
-   var BallotView = function(ballotModel) {
+   var BallotView = function(ballotModel, decisionPublicInfoModel) {
          var V = Backbone.View.extend({
         	model: ballotModel,
             events: {
@@ -140,7 +194,8 @@ DecisionWidget = function(decisionId) {
                 },
                 "click #submitVote" : function() {
         	       var zis = this;
-        	       $.get('/submitVote/' + this.model.get('decisionId'), function() {
+        	       $.get('/submitVote/' + this.model.get('decisionId'), function(res) {
+        	    	   decisionPublicInfoModel.set('numberOfVotesExercised', res)
         	    	   zis.hide()
         	       })
                 },
@@ -185,7 +240,6 @@ DecisionWidget = function(decisionId) {
 
     var V = Backbone.View.extend({
     	events: {
-    	  "click #voteNow" : "popupBallot",
           "click #admin" : function() {
 	    	  new DecisionSettingsView(decisionId);
           },
@@ -194,15 +248,6 @@ DecisionWidget = function(decisionId) {
               var fbPartsView = new ParticipantsView(decisionId, "Invitation to vote on " + this.decisionPublicInfo.get('title'), this.decisionPublicInfo)
               $('body').append(fbPartsView.render().el)
           }
-        },
-        popupBallot:function() {
-    	    var b = new BallotModel({id: decisionId})
-    	    var zis = this;
-    	    b.fetch({success: function() {
-        	    var bv = new BallotView(b);
-        	    $(zis.el).append(bv.render().el)
-        	    bv.show()
-    	    }})
         },
     	initialize: function() {
         	
@@ -215,7 +260,7 @@ DecisionWidget = function(decisionId) {
     		d.fetch({
     			success: function() {
     			   var p = DecisionView(d);
-    			   $(zis.el).html(p.render().el);
+    			   $(zis.el).html(p.el);
     		    }
     		})
 
@@ -250,12 +295,10 @@ DecisionWidgetList = function(token, popBallot) {
             var ul = $(this.el);
             var div = $('<div></div>')
             ul.append(div)
-            var dv = new DecisionWidget(decisionIdModel.get('decisionId'))
+            var dv = new DecisionWidget(decisionIdModel.get('decisionId'), popBallot)
             div.append(dv.render().el)
-
-            if(popBallot) dv.popupBallot()
         }
     });
-    
+
    return new V()
 }

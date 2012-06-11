@@ -71,9 +71,22 @@ DecisionSettingsView = function(decisionId) {
               dateTimePickerOptions.defaultDatetime = new Date(decision.endsOn);
 
             this.$('div[data-provide=datetimepicker]').datetimepicker(dateTimePickerOptions);
+            
+            zis._choicesListView.editingDisabled = decision.phase != "Draft";
 
             zis.$('#choiceList').html(zis._choicesListView.render().el)
-            zis._choicesListView.model.fetch()
+            zis._choicesListView.model.fetch({success: function() {
+                if(decision.phase != "Draft") {
+                    zis.$('input').each(function(i, e) {
+                    	$(e).prop('disabled', true)
+                    })
+                    zis.$('.icon-remove').each(function(i, e) {
+                    	$(e).prop('disabled', true)
+                    })
+                }
+            }})
+
+
 
             this.model.trigger('change')
             return this;

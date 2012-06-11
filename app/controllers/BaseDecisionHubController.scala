@@ -58,6 +58,13 @@ class AccessKey(token: PToken, val decision: Decision, val session: Option[contr
   def attemptVote[A](a: => A):Either[A,String] =
     attemptVote((z:Long) => a)
 
+  def attemptInvite[A](a: => A):Either[A,String] = {
+    if(decision.mode == DecisionPrivacyMode.Public)
+      Left(a)
+    else
+      attemptAdmin(a)
+  }
+  
   def attemptAdmin[A](a: Long => A):Either[A,String] = {
 
       (decision.mode, session,  userId) match {

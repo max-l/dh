@@ -1,4 +1,34 @@
 
+<script id="genericDialogTemplate" type="text/x-handlebars-template">
+
+  <div class="modal">
+    <div class="modal-header">
+       <button id='closeWizard' class="close" data-dismiss="modal">×</button>
+       <h3>{{title}}</h3>
+
+    </div>
+    <div class="modal-body">
+      
+    </div>
+    <div class="modal-footer">
+      <a id='ok' class='btn'>{{okCaption}}</a>
+      {{#ifNot hideCancel}}
+        <a id='cancel' class='btn'>{{cancelCaption}}</a>
+      {{/ifNot}}
+    </div>
+  </div>
+</script>
+
+<script id="sendEmailRegistrationTemplate" type="text/x-handlebars-template">
+  <div><p>To vote on this decision, you must follow a link that will be sent to your email address</p><br>
+  <input><div>
+</script>  
+        
+<script id="registrationSentTemplate" type="text/x-handlebars-template">
+  <div>
+    <p>An invitation was sent to {{emailAddress}}, follow the link in this email to access your ballot.</p>
+  </div>
+</script>
 
 <script id="welcomPanelTemplate" type="text/x-handlebars-template">
       <div class="row">
@@ -328,39 +358,51 @@
 
 <script id="decisionPanelTemplate" type="text/x-handlebars-template">
 
-  <div class='rvElectionResults decisionWidget'>
+  <div class='span12 decisionWidget'>
      <div>
        <h2>Decision : {{title}}</h2><br>
 
-        Public link :
-        <span class='guidLink'>
-          http://clearvote.net/d/{{publicGuid}}
-        </span>
+        Public link : <input class='guidLink' value='http://clearvote.net/d/{{publicGuid}}' disabled='true'>
         <br>
+       
        <div>
          Created by : 
          {{#if owner.facebookId}}
            <img src='https://graph.facebook.com/{{owner.facebookId}}/picture?type=square'>
-         {{else}}
-           [Email]
          {{/if}}
          <b>{{owner.displayName}}</b> 
        </div>
-
-       {{#if viewerHasVoted}}You have voted{{/if}}
-       {{#if viewerCanVote}}<a class='btn' id='voteNow'>Vote</a>{{/if}}
-       <span id='numberOfVoters'>{{numberOfVoters}} participants</span><br>
-       {{numberOfVotesExercised}} have voted<br>
-       
+              
        {{#if viewerCanAdmin}}
+         <div class='DecisionAdminPanel'>
            <a class='btn' id='admin'>Admin</a>
-           <a class='btn' id='inviteParticipants'>Invite Participants</a> <br/>
+           <a class='btn' id='inviteParticipants'>Invite Participants</a>
            Decision Phase : <span id='phase'></span>
            <a class='btn' id='phaseBtn'></a>
+           <br/>
+           <i>{{adminPermissionsExplanation}}</i>
+         </div>
+       {{else}}
+           Decision Phase : <span id='phase'></span><br>
        {{/if}}
+
+       {{#if viewerHasVoted}}You have voted{{/if}}
+
+       {{#if viewerCanVote}}
+         <a class='btn' id='voteNow'>Vote</a> <i>{{votePermissionsExplanation}}</i>
+       {{/if}}
+
+       {{#if viewerCanRegister}}
+         <a class='btn' id='registerToVote'>Register to Vote</a> <i>Anyone can vote on this decision</i>
+       {{/if}}
+
+
+       <span id='numberOfVoters'>{{numberOfVoters}} participants</span><br>{{numberOfVotesExercised}} have voted<br>
+
      </div>
-     <div>
+     <div class='rvElectionResults'>
       {{#if results}}
+         <h3>Results <i>{{title}}</i></h3>
          <table>
              <tr>
                <td></td>
@@ -371,7 +413,7 @@
              </tr>
            {{# each results}}
                 <tr>
-                  <td>{{title}}</td>
+                  <td class='choiceTitle'>{{title}}</td>
                   <td>
                     <div class="scoreBar">
                        <div class="scoreBadge" style="background-color:{{rgbColor}}; color:{{scoreColor}};">{{score}}</div></td>

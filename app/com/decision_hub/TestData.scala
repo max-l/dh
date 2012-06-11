@@ -149,11 +149,18 @@ object TestData {
      assert(DecisionManager.vote(bobTokD1, a3.id, v2(a3.id)).isLeft)
      assert(DecisionManager.vote(bobTokD1, a4.id, v2(a4.id)).isLeft)
 
+     DecisionManager.setDecisionPhase(bobTokD1, DecisionPhase.Ended)
+     
      val d1ToValidate = DecisionManager.decisionPubicView(bobTokD1).fold(identity, msg => sys.error(msg))
 
      val expectedScores = 
        v1.map(_._2).zip(v2.map(_._2)).map(t => t._1 + t._2)
      
+     assert(d1ToValidate.results.isDefined)
+       
+     assert(expectedScores.size == 4, "expected 4, got " + expectedScores.size)
+     
+       
      val badScores = 
        expectedScores.zip(
            d1ToValidate.results.get.sortBy(_.title).map(_.score)

@@ -266,9 +266,9 @@ CreateDecisionWizard = function() {
 	    	 hideWarnings()
 	    	 zis.enableTab(tabId)
 	    	 //this.$(tabId).tab('show')
-	    	 zis._inhibitGotoTab = true
+	    	 //zis._inhibitGotoTab = true
 	         btn.trigger('click')
-	         zis._inhibitGotoTab = false
+	         //zis._inhibitGotoTab = false
 	       })        	
         },
     	model: new Decision(),
