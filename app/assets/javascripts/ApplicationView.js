@@ -62,9 +62,9 @@ ApplicationView = function(token, popBallot) {
         },
         displayNotLoggedInPanel: function() {
         	var topPanel = $(Templates.welcomPanelTemplate())
-        	topPanel.find('#createNewDecision').click(function(){
-        		new CreateDecisionWizard()
-        	})
+//        	topPanel.find('#createNewDecision').click(function(){
+//        		new CreateDecisionWizard()
+//        	})
         	this.$('#topSubPanel').html(topPanel)
         },
         render: function() {
