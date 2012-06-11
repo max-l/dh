@@ -43,8 +43,9 @@ ApplicationView = function(token, popBallot) {
         	})
 
             FB.getLoginStatus(function(response) {
+            	
             	if (response.status === 'connected') {
-            		FB_AUTH = response.authResponse
+            		zis.loggedInFacebook(response.authResponse)
             	}
 
             	this.$('#topSubPanel').html('')
@@ -55,6 +56,8 @@ ApplicationView = function(token, popBallot) {
             
         },
         loggedInFacebook: function(authResponse) {
+        	if(FB_AUTH) return 
+        	
         	var zis = this
         	FB_AUTH = authResponse
         	zis.setFbName()
@@ -92,6 +95,7 @@ ApplicationView = function(token, popBallot) {
   			  zis.myFacebookDecisions = $("<li><a>My Decisions on Facebook</a></li>")
   			  
   			  zis.myFacebookDecisions.click(function() {
+  				
                   var bv = new DecisionWidgetList();
                   bv.model.fetch()
                   zis.$('#mainPanel').html(bv.render().el);
