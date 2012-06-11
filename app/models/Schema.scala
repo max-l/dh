@@ -73,6 +73,8 @@ object ResetSchema {
     
 
     Schema.initDb
+    
+    doIt
   }
 }
 
