@@ -13,6 +13,8 @@ import com.decision_hub._
 import models._
 import play.api.mvc.PlainResult
 import play.api.libs.concurrent.Promise
+import controllers.JSonRestApi
+import controllers.DecisionHubSession
 
 
 object Secured {
@@ -37,22 +39,20 @@ trait Secured[S] {
   def authenticatonTokenName: String
   def sslSessionIdHeaderName: Option[String]
 
-  private def validateToken(request: RequestHeader) = 
-    request.session.get(authenticatonTokenName) match {
+  def validateToken(request: RequestHeader) =
+    //request.cookies.get("FBAuth") match {
+    request.headers.get("FBAuth") match {
       case None => None
-      case Some(authenticatonToken) => Some {
-        toughCookieBakery.validate(authenticatonToken,sslSessionId((request))) match {
-          case (ToughCookieStatus.Valid, Some((_, dataInCookie, userIdInCookie))) =>
-            logger.debug("Autenticator cookie valid, userId:" + userIdInCookie)
-            Left(loadSession(userIdInCookie,dataInCookie, request))
-          case (status, _) => 
-            logger.debug("Autenticator invalid or expired : " + status)
-            Right(status)
-        }
-      }
-    }
-    
+      case Some(fbAuth) =>
+        val a = com.codahale.jerkson.Json.parse[FBAuthResponse](fbAuth)
 
+        FacebookProtocol.authenticateSignedRequest(a.signedRequest) match {
+          case None => Some(Right(""))
+          case Some(_) => 
+            Some(Left(loadSession(a.userID.toString,"", request)))
+        }
+    }
+  
   protected def sslSessionId(request: RequestHeader) =
     (for(hn <- sslSessionIdHeaderName;
          sid <- request.headers.get(hn))

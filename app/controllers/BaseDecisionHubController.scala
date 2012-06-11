@@ -130,7 +130,22 @@ trait BaseDecisionHubController extends Controller with Secured[DecisionHubSessi
       case _ => sys.error("UserId is not a long '" + s + "'.")
     }
 
-  def loadSession(userId: String, dataInCookie: String, h: RequestHeader) = DecisionHubSession(parseUserId(userId), dataInCookie, h)
+  override def validateToken(request: RequestHeader) =
+    //request.cookies.get("FBAuth") match {
+    request.headers.get("FBAuth") match {
+      case None => None
+      case Some(fbAuth) =>
+        val a = com.codahale.jerkson.Json.parse[FBAuthResponse](fbAuth)
+        
+        JSonRestApi.authenticateFbAuth(a) match {
+          case None => Some(Right(""))
+          case Some(user) => 
+            Some(Left(DecisionHubSession(user.id,"", request)))
+        }
+    }
+  
+  def loadSession(userId: String, dataInCookie: String, h: RequestHeader) = sys.error("!!!")
+    
   def userIdFromSession(s: DecisionHubSession) = s.userId.toString
   def dataFromSession(s: DecisionHubSession) = s.dataInCookie
 }

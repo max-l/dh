@@ -244,11 +244,11 @@ CreateDecisionWizard = function() {
             		  zis.pleaseReplyToEmailDialog()
                   else if(returnCode == "private-fb") {
                 	  zis.close()
-                	  window.location.href = '/admin/' + zis.model.get('linkGuids').publicGuid
+                	  window.location.href = '/'
                   }
                   else if(returnCode == "public") {
                 	  zis.close()
-                	  window.location.href = '/admin/' + zis.model.get('linkGuids').publicGuid
+                	  window.location.href = '/admin/' + zis.model.get('linkGuids').adminGuid
                   } 
                   else throw Error("Invalid return code " + returnCode)
                 },

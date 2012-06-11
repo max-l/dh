@@ -166,6 +166,10 @@ object FacebookProtocol extends CryptoUtil {
 
           val reqBin = Base64.decode(paddedReq, Base64.URL_SAFE)
           val reqStr = new String(reqBin)
+          
+          println("==============1> " + signedRequest)
+          println("==============2> " + reqStr)
+          
           val js = Json.parse(reqStr)
 
           val algo = (js \ "algorithm").as[Option[String]]
@@ -186,7 +190,27 @@ object FacebookProtocol extends CryptoUtil {
           }
 
           logger.info("Authentication from Facebook status :" + isValid)
-          if(isValid) Some(js) else None
+          if(isValid) {
+            val expires = 
+              (js \ "expires").as[Option[Long]] match {
+                case Some(e) => e 
+                case None =>
+                  val code = (js \ "code").as[String]
+                  
+                  val codeSplit = code.split('.').toSeq
+                  
+                  if(codeSplit.size < 3)
+                    Long.MaxValue
+                  else
+                    java.lang.Long.parseLong(codeSplit(3))
+              }
+
+            if(expires >= (System.currentTimeMillis() / 1000L))
+              Some(js)
+            else 
+              None
+          }
+          else None
       case _ => 
         logger.error("bad facebook signed_request format :'%s'".format(signedRequest))
         None
