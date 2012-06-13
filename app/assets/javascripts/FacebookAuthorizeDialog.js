@@ -10,7 +10,7 @@ FacebookAuthorizeDialog = function(invitationInfoWhenUnAuthorized) {
           }
         }, 
         initialize: function() {
-           initFacebook(this)
+           initFacebook(this, true)
         },
         render: function() {
           $(this.el).html(Templates.invitationForUnauthorizedTemplate(invitationInfoWhenUnAuthorized))
@@ -19,13 +19,15 @@ FacebookAuthorizeDialog = function(invitationInfoWhenUnAuthorized) {
             this.render()
         },
         loggedInFacebook: function(meResp, fbAuthResponse) {
-        	
+        	debugger
+        	var zis = this
             $.ajax({
               type: 'POST',
               url: "/loginWithFacebookToken",
-              data: JSON.stringify(authResponse),
+              data: JSON.stringify(fbAuthResponse),
               success: function() {
             	new ApplicationView(invitationInfoWhenUnAuthorized.decisionPublicGuid)
+            	$(zis.el).remove()
               },
               error: function() {},
               contentType: "application/json; charset=utf-8",

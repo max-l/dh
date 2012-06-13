@@ -195,14 +195,16 @@ object FacebookProtocol extends CryptoUtil {
               (js \ "expires").as[Option[Long]] match {
                 case Some(e) => e 
                 case None =>
-                  val code = (js \ "code").as[String]
-                  
-                  val codeSplit = code.split('.').toSeq
-                  
-                  if(codeSplit.size < 3)
-                    Long.MaxValue
-                  else
-                    java.lang.Long.parseLong(codeSplit(3))
+
+                  (js \ "code").as[Option[String]] match {
+                    case None => Long.MaxValue
+                    case Some(code) =>
+                      val codeSplit = code.split('.')
+                      if(codeSplit.size < 3)
+                        Long.MaxValue
+                      else
+                        java.lang.Long.parseLong(codeSplit(3))
+                  }
               }
 
             if(expires >= (System.currentTimeMillis() / 1000L))

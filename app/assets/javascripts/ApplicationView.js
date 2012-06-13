@@ -22,7 +22,12 @@ ApplicationView = function(token, popBallot) {
         },
         initialize: function() {
         	this.displayNotLoggedInPanel()
-        	initFacebook(this)
+        	
+        	if(!window.fbAsyncInit)
+        	  initFacebook(this)
+        	else
+        	  this.ready()
+        	  
         	$.ajaxSetup({
         		beforeSend: function(jqXHR, settings) {
         		  if(FB_AUTH)
@@ -47,11 +52,13 @@ ApplicationView = function(token, popBallot) {
             	if (response.status === 'connected') {
             		zis.loggedInFacebook(response.authResponse)
             	}
+            	if(token) {
 
-            	this.$('#topSubPanel').html('')
-                var bv = new DecisionWidgetList(token, popBallot);
-                bv.model.fetch({success: function() {}});
-                zis.$('#mainPanel').html(bv.render().el);
+                	this.$('#topSubPanel').html('')
+                    var bv = new DecisionWidgetList(token, popBallot);
+                    bv.model.fetch({success: function() {}});
+                    zis.$('#mainPanel').html(bv.render().el);
+                }
             });
             
         },
