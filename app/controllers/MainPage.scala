@@ -29,6 +29,10 @@ import html.recuperateRegisteredUserInfo
 
 object MainPage extends BaseDecisionHubController {
 
+  def equivote(languageCode: String) = Action {
+    Ok(html.vp2(Languages(languageCode)))
+  }
+  
   def home = MaybeAuthenticated { s => r =>
     Ok(html.home())
   }

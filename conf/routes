@@ -1,4 +1,6 @@
 
+GET      /equivote/:l                           controllers.MainPage.equivote(l: String)
+
 GET      /                                      controllers.MainPage.home
 #GET     /newDecision                           controllers.MainPage.newDecision
 #GET     /decisionAdmin/:id                     controllers.MainPage.decisionAdmin(id: String)

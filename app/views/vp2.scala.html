@@ -1,0 +1,88 @@
+@(implicit l: I18nLanguage)
+
+  @art(i: Int, c: Content2) = {
+
+     <div class="accordion-group">
+       <div class="accordion-heading">
+         <div class="accordion-toggle" data-toggle="collapse" data-parent="#accordion@(i % 2)" href="#collapse@i">
+           <h3 class='topArgument'>@c.title</h3>
+         </div>
+       </div>
+       <div id="collapse@i" class="accordion-body collapse">
+         <div class="accordion-inner">
+           @c.content
+         </div>
+       </div>
+     </div>
+  }
+
+  @body = {
+    <body>
+
+
+      <div class='container'>
+      
+         <div class="row hero-unit topPanel">
+         
+             <h1>@(CR.evaluativeVoting.!)</h1>
+             <br>
+             <h2>@(CR.votingMethodThatEMpowersElectors !)</h2>
+        </div>
+        
+        <div class="row">
+        <div class='span12'>
+          <div class="row">
+            <div id='accordion1' class="span6 accordion">
+              @art(1, CR.top5Reasons(0).!)
+              @art(3, CR.top5Reasons(2).!)
+              @art(5, CR.top5Reasons(4).!)
+            </div>
+            <div id='accordion0' class="span6 accordion">
+              @art(2, CR.top5Reasons(1).!)
+              @art(4, CR.top5Reasons(3).!)
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+    </body>
+  }
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+
+   @css("equivote.css")
+   @css("equivote2.css")
+
+   <style type="text/css">
+    .topPanel {
+      margin-left: 0px
+    }
+    .topArgument:hover {
+      color: #9C0001;
+    }
+    h3.active {
+      color: #9C0001;
+    }
+   </style>
+  </head>
+
+  @body 
+  
+  @js("jquery-1.7.2.js")
+  @js("bootstrap.js")
+
+ <script>
+ 
+   $('.collapse').on('shown', function(ev) {
+     $(ev.currentTarget).parent().find('h3').addClass('active')
+   })
+
+   $('.collapse').on('hidden', function(ev) {
+     $(ev.currentTarget).parent().find('h3').removeClass('active')
+   })
+  </script>
+
+</html>

@@ -1,0 +1,104 @@
+@()()
+
+@body(c: Html) = {
+  <body>
+    <div class='container'>
+      <div class='span12>
+          @c
+      </div>
+    </div>
+  </body>
+}
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+
+   @css("bootstrap.css")
+   @css("equivote.css")
+
+   <style type="text/css">
+
+   </style>
+  </head>
+
+ @art() = {
+            <div class="accordion-group">
+              <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
+                  Collapsible Group Item #1
+                </a>
+              </div>
+              <div id="collapseOne" class="accordion-body collapse" style="height: 0px; ">
+                <div class="accordion-inner">
+                  Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. 3 wolf moon officia aute, non cupidatat skateboard dolor brunch. Food truck quinoa nesciunt laborum eiusmod. Brunch 3 wolf moon tempor, sunt aliqua put a bird on it squid single-origin coffee nulla assumenda shoreditch et. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident. Ad vegan excepteur butcher vice lomo. Leggings occaecat craft beer farm-to-table, raw denim aesthetic synth nesciunt you probably haven't heard of them accusamus labore sustainable VHS.
+                </div>
+              </div>
+            </div>
+  }
+  
+  @art0() = {
+        <div class="article">
+          <h2>
+            <div class="arrow"></div>
+            <div class="ordre">46.</div> 
+            <span class="title">Site d'enfouissement EBI</span>
+          </h2>
+          <div class="content">
+            <p style="text-align: justify;">Le gouvernement Charest accepte le projet d'agrandissement du site d'enfouissement d'EBI, augmentant ainsi la capacité d'enfouissement de 9 à 30 millions de tonnes d'ici à 25 ans, malgré les recommandations du BAPE. Le BAPE jugeait cela&nbsp;<strong>inacceptable</strong>&nbsp;et&nbsp;<strong>dangereux</strong>&nbsp;pour l'avenir de l'agriculture locale, en plus de ne pas respecter les trois enjeux du développement durable en plus d'aller à l'encontre des objectifs de régionalisation des déchêts que prévoit la politique gouvernementale de gestion des matières résiduelles.</p>
+            <p>&nbsp;</p>
+            <ul>
+              <li><a href="http://www.ledevoir.com/environnement/actualites-sur-l-environnement/88834/agrandissement-d-un-site-d-enfouissement-le-bape-rejette-le-projet-d-ebi">http://www.ledevoir.com/environnement/actualites-sur-l-environnement/88834/agrandissement-d-un-site-d-enfouissement-le-bape-rejette-le-projet-d-ebi</a></li>
+            </ul>
+            <ul>
+              <li><a href="http://www.mddep.gouv.qc.ca/matieres/pgmr/pol-enbref.pdf">http://www.mddep.gouv.qc.ca/matieres/pgmr/pol-enbref.pdf &nbsp;</a></li>
+            </ul>
+          </div>
+        </div>
+  }
+
+  @body {
+    
+    <div id="body_article">
+      <div class="left">
+        @art()
+        @art()
+      </div>
+  
+      <div class="right">
+        @art()
+        @art()
+      </div>
+    </div>
+    
+  }
+  
+  @js("jquery-1.7.2.js")
+  
+    <script type="text/javascript" charset="utf-8">
+    
+      jQuery(document).ready(function($) {
+       $(".article > h2").click(function() {
+        ie = (($.browser.msie && (parseInt($.browser.version, 10) === 7) || parseInt($.browser.version, 10) === 8))? true:false;
+        if($(this).hasClass("open")) {
+         if(ie) $(this).next().hide();
+         else $(this).next().slideUp("slow");
+         $(this).removeClass("open");
+        }
+        else {
+         $(this).next().find("a").each(function(index) {
+          if($(this).text().length>50)
+          $(this).text($(this).text().substr(0,50)+"...");
+          $(this).attr("target","_blank");
+         });
+         if(ie)
+         $(this).next().show();
+         else
+         $(this).next().slideDown("slow");
+         $(this).addClass("open");
+        }
+       });
+      });
+  </script>
+</html>
