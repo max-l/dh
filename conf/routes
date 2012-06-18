@@ -1,5 +1,6 @@
 
 GET      /equivote/:l                           controllers.MainPage.equivote(l: String)
+GET      /cssExp                                controllers.MainPage.cssExp
 
 GET      /                                      controllers.MainPage.home
 #GET     /newDecision                           controllers.MainPage.newDecision

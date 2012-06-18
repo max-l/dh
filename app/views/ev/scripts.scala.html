@@ -1,0 +1,49 @@
+@(implicit l: I18nLanguage)
+    
+@js(p: String) = {<script src='/assets/javascripts/@p'  type="text/javascript"></script>}
+
+
+@js("jquery-1.7.2.js")
+@js("bootstrap.js")
+
+ <script>
+
+  $('.collapse').on('shown', function(ev) {
+    $(ev.currentTarget).parent().find('h3').addClass('active')
+  })
+
+  $('.collapse').on('hidden', function(ev) {
+    $(ev.currentTarget).parent().find('h3').removeClass('active')
+  })
+
+  $('#va').popover({
+    title: "Vote par approbation",
+    content: "Vote ..."
+  })
+
+  $('#uninominalSystem').popover({
+    title: '@(Defs.uninominalSystem.!.title)',
+    content: '@(Defs.uninominalSystem.!.jsContent)'
+  })
+
+  function toggle(b, isChecked) {
+     var contrib = b.parent().parent().find("[contrib]")
+     if(isChecked) {
+       b.html($('<i class="icon-ok"></i>'))
+       contrib.html('<span>+1</span>')
+     }
+     else {
+       b.html('')
+       contrib.html('<span>&nbsp;&nbsp;0</span>')
+     }
+  }
+
+  $("a[avscore]").each(function(i,e) {
+    var b = $(e)
+    
+    var check = b.attr('avscore') == "1"
+    if(check) b.button('toggle')
+    
+  })
+  
+</script>

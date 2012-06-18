@@ -1,0 +1,311 @@
+@(implicit l: I18nLanguage)
+
+  @art(i: Int, c: Content2) = {
+
+     <div class="accordion-groupz">
+       <div class="accordion-heading">
+         <div class="accordion-toggle topArgument" data-toggle="collapse" data-parent="#accordion@(i % 2)" href="#collapse@i">
+           <div><span class='chiffre'>@i</span>  <span class='titre'>@c.title<span></div>
+         </div>
+       </div>
+       <div id="collapse@i" class="accordion-body collapse">
+         <div class="accordion-inner">
+           @c.content
+         </div>
+       </div>
+     </div>
+  }
+
+<!DOCTYPE html>
+<html>
+  <head>
+
+   @css("equivote.css")
+   @css("equivote2.css")
+   @css("ballot.css")
+
+   <style type="text/css">
+    .topPanel {
+      height:200px;
+      padding-top:20px;
+      border-style: solid;
+    }
+    .zballotsBox {
+      position: relative;
+      height: 400px;
+    }
+    .avballot {
+    }
+    .rvz {
+      position: absolute;
+      
+    }
+    .topArgument:hover {
+      color: #9C0001;
+    }
+    
+    .topArgument.active {
+      color: #9C0001;
+    }
+        
+    .topArgument > div > .titre {
+      font-size: 18px;
+      font-weight: bold;
+    }    
+    
+    .chiffre {
+      font-weight: bold;
+      font-size: 25px;
+      margin-right: 5px;      
+      /*
+      float: left;
+      border-radius: 50%;
+      border-style: solid;
+      width: 30px;
+      height: 30px;
+      */
+    }
+    
+    .defn  {
+      font-size: 18px;
+      text-align: justify;
+      font-style: italic;
+      margin-top: 20px;
+    }
+    
+    .defn > :first-child {
+      font-size: 1.3em;
+      font-weight: bold;
+    }
+    
+    .accordion-group {
+      margin-top: 6px;
+      border-style: none;
+    }
+    .accordion-inner {
+      border-style: none;
+      margin-left: 20px;
+      text-align: justify;
+    }
+    .navbar-fixed-top {
+      margin: 0px
+    }
+   </style>
+  </head>
+
+    <body>
+      @topNav()
+
+      <div class='container'>
+        <div class="row topPanel">
+            <div class='span7'>
+              <h3>Regroupement citoyen pour l'instauration du</h3>
+              <h1>@(CR.evaluativeVoting.!)</h1>
+              <br>
+              <h2>@(CR.votingMethodThatEMpowersElectors !)</h2>
+            </div>
+            <div class='span4'>
+            </div>
+
+        </div>
+
+        <div class="row">
+        <div class='span12'>
+          <div class="row">
+            <div class='span6'>
+
+              <p class='defn'><span>Vote Évaluatif</span> : un système de vote où l'électeur évalue chaque candidat à l'aide d'un score numérique,
+                 le gagnant est celui dont la somme des scores est la plus élevée.
+              </p>
+
+             <h2>Trois variantes du vote évaluatif</h2>
+
+             @tabs("1- le vote par approbation", "2- le vote par valeur", "3- le jugement majoritaire") {
+               
+               Le plus simple de tous, très semblable au scrutin uninominal,
+               sa seule différence est que l'électeur vote pour chaque
+               candidat qu'il approuve. Le candidat avec le plus
+               grand nombre de votes (d'approbations) gagne.               
+               @avBallot("Vote for the president of the universe")
+             } {
+               L'électeur donne un score entre -2 et +2 à chacun des candidats
+               @rvBallot()
+             } {
+               L'électeur donne un score entre -2 et +2 à chacun des candidats
+               @rvBallot()
+             }             
+
+             
+             
+
+              
+            <p>zaza</p>
+            </div>
+            <div id='accordion0' class="span6 accordionz">
+              @art(1, CR.top5Reasons(0).!)            
+              @art(2, CR.top5Reasons(1).!)
+              @art(3, CR.top5Reasons(2).!)
+              @art(4, CR.top5Reasons(3).!)
+              @art(5, CR.top5Reasons(4).!)
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+      
+     @ev.scripts(l)
+    </body> 
+  
+</html>
+
+    @avBallot(subject: String) = {
+       <div class='avballot av'>
+         <div>
+           <span>@subject</span><br>
+           <span>@(CR.ballotInstruction !)</span>
+         </div>
+         <div class="btn-group" data-toggle="buttons-checkbox">
+           <ul>
+             @avRow("Jesus" , 1)
+             @avRow("Stalin", 0)
+             @avRow("Yoda"  , 1)
+             @avRow("Hitler", 0)
+           </ul>
+         </div>
+       </div>
+    }
+    
+    @avRow(candidateName: String, score: Int) = {
+      <li>
+        <span>@candidateName</span>
+        <a avscore='@score' class='btn'>X</a>
+      </li>
+    }
+
+
+   @rvBallot() = {
+         <div class="avballot rv">
+            <div>
+              <span>Vote on : Qui voyez à la tête du Québec?</span><br>
+              <span>Mark your level of approbation for each candidate, <br> 
+                 -2: strongly disapprove, -1 disapprove, 0: neutral, 1: approve, 2: strongly approve
+              </span>
+            </div>
+            <div>
+              <ul>
+                   <li>
+                     <span>Jean Charest</span>
+                     <div class="btn-group" data-toggle="buttons-radio">
+                       <a altid="27" score="-2" class="ap1 btn active">-2</a>
+                       <a altid="27" score="-1" class="ap2 btn">-1</a>
+                       <a altid="27" score="0" class="ap3 btn">0</a>
+                       <a altid="27" score="1" class="ap4 btn">1</a>
+                       <a altid="27" score="2" class="ap5 btn">2</a>
+                     </div>
+                   </li>
+                
+                   <li>
+                     <span>Pauline Marois</span>
+                     <div class="btn-group" data-toggle="buttons-radio">
+                       <a altid="28" score="-2" class="ap1 btn">-2</a>
+                       <a altid="28" score="-1" class="ap2 btn">-1</a>
+                       <a altid="28" score="0" class="ap3 btn">0</a>
+                       <a altid="28" score="1" class="ap4 btn active">1</a>
+                       <a altid="28" score="2" class="ap5 btn">2</a>
+                     </div>
+                   </li>
+                
+                   <li>
+                     <span>Amir Kadhir</span>
+                     <div class="btn-group" data-toggle="buttons-radio">
+                       <a altid="29" score="-2" class="ap1 btn">-2</a>
+                       <a altid="29" score="-1" class="ap2 btn">-1</a>
+                       <a altid="29" score="0" class="ap3 btn">0</a>
+                       <a altid="29" score="1" class="ap4 btn">1</a>
+                       <a altid="29" score="2" class="ap5 btn active">2</a>
+                     </div>
+                   </li>
+                   <li>
+                     <span>François Legault</span>
+                     <div class="btn-group" data-toggle="buttons-radio">
+                       <a altid="30" score="-2" class="ap1 btn">-2</a>
+                       <a altid="30" score="-1" class="ap2 btn">-1</a>
+                       <a altid="30" score="0" class="ap3 btn active">0</a>
+                       <a altid="30" score="1" class="ap4 btn">1</a>
+                       <a altid="30" score="2" class="ap5 btn">2</a>
+                     </div>
+                   </li>
+              </ul>
+            </div>
+          </div>   
+   
+   }
+    
+  @topNav() = {
+      <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+          <div class="container">
+            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="brand" href="./index.html">Equivote</a>
+            <div class="nav-collapse collapse">
+              <ul class="nav">
+                <li class="">
+                  <a href="./index.html">Objectif</a>
+                </li>
+                <li class="divider-vertical"></li>
+              </ul>
+  
+            <ul class="nav pull-right">
+              <li><a href="">Français</a></li>
+              <li><a href="">English</a></li>
+              <li class="divider-vertical"></li>
+              <li><a>Contact</a></li>
+            </ul>
+  
+            </div>
+          </div>
+        </div>
+      </div>  
+  }
+  
+ @subNav() =  {
+        <div class="subnav subnav-fixed">
+          <ul class="nav nav-pills">
+            <li><a href="#javascript">Qu'est ce que le vote évaluatif, et pourquoi ?</a></li>
+            <li><a href="#popovers">Popover</a></li>
+            <li class="active"><a href="#alerts">Alert</a></li>
+            <li class=""><a href="#buttons">Button</a></li>
+            <li class=""><a href="#collapse">Collapse</a></li>
+            <li><a href="#carousel">Carousel</a></li>
+            <li><a href="#typeahead">Typeahead</a></li>
+          </ul>
+        </div> 
+ }  
+ 
+ 
+ 
+ @tabs(t1: String, t2: String, t3: String)(c1: Html)(c2: Html)(c3: Html) = {
+ 
+   <div class="tabbable">
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#tab1" data-toggle="tab">@t1</a></li>
+      <li><a href="#tab2" data-toggle="tab">@t2</a></li>
+      <li><a href="#tab3" data-toggle="tab">@t3</a></li>
+    </ul>
+    <div class="tab-content">
+      <div class="tab-pane active" id="tab1">
+        @c1
+      </div>
+      <div class="tab-pane" id="tab2">
+        @c2
+      </div>
+      <div class="tab-pane" id="tab3">
+        @c3
+      </div>      
+    </div>
+  </div>
+}

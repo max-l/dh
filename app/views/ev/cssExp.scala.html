@@ -1,0 +1,42 @@
+@()
+@js(p: String) = {<script src='/assets/javascripts/@p'  type="text/javascript"></script>}
+
+<!DOCTYPE html>
+<html>
+  <head>
+
+   <style type="text/css">
+     .c {
+       border-style: solid;
+     }
+     
+     .c1 {
+       border-color: blue;
+     }     
+     .c11 {
+       border-color: red;
+     }
+     .c12 {
+       border-color: yellow;
+     }
+   </style>
+  </head>
+
+  <body>
+   <div class='c c1'>
+     <div class='c c11'><div>
+     <div class='c c12'><div>
+   <div>
+
+  @js("jquery-1.7.2.js")
+  <script>
+
+    $('.c').each(function(i, e) {
+      console.log('z')
+      var classes = $(e).attr('class')
+      $(e).append('<p>'+classes+'</p>')
+    })
+  
+  </script>
+  </body> 
+</html>
