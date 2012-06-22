@@ -1,5 +1,5 @@
 
-GET      /equivote/:l                           controllers.MainPage.equivote(l: String)
+GET      /eq/:l                                 controllers.MainPage.equivote(l: String)
 GET      /cssExp                                controllers.MainPage.cssExp
 
 GET      /                                      controllers.MainPage.home
