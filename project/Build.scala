@@ -19,7 +19,9 @@ object ApplicationBuild extends Build {
       lessEntryPoints <<= baseDirectory(base => (
         (base / "app" / "assets" / "stylesheets" / "bootstrap.less") +++
         (base / "app" / "assets" / "stylesheets" / "ballot.less") +++
-        (base / "app" / "assets" / "stylesheets" / "timepicker.less")
+        (base / "app" / "assets" / "stylesheets" / "timepicker.less") +++
+        (base / "app" / "assets" / "stylesheets" / "equivote.less") +++
+        (base / "app" / "assets" / "stylesheets" / "equivote2.less")
       ))
     )
 }
