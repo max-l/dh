@@ -109,6 +109,17 @@
       margin:22px;
     }
     
+    .socialBox {
+      margin-top: 10px;
+      margin-left: 150px;
+      float: reset;
+    }
+    
+    .socialBox > div {
+      float: left;
+      margin-left: 20px;
+    }    
+    
     .accordion-groupz {
       margin-top:25px;
     }
@@ -149,11 +160,14 @@
                      @avBallot
                    } {
                      <h2>Le vote par Valeur</h2>
-                     L'électeur donne un score entre -2 et +2 à chacun des candidats.
+                     L'électeur donne un score entre -2 et +2 à chacun des candidats, celui dont la <b>somme</b>
+                     des scores est la plus élevée gagne.
                      @rvBallot()
                    } {
                      <h2>Le Jugement Majoritaire</h2>
-                     L'électeur donne un score entre -2 et +2 à chacun des candidats
+                     L'électeur donne un score entre -2 et +2 à chacun des candidats, celui dont la <b>médiane</b>
+                     des scores est la plus élevée gagne. Presqu'identique au vote par valeur, où le gagnant est 
+                     déterminé par la <b>somme</b> la plus élevée. 
                      @rvBallot()
                    }
               </div>
@@ -171,24 +185,24 @@
       
      @ev.scripts(l)
     </body> 
-  
+
 </html>
 
-    @avBallot = {
+    @avBallot = { @CR.exampleAVBallot.map { b =>
        <div class='avballot av'>
          <div>
-           <span>Président de l'univers</span><br>
-           <span>@(CR.ballotInstruction !)</span>
+           <span>@b.title</span><br>
+           <span>@Html(b.instructions)</span>
          </div>
          <div class="btn-group" data-toggle="buttons-checkbox">
            <ul>
-             @avRow("Jesus" , 1)
-             @avRow("Stalin", 0)
-             @avRow("Yoda"  , 1)
-             @avRow("Hitler", 0)
+             @for(c <- b.candidates) {
+               @avRow(c._1, c._2)
+             }
            </ul>
          </div>
        </div>
+      }
     }
     
     @avRow(candidateName: String, score: Int) = {
@@ -199,62 +213,32 @@
     }
 
 
-   @rvBallot() = {
+   @rvRow(name: String, score: Int) = {
+       <li>
+         <span>@name</span>
+         <div class="btn-group" data-toggle="buttons-radio">
+            @for(i <- Seq(-2,-1,0,1,2)) {
+              <a class='btn @(if(i == score) "active" else "")'>@i</a>
+            }
+         </div>
+       </li>
+   }
+
+   @rvBallot() = { @CR.exampleRVBallot.map { b =>
          <div class="avballot rv">
             <div>
-              <span>Vote on : Qui voyez à la tête du Québec?</span><br>
-              <span>Mark your level of approbation for each candidate, <br> 
-                 -2: strongly disapprove, -1 disapprove, 0: neutral, 1: approve, 2: strongly approve
-              </span>
+              <span>@b.title</span><br>
+              <span>@Html(b.instructions)</span>
             </div>
             <div>
               <ul>
-                   <li>
-                     <span>Jean Charest</span>
-                     <div class="btn-group" data-toggle="buttons-radio">
-                       <a altid="27" score="-2" class="ap1 btn active">-2</a>
-                       <a altid="27" score="-1" class="ap2 btn">-1</a>
-                       <a altid="27" score="0" class="ap3 btn">0</a>
-                       <a altid="27" score="1" class="ap4 btn">1</a>
-                       <a altid="27" score="2" class="ap5 btn">2</a>
-                     </div>
-                   </li>
-                
-                   <li>
-                     <span>Pauline Marois</span>
-                     <div class="btn-group" data-toggle="buttons-radio">
-                       <a altid="28" score="-2" class="ap1 btn">-2</a>
-                       <a altid="28" score="-1" class="ap2 btn">-1</a>
-                       <a altid="28" score="0" class="ap3 btn">0</a>
-                       <a altid="28" score="1" class="ap4 btn active">1</a>
-                       <a altid="28" score="2" class="ap5 btn">2</a>
-                     </div>
-                   </li>
-                
-                   <li>
-                     <span>Amir Kadhir</span>
-                     <div class="btn-group" data-toggle="buttons-radio">
-                       <a altid="29" score="-2" class="ap1 btn">-2</a>
-                       <a altid="29" score="-1" class="ap2 btn">-1</a>
-                       <a altid="29" score="0" class="ap3 btn">0</a>
-                       <a altid="29" score="1" class="ap4 btn">1</a>
-                       <a altid="29" score="2" class="ap5 btn active">2</a>
-                     </div>
-                   </li>
-                   <li>
-                     <span>François Legault</span>
-                     <div class="btn-group" data-toggle="buttons-radio">
-                       <a altid="30" score="-2" class="ap1 btn">-2</a>
-                       <a altid="30" score="-1" class="ap2 btn">-1</a>
-                       <a altid="30" score="0" class="ap3 btn active">0</a>
-                       <a altid="30" score="1" class="ap4 btn">1</a>
-                       <a altid="30" score="2" class="ap5 btn">2</a>
-                     </div>
-                   </li>
+                @for(c <- b.candidates) {
+                   @rvRow(c._1, c._2)
+                }
               </ul>
             </div>
           </div>   
-   
+     }
    }
     
   @topNav() = {
@@ -266,17 +250,20 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="brand" href="./index.html">Equivote</a>
-            <div class="nav-collapse collapse">
+            <a class="brand" href="/fr">Equivote</a>
+            <div class="nav-collapse">
               <ul class="nav">
                 <li class="divider-vertical"></li>
+                <li>@socialBox</li>
               </ul>
   
             <ul class="nav pull-right">
+<!--            
               <li><a href="/equivote/fr">Français</a></li>
               <li><a href="/equivote/en">English</a></li>
               <li class="divider-vertical"></li>
               <li><a>Contact</a></li>
+-->
             </ul>
   
             </div>
@@ -284,22 +271,6 @@
         </div>
       </div>  
   }
-  
- @subNav() =  {
-        <div class="subnav subnav-fixed">
-          <ul class="nav nav-pills">
-            <li><a href="#javascript">Qu'est ce que le vote évaluatif, et pourquoi ?</a></li>
-            <li><a href="#popovers">Popover</a></li>
-            <li class="active"><a href="#alerts">Alert</a></li>
-            <li class=""><a href="#buttons">Button</a></li>
-            <li class=""><a href="#collapse">Collapse</a></li>
-            <li><a href="#carousel">Carousel</a></li>
-            <li><a href="#typeahead">Typeahead</a></li>
-          </ul>
-        </div> 
- }  
- 
- 
  
  @tabs(t1: String, t2: String, t3: String)(c1: Html)(c2: Html)(c3: Html) = {
  
@@ -323,4 +294,19 @@
       </div>      
     </div>
   </div>
+}
+
+
+@socialBox = {
+   <div class='socialBox'>
+   <div><a href="https://twitter.com/share" class="twitter-share-button" data-via="equivote" data-count="none">Tweet</a></div>
+   <div><a href="https://twitter.com/equivote" class="twitter-follow-button" data-show-count="false">Follow</a></div>
+    <div 
+      class="fb-like" 
+      data-href="https://www.facebook.com/Equivote" 
+      data-send="true" 
+      data-layout="button_count" 
+      data-show-faces="false" 
+      data-action="recommend"></div>
+   </div>
 }

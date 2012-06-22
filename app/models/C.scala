@@ -12,7 +12,12 @@ class I18nContent[A](val content: A, val language: I18nLanguage, val next: Optio
     if(language == l)
       Some(content)
     else next.map(_.!)
-    
+
+  def map(f: A => Html)(implicit l: I18nLanguage) = {
+    val x = ?
+    f(x.get)
+  }
+
   override def toString = content.toString
 }
 
@@ -21,6 +26,11 @@ case class Content2(title: String, _content: String) {
   
   def jsContent =
     Html(_content.replace("\'","\\'").replace("\"","\\\""))
+}
+
+case class Content3(title: String, _c2: String, _c3: String) {
+  def c2 = Html(_c2)
+  def c3 = Html(_c3)
 }
 
 trait I18nLanguage {
@@ -33,6 +43,9 @@ trait I18nLanguage {
     
   def apply(title: String, content: String) = 
     new I18nContent(Content2(title, content), zis, None)
+  
+  def custom[A](a: A) =
+    new I18nContent(a, zis, None)
   
   def specific(h: Html)(implicit l: I18nLanguage) = 
     if(l == this) h 

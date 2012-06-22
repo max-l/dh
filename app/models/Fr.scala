@@ -16,6 +16,10 @@ object Languages {
     }
 }
 
+case class Ballotz(title: String, instructions: String, 
+    candidates: Seq[(String, Int)])
+
+
 object CR {
 
   def evaluativeVoting = 
@@ -38,8 +42,44 @@ object CR {
     en("Vote for one or more option", "") ~
     fr("", "Votez pour chaque candidat que vous approuvez, celui qui obtient le plus de vote gagne.")
 
+  val ballotFr = Ballotz(
+      "Bulltetin de Vote",
+      "Votez pour chaque candidat que vous appouvez, le gagnant sera celui qui obtiendra le plus de vote.",
+       Seq(
+         "Le Parrain" -> -2,
+         "Obelix" -> 1,
+         "Gaston Lagaffe" -> -1,
+         "Asterix" -> 2
+       ))
+
+  val ballotEn = Ballotz(
+      "Voting Ballot",
+      "Vote for as many candidate as you approve, the one with the most vote wins.",
+       Seq(
+         "Le Parrain" -> -2,
+         "Obelix" -> -1,
+         "Gaston Lagaffe" -> 0,
+         "Gandalf" -> 3
+       ))
+
+  def convertToAv(b: Ballotz) =
+    b.copy(candidates = b.candidates.map(c => (c._1, if(c._2 > 0) 1 else 0)))
+       
+  def exampleAVBallot = 
+     fr.custom(convertToAv(ballotFr)) ~
+     en.custom(convertToAv(ballotEn))
+  
+  def exampleRVBallot =
+     fr.custom(ballotFr.copy(instructions = 
+       "Évaluez chaque candidat avec un score <br> 2: excellent, 1: bon, 0: neutre, -1: mauvais, -2: très mauvais")) ~
+     en.custom(ballotEn.copy(instructions = 
+       "Evaluate each candidat with a grade <br> 2: Excellent, 1: Good, 0: Neutral, -1: Bad, -2: Very Bad"))
+
   def pop(s: String, id: String) = <a id={id}>{s}</a>
 
+  def fbLang =
+    fr("fr_CA") ~ en("en_CA")
+  
   def top5Reasons = Seq(
 
      fr("Pour mettre fin aux \"système à deux partis\"",
@@ -56,7 +96,7 @@ object CR {
         Evaluative Voting can put an end to this duopoly.
         </p>),
 
-     fr("Pour pouvoir voter honnêtement, et non stratégiquement", """
+     fr("Pour pouvoir voter selon ses convictions sans craindre la division du vote", """
         À chaque élection, de nombreux électeurs ne votent pas pour l'option qu’ils préfèrent, par crainte de 
         contribuer à la victoire d'un parti dont il craignent la prise de pouvoir. Ils votent stratégiquement, 
         c'est à dire pour un parti qu'ils n’approuvent pas nécéssairement, mais
@@ -75,7 +115,7 @@ object CR {
 
      fr("Pour que chaque parti soit soumis à l'évaluation de chaque électeur","""
         La libre expression est essentielle à la démocratie. L’élection est l’ultime exercice de ce droit d’expression, 
-        car c’est le seul moment où ce qui est exprimé (par les électeurs) a un impact direct sur le pouvoir. 
+        car c’est le seul moment où elle a un impact décisif.
         Un système électoral doit être évalué sur sa capacité à véhiculer l’intention de l’électeur. Sur ce plan, 
         le mode de scrutin uninominal est extrèmement faible : il force l’électeur à donner un appui complet à un seul 
         candidat, et un rejet total de tous les autres. Le vote évaluatif, par sa plus grande expressivité, 
