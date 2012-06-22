@@ -35,9 +35,9 @@ object CR {
     fr("Bulletin de vote par Approbation")
 
   def ballotInstruction = 
-    en("Vote for one or more option") ~ 
-    fr("Votez pour un ou plusieurs candidats")
-    
+    en("Vote for one or more option", "") ~
+    fr("", "Votez pour chaque candidat que vous approuvez, celui qui obtient le plus de vote gagne.")
+
   def pop(s: String, id: String) = <a id={id}>{s}</a>
 
   def top5Reasons = Seq(
@@ -73,7 +73,7 @@ object CR {
         one can vote honestly without penalty.
         """),
 
-     fr("Pour que l'électeur puisse évaluer chaque parti","""
+     fr("Pour que chaque parti soit soumis à l'évaluation de chaque électeur","""
         La libre expression est essentielle à la démocratie. L’élection est l’ultime exercice de ce droit d’expression, 
         car c’est le seul moment où ce qui est exprimé (par les électeurs) a un impact direct sur le pouvoir. 
         Un système électoral doit être évalué sur sa capacité à véhiculer l’intention de l’électeur. Sur ce plan, 
