@@ -1,4 +1,5 @@
 
+GET      /eq/                                   controllers.MainPage.equivotez
 GET      /eq/:l                                 controllers.MainPage.equivote(l: String)
 GET      /cssExp                                controllers.MainPage.cssExp
 
