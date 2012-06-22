@@ -19,6 +19,7 @@ object Languages {
 case class Ballotz(title: String, instructions: String, 
     candidates: Seq[(String, Int)])
 
+case class Argument(title: String, start: String, rest: String)
 
 object CR {
 
@@ -79,23 +80,44 @@ object CR {
 
   def fbLang =
     fr("fr_CA") ~ en("en_CA")
-  
-  def top5Reasons = Seq(
 
-     fr("Pour mettre fin aux \"système à deux partis\"",
-        <p>
-        Il a été démontré qu’un {pop("mode de scrutin uninominal","uninominalSystem")} crée un système à deux partis. Les nombreux problème 
-        de ce mode de scrutin crée une barrière artificielle, protégeant ansi les deux partis de la concurrence. 
-        L’innovation et la saine concurrence des idées est ansi étouffée. Le vote évaluatif, en permettant 
-        à l’électeur d’exprimer ses intentions sans entraves met fin à cette situation d’oligopole.
-        </p>) ~
-     en("To put an end to the \"Two party System\"",
-        <p>
-        {pop("Uninominal voting systems","uninominalSystem")} are the main cause of for two party systems. It effectively creates 
-        an artificial barrier so high that the two parties are practically immune from competition.
-        Evaluative Voting can put an end to this duopoly.
-        </p>),
 
+  def end2PartyDomination = 
+    fr.custom(Argument(
+      "Mettre fin au <u>système à deux partis</u>",
+      "Ce n'est pas un hazard si toutes les démocraties qui utilisent un système de vote uninominal élisent toujours les mêmes deux partis pendant des décénies, parfois des siècles,",
+      "il s'agit d'une défectuosité mathématique de ce type système (démontré par Maurice Duvergé en 1950). " +
+      "Le <b>vote évaluatif</b> s'il était instauré pourrait briser ce duopole."
+    ))
+
+  def solveVoteDivision = 
+    fr.custom(Argument(
+       "Voter sans craindre la <u>division du vote</u>",
+       "À chaque élection, de nombreux électeurs ne votent pas pour l'option qu’ils préfèrent, par crainte de contribuer à la victoire d'un parti dont il craignent la prise de pouvoir",
+       """
+        Ils votent stratégiquement, c'est à dire pour un parti qu'ils n’approuvent pas nécéssairement, mais
+        qu’ils considère être "moins pire" que le parti qu'ils craignent, et que les sondages prédisent être 
+        le plus susceptible de gagner. Un électeur qui est contraint de voter stratégiquement, perd en quelque 
+        sorte le droit d’exprimer son intention réelle. Avec le vote évaluatif, l'électeur n'est jamais 
+        pénalisé en votant selon ses convictions.
+       """
+    ))
+
+   def endSimpleMajorityDictatorsihp =
+     fr.custom(Argument(
+       "Abolir la dictature de la majorité simple", //"Une antidote contre l'extremisme", //"Pour des partis politiques redevables à l'ensemble des électeurs et non uniquement à leur supporteurs",
+       """
+        Une majorité simple suffit pour gagner une élection, même lorsque celle ci constitue une minorité absolue.
+        Le vote uninominal élit fréquement des partis qui sont fortement rejetés par une <b>majorité perdante</b>,
+       """,
+       """
+        Le vote évaluatif change radicalement la donne : un parti détesté par une majorité paie un prix beaucoup plus élevé.
+        Inversement, un parti qui fait consensus est récompensé proportionnelement au nombre d'électeurs qui partage
+        ce consensus, et à l'intensité avec laquelle ils y adhèrent.
+       """
+     ))
+
+  def solveVoteDivision0 =
      fr("Pour pouvoir voter selon ses convictions sans craindre la division du vote", """
         À chaque élection, de nombreux électeurs ne votent pas pour l'option qu’ils préfèrent, par crainte de 
         contribuer à la victoire d'un parti dont il craignent la prise de pouvoir. Ils votent stratégiquement, 
@@ -111,8 +133,9 @@ object CR {
         but that is "not as bad" as the candidate they fear, and who is deemed electable by surveys.
         A voter that is forced into strategic voting looses is right to express his real intent. With approval voting
         one can vote honestly without penalty.
-        """),
+        """)
 
+   def evaluateAllParties =
      fr("Pour que chaque parti soit soumis à l'évaluation de chaque électeur","""
         La libre expression est essentielle à la démocratie. L’élection est l’ultime exercice de ce droit d’expression, 
         car c’est le seul moment où elle a un impact décisif.
@@ -128,8 +151,9 @@ object CR {
         Uninominal voting systems are extremely poor in that regard : it forces an elector to give the maximum
         approval to a single option, and reject all others equally. The expressiveness of an Approval Vote gives
         the elector the power that is rightfuly his.
-        """),
-
+        """)
+        
+  def solveExtremistsHijacking0 =
      fr("Pour des partis politiques redevables à l'ensemble des électeurs et non uniquement à leur bases partisanes","""
         Le mode de scrutin uninominal fait en sorte que pour un parti politique, d’un point de vue stratégique, 
         les électeurs se divisent en deux catégories : ceux qui vote pour lui, et les autres.
@@ -145,8 +169,9 @@ object CR {
         When the electorate is divided, a party that has enough electors to win can becomes immune to dissatisfaction outside 
         his electorate, no matter how intense. With Evaluative Voting all parties are evaluated by all electors with a score of approval.
         It encourages parties to respect for all electors, but it
-        """),
+        """)
 
+   def aSickDemocracyWillDecline =
      fr("Parce qu’une démocratie malade crée les conditions de son déclin","""
         Entre la démocratie idéale et la dictature, il y a une grande zone grise. Il est plus exact de parler de santé 
         démocratique simplement la déclarer absente ou présente. Une démocratie est malade lorsqu’un groupe d'élus réeussent à 
@@ -161,7 +186,6 @@ object CR {
         it is a slipery slope : these politicians can use powers to obtain more powers, closing the loop of a vicous circle.
         Evaluative Voting could help invert this democratic decline.
         """)
-  )
 }
 
 

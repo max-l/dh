@@ -8,6 +8,23 @@
 
  <script>
 
+  $('.readMore').each(function(i, e) {
+    var z = $(e)
+    var m = z.next()
+    var f = function() {
+      if(m.hasClass('moreToReadHide')) {
+        z.text('').append('<br/>')
+        m.removeClass('moreToReadHide')
+      }
+      else {
+        z.text('...»')
+        m.addClass('moreToReadHide')
+      }
+    }
+    z.parent().parent().click(f)
+    f()
+  })
+
   $('.collapse').on('shown', function(ev) {
     $(ev.currentTarget).parent().find('h3').addClass('active')
   })

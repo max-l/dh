@@ -1,18 +1,20 @@
 @(implicit l: I18nLanguage)
 
-  @art(i: Int, c: Content2) = {
+  @readMore(more: Html) = {
+    <span class='readMore'></span>
+    <span>@more</span>
+  }
 
-     <div class="accordion-groupz">
-       <div class="accordion-heading">
-         <div class="accordion-toggle topArgument" data-toggle="collapse" data-parent="#accordion@(i % 2)" href="#collapse@i">
-           <div><i class='icon-play'></i><span class='titre'>@c.title<span></div>
+  @art(a: Argument) = {
+     <div class="topArgument">
+         <div>
+           <div><i class='icon-play'></i>
+           <span class='titre'>@(Html(a.title))<span>
          </div>
-       </div>
-       <div id="collapse@i" class="accordion-body collapse">
-         <div class="accordion-inner">
-           @c.content
-         </div>
-       </div>
+         <div class='punch'>
+            @(Html(a.start))
+            @readMore(Html(a.rest))</div>
+        </div>
      </div>
   }
 
@@ -31,17 +33,35 @@
       color: #9C0001;
     }
     
+    .readMore {
+      font-weight: bold;
+      font-size: 1.5em;
+    }
+    
+    .topArgument {
+      margin-bottom: 20px;
+    }
+        
     .topArgument.active {
       color: #9C0001;
     }
         
-    .topArgument > div > .titre {
-      font-size: 18px;
-      font-weight: bold;
+    .topArgument .titre {
+      font-size: 1.6em;
     }
+
     .topArgument > div > i {
       margin-right: 10px
-    }    
+    }
+    
+    .punch {
+      margin-left:20px;
+      margin-top: 10px;
+    }
+    
+    .moreToReadHide {
+      display: none;
+    }
 
     .defn  {
       font-size: 18px;
@@ -54,16 +74,7 @@
       font-size: 1.3em;
       font-weight: bold;
     }
-    
-    .accordion-group {
-      margin-top: 6px;
-      border-style: none;
-    }
-    .accordion-inner {
-      border-style: none;
-      margin-left: 20px;
-      text-align: justify;
-    }
+
     .navbar-fixed-top {
       margin: 0px
     }
@@ -87,9 +98,6 @@
       float: right;
       width: 630px;
     }
-    .rightBox > h3 {
-      font-weight: bold;
-    }    
 
     .rightBox > h1 {
       margin-left: 70px;
@@ -106,7 +114,7 @@
 
     .lowerHomePage > div > h1 {
       text-align: center;
-      margin:22px;
+      margin-bottom: 18px;
     }
     
     .socialBox {
@@ -118,10 +126,6 @@
     .socialBox > div {
       float: left;
       margin-left: 20px;
-    }    
-    
-    .accordion-groupz {
-      margin-top:25px;
     }
    </style>
   </head>
@@ -173,10 +177,9 @@
               </div>
               <div class='span6'>
                 <h1>Pourquoi ?</h1>
-                @art(1, CR.top5Reasons(0).!)
-                @art(2, CR.top5Reasons(1).!)
-                @art(3, CR.top5Reasons(2).!)
-                @art(4, CR.top5Reasons(3).!)
+                @art(CR.end2PartyDomination.!)
+                @art(CR.solveVoteDivision.!)
+                @art(CR.endSimpleMajorityDictatorsihp.!)
               </div>
             </div>
           </div>
@@ -250,7 +253,7 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
             </button>
-            <a class="brand" href="/fr">Equivote</a>
+            <a class="brand" href="/fr">Equivote.ca</a>
             <div class="nav-collapse">
               <ul class="nav">
                 <li class="divider-vertical"></li>
@@ -310,3 +313,4 @@
       data-action="recommend"></div>
    </div>
 }
+
