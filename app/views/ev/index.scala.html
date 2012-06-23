@@ -137,12 +137,18 @@
       @topNav()
 
       <div class='container'>
+      
         <div class="row topPanel">
+        
             <h1 class='siteIdBox'>EquiVote</h1>
+            
             <div class='rightBox'> 
-               <h3>Un regroupement citoyen pour l'instauration du</h3>
+            
+               <h3>@(Main.citizendForEvaluativeVoting.!)</h3>
+               
                <h1>@(Main.evaluativeVoting.!)</h1>
-               <p>Inversons le déficit démocratique, pendant que c'est encore possible.</p>
+               
+               <p>@(Main.invertTheDemocraticDeficitWHileWeStillCan.!)</p>
             </div>
         </div>
 
@@ -151,35 +157,16 @@
             <div class="row lowerHomePage">
               <div class='span6 lowerHomePageLeft'>
   
-                   <p class='defn'><span>Vote Évaluatif</span> : un système de vote où l'électeur évalue chaque candidat à l'aide d'un score numérique,
-                      le gagnant est celui dont la somme des scores est la plus élevée.
-                   </p>
+                   @Html(Main.definitionOfEV.!)
      
-                  <h2>Trois variantes du vote évaluatif</h2>
+                   <h2>@(Main.threeVariations.!.preamble)</h2>
   
-                   @tabs("Approbation", "Par Valeur", "Jugement Majoritaire") {
-                     <h2>Le vote par Approbation</h2>
-
-                     L'électeur vote pour autant de candidat qu'il approuve.
-                     <br/>
-                     Le fait qu'il soit possible de voter pour <b>plus d'un</b> candidat, fait
-                     en sorte que l'électeur puisse <b>toujours</b> voter pour celui ou ceux qu'il approuve.
-                     @avBallot
-                   } {
-                     <h2>Le vote par Valeur</h2>
-                     L'électeur donne un score entre -2 et +2 à chacun des candidats, celui dont la <b>somme</b>
-                     des scores est la plus élevée gagne.
-                     @rvBallot()
-                   } {
-                     <h2>Le Jugement Majoritaire</h2>
-                     L'électeur donne un score entre -2 et +2 à chacun des candidats, celui dont la <b>médiane</b>
-                     des scores est la plus élevée gagne. Presqu'identique au vote par valeur, où le gagnant est 
-                     déterminé par la <b>somme</b> la plus élevée. 
-                     @rvBallot()
-                   }
+                   @tabs(Main.threeVariations.!)
               </div>
               <div class='span6'>
-                <h1>Pourquoi ?</h1>
+              
+                <h1>@Html(Main.why.!)</h1>
+                
                 @art(Arguments.end2PartyDomination.!)
                 @art(Arguments.solveVoteDivision.!)
                 @art(Arguments.endSimpleMajorityDictatorsihp.!)
@@ -277,31 +264,42 @@
         </div>
       </div>  
   }
- 
- @tabs(t1: String, t2: String, t3: String)(c1: Html)(c2: Html)(c3: Html) = {
+
+ @tabs(tv: ThreeVariations) = {
  
    <div class="tabbable">
     <ul class="nav nav-tabs">
       <li class="active"><a href="#tab1" data-toggle="tab">
-        <i class='icon-play'></i>&nbsp;@t1</a>
+        <i class='icon-play'></i>&nbsp;@tv.approval.short</a>
       </li>
-      <li><a href="#tab2" data-toggle="tab"><i class='icon-play'></i>&nbsp;@t2</a></li>
-      <li><a href="#tab3" data-toggle="tab"><i class='icon-play'></i>&nbsp;@t3</a></li>
+      <li><a href="#tab2" data-toggle="tab"><i class='icon-play'></i>&nbsp;@tv.range.short</a></li>
+      <li><a href="#tab3" data-toggle="tab"><i class='icon-play'></i>&nbsp;@tv.majorityJudgement.short</a></li>
     </ul>
     <div class="tab-content">
       <div class="tab-pane active" id="tab1">
-        @c1
+
+         <h2>@tv.approval.longer</h2>
+         @Html(tv.approval.completeDesc)
+         @avBallot
+                             
       </div>
       <div class="tab-pane" id="tab2">
-        @c2
+      
+         <h2>@tv.range.longer</h2>
+         @Html(tv.range.completeDesc)
+         @rvBallot
+         
       </div>
       <div class="tab-pane" id="tab3">
-        @c3
-      </div>      
+      
+         <h2>@tv.majorityJudgement.longer</h2>
+         @Html(tv.majorityJudgement.completeDesc)
+         @rvBallot
+
+      </div>
     </div>
   </div>
 }
-
 
 @socialBox = {
    <div class='socialBox'>
@@ -313,7 +311,6 @@
       data-send="true" 
       data-layout="button_count" 
       data-show-faces="false" 
-      data-action="recommend"></div>
+      data-action="like"></div>
    </div>
 }
-

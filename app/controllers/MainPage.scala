@@ -31,7 +31,11 @@ import models.ev._
 
 object MainPage extends BaseDecisionHubController {
 
-  def equivotez = Action {
+  def equivotez = Action { req =>
+    
+    req.headers.get("ACCEPT-LANGUAGE")
+    
+    
     Ok(html.ev.index(Languages("fr")))
   }
   

@@ -8,7 +8,15 @@ object Arguments {
       "Ce n'est pas un hazard si toutes les démocraties qui utilisent un système de vote uninominal élisent toujours les mêmes deux partis pendant des décénies, parfois des siècles,",
       "il s'agit d'une défectuosité mathématique de ce type de système (démontré par Maurice Duvergé en 1950). " +
       "Le <b>vote évaluatif</b> s'il était instauré pourrait briser ce duopole."
-    ))
+    )) ~
+    en.custom(Argument(
+      "To abolish the <u>two party system</u>",
+      """
+       All democracies that use a uninominal voting system (vote for a single candidate), elect the same two parties for decades, sometimes centuries.
+       It is the result of a fundamental flaw in these system that has been mathematically prooven by Maurice Duverger in 1950.
+      """,
+      "Evaluation Voting could put an end to the <b>two party domination</b>."
+    ))    
 
   def solveVoteDivision = 
     fr.custom(Argument(
@@ -21,39 +29,46 @@ object Arguments {
         sorte le droit d’exprimer son intention réelle. Avec le vote évaluatif, l'électeur n'est jamais 
         pénalisé en votant selon ses convictions.
        """
+    )) ~
+    en.custom(Argument(
+       "To vote without fear of <u>vote division</u>",
+       "Many electors don't vote according to their true intents by fear of contributing to elect a candidate whose election they would consider disastrous.",
+       """
+        The are forced to vote for <b>strategically</b> for the candidate that they don't necessarily like,
+        but that is "not as bad" as the candidate they fear, and who is deemed electable by surveys.
+        A voter that is forced into strategic voting looses it's right to express his real intent. With evaluation voting
+        one is never penalized by voting honestly.
+       """
     ))
 
-   def endSimpleMajorityDictatorsihp =
+  def endSimpleMajorityDictatorsihp =
      fr.custom(Argument(
-       "Abolir la dictature de la majorité simple", //"Une antidote contre l'extremisme", //"Pour des partis politiques redevables à l'ensemble des électeurs et non uniquement à leur supporteurs",
+       "Abolir la dictature de la majorité simple",
        """
         Une majorité simple suffit pour gagner une élection, même lorsque celle ci constitue une minorité absolue.
-        Le vote uninominal élit fréquement des partis qui sont fortement rejetés par une <b>majorité perdante</b>,
+        Le vote uninominal élit fréquement des partis qui sont fortement rejetés par une <b>majorité perdante</b>.
        """,
        """
         Le vote évaluatif change radicalement la donne : un parti détesté par une majorité paie un prix beaucoup plus élevé.
         Inversement, un parti qui fait consensus est récompensé proportionnelement au nombre d'électeurs qui partage
         ce consensus, et à l'intensité avec laquelle ils y adhèrent.
        """
+     )) ~
+     en.custom(Argument(
+       "To end simple majority dictatorship",
+       """
+        A simple majority is sufficient to win an election, even when it is a absolute minority.
+        Uninominal voting frequently elect parties that are strongly rejected by a <b>loosing majority</b>.
+       """,
+       """
+        Evaluation Voting changes things fundamentally : it is much more electorally damaging for a party to be disliked by a majority.
+        Inversly, a party that makes consensus is rewarded proportionally to the number of electors sharing the consensus
+        and the intensity at which they adhere to it.
+       """
      ))
+     
 
-  def solveVoteDivision0 =
-     fr("Pour pouvoir voter selon ses convictions sans craindre la division du vote", """
-        À chaque élection, de nombreux électeurs ne votent pas pour l'option qu’ils préfèrent, par crainte de 
-        contribuer à la victoire d'un parti dont il craignent la prise de pouvoir. Ils votent stratégiquement, 
-        c'est à dire pour un parti qu'ils n’approuvent pas nécéssairement, mais
-        qu’ils considère être "moins pire" que le parti qu'ils craignent, et que les sondages prédisent être 
-        le plus susceptible de gagner. Un électeur qui est contraint de voter stratégiquement, perd en quelque 
-        sorte le droit d’exprimer son intention réelle. Avec le vote évaluatif, l'électeur n'est jamais 
-        pénalisé en votant selon ses convictions.
-        """) ~
-     en("So that honnest voting is not penalized","""
-        Many electors don't vote according to their true intents, by fear of contributing to elect an unwanted
-        candidate, the are forced to vote for _strategically_ for the candidate that they don't necessarily like,
-        but that is "not as bad" as the candidate they fear, and who is deemed electable by surveys.
-        A voter that is forced into strategic voting looses is right to express his real intent. With approval voting
-        one can vote honestly without penalty.
-        """)
+   //==================================================  
 
    def evaluateAllParties =
      fr("Pour que chaque parti soit soumis à l'évaluation de chaque électeur","""
