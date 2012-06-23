@@ -32,15 +32,29 @@ import models.ev._
 object MainPage extends BaseDecisionHubController {
 
   def equivotez = Action { req =>
-    
-    req.headers.get("ACCEPT-LANGUAGE")
-    
-    
-    Ok(html.ev.index(Languages("fr")))
+
+    val langCode = 
+      req.cookies.get("CHOSEN_LANGUAGE").map(_.value).getOrElse {
+      
+        req.headers.get("ACCEPT-LANGUAGE") match {
+          case None => "en"
+          case Some(l) => 
+            l.split(',').map { l =>
+              if(l.startsWith("en")) "en"
+              else if(l.startsWith("fr")) "fr"
+              else  "en"
+            }.headOption.getOrElse("en")
+        }
+      }
+
+    Ok(html.ev.index(Languages(langCode))).withCookies(choosenLangCookie(langCode))
   }
   
+  def choosenLangCookie(code: String) =
+    Cookie("CHOSEN_LANGUAGE",code, maxAge = 60 * 60 * 24 * 265)
+  
   def equivote(languageCode: String) = Action {
-    Ok(html.ev.index(Languages(languageCode)))
+    Ok(html.ev.index(Languages(languageCode))).withCookies(choosenLangCookie(languageCode))
   }
   
   def cssExp = Action {
