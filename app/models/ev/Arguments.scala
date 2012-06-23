@@ -1,102 +1,22 @@
-package models
+package models.ev
 
-object fr extends I18nLanguage {
-  def code = "fr"
-}
-object en extends I18nLanguage {
-  def code = "en"
-}
-
-
-object Languages {
-  def apply(code: String) = 
-    code match {
-      case "fr" => fr
-      case "en" => en
-    }
-}
-
-case class Ballotz(title: String, instructions: String, 
-    candidates: Seq[(String, Int)])
-
-case class Argument(title: String, start: String, rest: String)
-
-object CR {
-
-  def evaluativeVoting = 
-    fr("Vote Évaluatif") ~ 
-    en("Evaluative Voting")
-
-  def votingMethodThatEMpowersElectors = 
-    fr("Rendre les élections aux électeurs") ~ 
-    en("Elections for electors")
-
-  def whyImplementAV = 
-    fr("Pourquoi faut-il instaurer le vote évaluatif ?") ~
-    en("Why do we need Evaluative Voting ?")
-
-  def ballotTitle = 
-    en("Approval voting Ballot") ~ 
-    fr("Bulletin de vote par Approbation")
-
-  def ballotInstruction = 
-    en("Vote for one or more option", "") ~
-    fr("", "Votez pour chaque candidat que vous approuvez, celui qui obtient le plus de vote gagne.")
-
-  val ballotFr = Ballotz(
-      "Bulltetin de Vote",
-      "Votez pour chaque candidat que vous appouvez, le gagnant sera celui qui obtiendra le plus de vote.",
-       Seq(
-         "Le Parrain" -> -2,
-         "Obelix" -> 1,
-         "Gaston Lagaffe" -> -1,
-         "Asterix" -> 2
-       ))
-
-  val ballotEn = Ballotz(
-      "Voting Ballot",
-      "Vote for as many candidate as you approve, the one with the most vote wins.",
-       Seq(
-         "Le Parrain" -> -2,
-         "Obelix" -> -1,
-         "Gaston Lagaffe" -> 0,
-         "Gandalf" -> 3
-       ))
-
-  def convertToAv(b: Ballotz) =
-    b.copy(candidates = b.candidates.map(c => (c._1, if(c._2 > 0) 1 else 0)))
-       
-  def exampleAVBallot = 
-     fr.custom(convertToAv(ballotFr)) ~
-     en.custom(convertToAv(ballotEn))
-  
-  def exampleRVBallot =
-     fr.custom(ballotFr.copy(instructions = 
-       "Évaluez chaque candidat avec un score <br> 2: excellent, 1: bon, 0: neutre, -1: mauvais, -2: très mauvais")) ~
-     en.custom(ballotEn.copy(instructions = 
-       "Evaluate each candidat with a grade <br> 2: Excellent, 1: Good, 0: Neutral, -1: Bad, -2: Very Bad"))
-
-  def pop(s: String, id: String) = <a id={id}>{s}</a>
-
-  def fbLang =
-    fr("fr_CA") ~ en("en_CA")
-
+object Arguments {
 
   def end2PartyDomination = 
     fr.custom(Argument(
       "Mettre fin au <u>système à deux partis</u>",
       "Ce n'est pas un hazard si toutes les démocraties qui utilisent un système de vote uninominal élisent toujours les mêmes deux partis pendant des décénies, parfois des siècles,",
-      "il s'agit d'une défectuosité mathématique de ce type système (démontré par Maurice Duvergé en 1950). " +
+      "il s'agit d'une défectuosité mathématique de ce type de système (démontré par Maurice Duvergé en 1950). " +
       "Le <b>vote évaluatif</b> s'il était instauré pourrait briser ce duopole."
     ))
 
   def solveVoteDivision = 
     fr.custom(Argument(
        "Voter sans craindre la <u>division du vote</u>",
-       "À chaque élection, de nombreux électeurs ne votent pas pour l'option qu’ils préfèrent, par crainte de contribuer à la victoire d'un parti dont il craignent la prise de pouvoir",
+       "À chaque élection, de nombreux électeurs ne votent pas pour l'option qu’ils préfèrent, par crainte de contribuer à la victoire d'un parti dont il craignent la prise de pouvoir.",
        """
         Ils votent stratégiquement, c'est à dire pour un parti qu'ils n’approuvent pas nécéssairement, mais
-        qu’ils considère être "moins pire" que le parti qu'ils craignent, et que les sondages prédisent être 
+        qu’ils considèrent être "moins pire" que le parti qu'ils craignent, et que les sondages prédisent être 
         le plus susceptible de gagner. Un électeur qui est contraint de voter stratégiquement, perd en quelque 
         sorte le droit d’exprimer son intention réelle. Avec le vote évaluatif, l'électeur n'est jamais 
         pénalisé en votant selon ses convictions.
@@ -152,24 +72,6 @@ object CR {
         approval to a single option, and reject all others equally. The expressiveness of an Approval Vote gives
         the elector the power that is rightfuly his.
         """)
-        
-  def solveExtremistsHijacking0 =
-     fr("Pour des partis politiques redevables à l'ensemble des électeurs et non uniquement à leur bases partisanes","""
-        Le mode de scrutin uninominal fait en sorte que pour un parti politique, d’un point de vue stratégique, 
-        les électeurs se divisent en deux catégories : ceux qui vote pour lui, et les autres.
-        Un parti doit alors s’assurer que ses électeurs forment un majorité simple, si cette majorité est atteinte 
-        il n’y a aucun coût électoral à aliéner les électeurs ne votant pas pour lui. C’est pour cette raison qu’il 
-        arrive fréquement qu’un parti gouverne uniquement pour ses électeurs sans se préoccuper d'aliéner les autres.
-        Avec le vote évaluatif, un parti doit considérer chaque électeurs sur un pied d’égalité, car chacun d’eux aura 
-        l’occasion d’exprimer sur son bulletin de vote son approbation (ou désapprobation).
-        """) ~
-     en("So that parties receptive to all citizens, not only their partisan base","""
-        Under a uninominal voting system, from a strategic perspective, political parties view electors in two categories :
-        those that vote for them, and those that don't.
-        When the electorate is divided, a party that has enough electors to win can becomes immune to dissatisfaction outside 
-        his electorate, no matter how intense. With Evaluative Voting all parties are evaluated by all electors with a score of approval.
-        It encourages parties to respect for all electors, but it
-        """)
 
    def aSickDemocracyWillDecline =
      fr("Parce qu’une démocratie malade crée les conditions de son déclin","""
@@ -185,7 +87,5 @@ object CR {
         it's presense or absence. A democracy is weakend when politicians obtain more power than those granted by the electorate,
         it is a slipery slope : these politicians can use powers to obtain more powers, closing the loop of a vicous circle.
         Evaluative Voting could help invert this democratic decline.
-        """)
+        """)  
 }
-
-

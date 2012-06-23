@@ -1,4 +1,21 @@
-package models
+package models.ev
+
+
+object fr extends I18nLanguage {
+  def code = "fr"
+}
+object en extends I18nLanguage {
+  def code = "en"
+}
+
+
+object Languages {
+  def apply(code: String) = 
+    code match {
+      case "fr" => fr
+      case "en" => en
+    }
+}
 import play.api.templates.Html
 
 

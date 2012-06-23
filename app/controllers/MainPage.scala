@@ -12,6 +12,8 @@ import org.squeryl.PrimitiveTypeMode._
 import com.codahale.jerkson.Json._
 import html.recuperateRegisteredUserInfo
 
+import models.ev._
+
 /**
  * Decision public view :
  * 

@@ -1,4 +1,6 @@
-@(implicit l: I18nLanguage)
+@(implicit l: models.ev.I18nLanguage)
+
+@import models.ev._
 
   @readMore(more: Html) = {
     <span class='readMore'></span>
@@ -139,7 +141,7 @@
             <h1 class='siteIdBox'>EquiVote</h1>
             <div class='rightBox'> 
                <h3>Un regroupement citoyen pour l'instauration du</h3>
-               <h1>@(CR.evaluativeVoting.!)</h1>
+               <h1>@(Main.evaluativeVoting.!)</h1>
                <p>Inversons le déficit démocratique, pendant que c'est encore possible.</p>
             </div>
         </div>
@@ -178,21 +180,21 @@
               </div>
               <div class='span6'>
                 <h1>Pourquoi ?</h1>
-                @art(CR.end2PartyDomination.!)
-                @art(CR.solveVoteDivision.!)
-                @art(CR.endSimpleMajorityDictatorsihp.!)
+                @art(Arguments.end2PartyDomination.!)
+                @art(Arguments.solveVoteDivision.!)
+                @art(Arguments.endSimpleMajorityDictatorsihp.!)
               </div>
             </div>
           </div>
         </div>
       </div>
       
-     @ev.scripts(l)
+     @scripts(l)
     </body> 
 
 </html>
 
-    @avBallot = { @CR.exampleAVBallot.map { b =>
+    @avBallot = { @Main.exampleAVBallot.map { b =>
        <div class='avballot av'>
          <div>
            <span>@b.title</span><br>
@@ -228,7 +230,7 @@
        </li>
    }
 
-   @rvBallot() = { @CR.exampleRVBallot.map { b =>
+   @rvBallot() = { @Main.exampleRVBallot.map { b =>
          <div class="avballot rv">
             <div>
               <span>@b.title</span><br>

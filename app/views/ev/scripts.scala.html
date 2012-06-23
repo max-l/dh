@@ -1,4 +1,7 @@
-@(implicit l: I18nLanguage)
+@(implicit l: models.ev.I18nLanguage)
+
+@import models.ev._
+    
     
 @js(p: String) = {<script src='/assets/javascripts/@p'  type="text/javascript"></script>}
 
@@ -70,7 +73,7 @@
   var js, fjs = d.getElementsByTagName(s)[0];
   if (d.getElementById(id)) return;
   js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/@(CR.fbLang.!)/all.js#xfbml=1&appId=389821127720437";
+  js.src = "//connect.facebook.net/@(Main.fbLang.!)/all.js#xfbml=1&appId=389821127720437";
   fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));
 </script>
