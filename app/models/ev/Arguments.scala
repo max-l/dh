@@ -25,7 +25,7 @@ object Arguments {
        """
         Ils votent stratégiquement, c'est à dire pour un parti qu'ils n’approuvent pas nécéssairement, mais
         qu’ils considèrent être "moins pire" que le parti qu'ils craignent, et que les sondages prédisent être 
-        le plus susceptible de gagner. Un électeur qui est contraint de voter stratégiquement, perd en quelque 
+        le plus susceptible de gagner. Un électeur qui est contraint de voter stratégiquement perd en quelque 
         sorte le droit d’exprimer son intention réelle. Avec le vote évaluatif, l'électeur n'est jamais 
         pénalisé en votant selon ses convictions.
        """
