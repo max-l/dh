@@ -19,32 +19,31 @@ object Main {
 
   def citizendForEvaluativeVoting = 
     fr("Un regroupement citoyen pour l'instauration du") ~ 
-    en("Citizens for the implementations of")
+    en("Citizens for the implementation of")
 
   def invertTheDemocraticDeficitWHileWeStillCan = 
-    fr("Inversons le déficit démocratique, pendant que c'est encore possible.") ~ 
+    fr("Inversons le dégradation de la démocratie, pendant que c'est encore possible.") ~ 
     en("Reverse the degradation of democracy while we still can.")
 
   def definitionOfEV = 
-     fr("""<p class='defn'><span>Vote Évaluatif</span> : un système de vote où l'électeur évalue chaque candidat à l'aide d'un score numérique,
+     fr("""<p class='defn'><span>Vote Évaluatif</span> : un système de vote où l'électeur évalue chaque candidat à l'aide d'un score,
         le gagnant est celui qui obtient le meilleur score cumulatif.
      </p>""") ~
-     en("""<p class='defn'><span>Evaluation Voting</span> : a voting system in which the elector gives a numerical grade to each option,
-        the one with the best cumulative grade wins.
+     en("""<p class='defn'><span>Evaluation Voting</span> : a voting system in which the elector evaluates each option independently with a 
+        grade, the one with the best cumulative grade wins.
      </p>""")
-
   def why = 
-    fr("Pourqui ?") ~ 
+    fr("Pourquoi ?") ~ 
     en("Why ?")
 
   val ballotFr = Ballotz(
-      "Bulltetin de Vote",
+      "Bulletin de Vote",
       "Votez pour chaque candidat que vous appouvez, le gagnant sera celui qui obtiendra le plus de vote.",
        Seq(
          "Le Parrain" -> -2,
-         "Obelix" -> 1,
+         "Obélix" -> 1,
          "Gaston Lagaffe" -> -1,
-         "Asterix" -> 2
+         "Astérix" -> 2
        ))
 
   val ballotEn = Ballotz(
@@ -95,9 +94,9 @@ object Main {
             The elector gives a score ranging from -2 to +2 to each candidates, the one with the highest <b>sum</b> wins.
             It is a highly <b>expressive</b> voting method.
             """),         
-         Intro("Majority Judgement","Majority Judgement",
+         Intro("Majority Judgment","Majority Judgement",
            """
-            The elector gives a score ranging from -2 to +2 to each candidates, the one with the highest <b>medial</b> wins.
+            The elector gives a score ranging from -2 to +2 to each candidates, the one with the highest <b>median</b> wins.
             Like score voting, it is a highly <b>expressive</b> voting method.
             """)
      ))

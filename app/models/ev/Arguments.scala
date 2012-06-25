@@ -6,14 +6,14 @@ object Arguments {
     fr.custom(Argument(
       "Mettre fin au <u>système à deux partis</u>",
       "Ce n'est pas un hazard si toutes les démocraties qui utilisent un système de vote uninominal élisent toujours les mêmes deux partis pendant des décénies, parfois des siècles,",
-      "il s'agit d'une défectuosité mathématique de ce type de système (démontré par Maurice Duvergé en 1950). " +
+      "il s'agit d'une défectuosité mathématique de ce type de système (démontré par Maurice Duverger en 1950). " +
       "Le <b>vote évaluatif</b> s'il était instauré pourrait briser ce duopole."
     )) ~
     en.custom(Argument(
       "To abolish the <u>two party system</u>",
       """
        All democracies that use a uninominal voting system (vote for a single candidate), elect the same two parties for decades, sometimes centuries.
-       It is the result of a fundamental flaw in these system that has been mathematically prooven by Maurice Duverger in 1950.
+       It is the result of a fundamental flaw in these system, empirically demostrated by Maurice Duverger in 1950.
       """,
       "Evaluation Voting could put an end to the <b>two party domination</b>."
     ))    
@@ -32,12 +32,11 @@ object Arguments {
     )) ~
     en.custom(Argument(
        "To vote without fear of <u>vote division</u>",
-       "Many electors don't vote according to their true intents by fear of contributing to elect a candidate whose election they would consider disastrous.",
+       "Many electors don't vote according to their true preferences for fear of helping to elect a candidate they'd consider disastrous.",
        """
-        The are forced to vote for <b>strategically</b> for the candidate that they don't necessarily like,
-        but that is "not as bad" as the candidate they fear, and who is deemed electable by surveys.
-        A voter that is forced into strategic voting looses it's right to express his real intent. With evaluation voting
-        one is never penalized by voting honestly.
+       The are forced to vote for <b>strategically</b> for a candidate that they don't necessarily like, but that is "not as bad" as the candidate they fear, and who is deemed electable by surveys.
+       A voter that is forced into strategic voting loses it's right to express her real views. 
+       With evaluation voting one is never penalized for honestly rating one's true-favorite with the maximum score.
        """
     ))
 
@@ -55,14 +54,14 @@ object Arguments {
        """
      )) ~
      en.custom(Argument(
-       "To end simple majority dictatorship",
+       "To end the simple majority dictatorship",
        """
         A simple majority is sufficient to win an election, even when it is a absolute minority.
-        Uninominal voting frequently elect parties that are strongly rejected by a <b>loosing majority</b>.
+        Uninominal voting frequently elects parties that are strongly rejected by a <b>losing majority</b>.
        """,
        """
         Evaluation Voting changes things fundamentally : it is much more electorally damaging for a party to be disliked by a majority.
-        Inversly, a party that makes consensus is rewarded proportionally to the number of electors sharing the consensus
+        Inversly, a consensus making party is rewarded proportionally to the number of electors sharing the consensus
         and the intensity at which they adhere to it.
        """
      ))
