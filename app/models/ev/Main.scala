@@ -8,7 +8,7 @@ case class Argument(title: String, start: String, rest: String)
 
 case class Intro(short: String, longer: String, completeDesc: String)
 
-case class ThreeVariations(preamble: String, approval: Intro, range: Intro, majorityJudgement: Intro)
+case class ThreeVariations(preamble: String, approval: Intro, range: Intro, majorityJudgement: Intro, link: String)
 
 
 object Main {
@@ -76,11 +76,12 @@ object Main {
             L'électeur donne un score entre -2 et +2 à chacun des candidats, celui dont la <b>somme</b> des scores est la plus élevée gagne.<br>
             Ce système de vote est hautement <b>expressif</b>.
             """),         
-         Intro("Judement Majoritaire","Le Judement Majoritaire",
+         Intro("Jugement Majoritaire","Le Jugement Majoritaire",
            """
             L'électeur donne un score entre -2 et +2 à chacun des candidats, celui dont la <b>médiane</b> des scores est la plus élevée gagne.
             Comme le vote par valeur, ce système de vote est hautement <b>expressif</b>.
-            """)
+            """),
+         "Voir <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a>, pour plus d'info sur le vote par score."
      )) ~
      en.custom(ThreeVariations(
          "Three kinds of Evaluation Voting",
@@ -98,7 +99,8 @@ object Main {
            """
             The elector gives a score ranging from -2 to +2 to each candidates, the one with the highest <b>median</b> wins.
             Like score voting, it is a highly <b>expressive</b> voting method.
-            """)
+            """),
+         "See <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a> for more info on score voting"
      ))
      
   def exampleRVBallot =
