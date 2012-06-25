@@ -81,7 +81,7 @@ object Main {
             L'électeur donne un score entre -2 et +2 à chacun des candidats, celui dont la <b>médiane</b> des scores est la plus élevée gagne.
             Comme le vote par valeur, ce système de vote est hautement <b>expressif</b>.
             """),
-         "Voir <a target='_blank' href='http://www.votedevaleur.org/'>http://www.votedevaleur.org/</a>, pour plus d'info sur le vote par valeur."
+         "Voir <a target='_blank' href='http://www.votedevaleur.org/'>http://www.votedevaleur.org/</a>, et <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a> pour plus d'info sur le vote par valeur."
      )) ~
      en.custom(ThreeVariations(
          "Three kinds of Evaluation Voting",
