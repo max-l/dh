@@ -33,7 +33,7 @@ object Schema extends org.squeryl.Schema {
   ))
   
   def initDb = {
-    
+
     val verboseSql = true //Play.current.configuration.getString("SQL_LOG_ON").map(_ == "true").getOrElse(false)
     
     val envInfo = HerokuUtils.environementExtractor

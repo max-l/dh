@@ -1,12 +1,14 @@
 package models.ev
 
+
+
 object Arguments {
 
   def end2PartyDomination = 
     fr.custom(Argument(
       "Mettre fin au <u>système à deux partis</u>",
-      "Ce n'est pas un hazard si toutes les démocraties qui utilisent un système de vote uninominal élisent toujours les mêmes deux partis pendant des décénies, parfois des siècles,",
-      "il s'agit d'une défectuosité mathématique de ce type de système (démontré par Maurice Duverger en 1950). " +
+      "Ce n'est pas un hazard si toutes les démocraties qui utilisent un système de vote uninominal élisent toujours les mêmes deux partis pendant des décennies, parfois des siècles,",
+      "il s'agit d'une défectuosité mathématique de ce type de système (démontrée par Maurice Duverger en 1950). " +
       "Le <b>vote évaluatif</b> s'il était instauré pourrait briser ce duopole."
     )) ~
     en.custom(Argument(
@@ -23,7 +25,7 @@ object Arguments {
        "Voter sans craindre la <u>division du vote</u>",
        "À chaque élection, de nombreux électeurs ne votent pas pour l'option qu’ils préfèrent, par crainte de contribuer à la victoire d'un parti dont il craignent la prise de pouvoir.",
        """
-        Ils votent stratégiquement, c'est à dire pour un parti qu'ils n’approuvent pas nécéssairement, mais
+        Ils votent stratégiquement, c'est à dire pour un parti qu'ils n’approuvent pas nécessairement, mais
         qu’ils considèrent être "moins pire" que le parti qu'ils craignent, et que les sondages prédisent être 
         le plus susceptible de gagner. Un électeur qui est contraint de voter stratégiquement perd en quelque 
         sorte le droit d’exprimer son intention réelle. Avec le vote évaluatif, l'électeur n'est jamais 
@@ -49,7 +51,7 @@ object Arguments {
        """,
        """
         Le vote évaluatif change radicalement la donne : un parti détesté par une majorité paie un prix beaucoup plus élevé.
-        Inversement, un parti qui fait consensus est récompensé proportionnelement au nombre d'électeurs qui partage
+        Inversement, un parti qui fait consensus est récompensé proportionnelement au nombre d'électeurs qui partagent
         ce consensus, et à l'intensité avec laquelle ils y adhèrent.
        """
      )) ~

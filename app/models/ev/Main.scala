@@ -6,9 +6,9 @@ case class Ballotz(title: String, instructions: String,
 
 case class Argument(title: String, start: String, rest: String)
 
-case class Intro(short: String, longer: String, completeDesc: String)
+case class Intro(short: String, longer: String, completeDesc: String, moreDesc: String)
 
-case class ThreeVariations(preamble: String, approval: Intro, range: Intro, majorityJudgement: Intro, link: String)
+case class ThreeVariations(preamble: String, approval: Intro, range: Intro, majorityJudgement: Intro)
 
 
 object Main {
@@ -22,7 +22,7 @@ object Main {
     en("Citizens for the implementation of")
 
   def invertTheDemocraticDeficitWHileWeStillCan = 
-    fr("Inversons le dégradation de la démocratie, pendant que c'est encore possible.") ~ 
+    fr("Inversons la dégradation de la démocratie, pendant que c'est encore possible.") ~ 
     en("Reverse the degradation of democracy while we still can.")
 
   def definitionOfEV = 
@@ -63,6 +63,12 @@ object Main {
      fr.custom(convertToAv(ballotFr)) ~
      en.custom(convertToAv(ballotEn))
 
+  def mj = Intro("Jugement Majoritaire","Le Jugement Majoritaire",
+           """
+            L'électeur donne un score entre -2 et +2 à chacun des candidats, celui dont la <b>médiane</b> des scores est la plus élevée gagne.
+            Comme le vote par valeur, ce système de vote est hautement <b>expressif</b>.
+            """, "")
+     
   def threeVariations = 
      fr.custom(ThreeVariations(
          "Trois variantes du vote évaluatif",
@@ -70,18 +76,36 @@ object Main {
            """
             L'électeur vote pour autant de candidat qu'il approuve. <br/>Le fait qu'il soit possible de voter pour 
             <b>plus d'un</b> candidat, fait en sorte que l'électeur puisse toujours voter pour celui ou ceux qu'il approuve.
-            """),
+            """, 
+            ""),
          Intro("Par Valeur","Le vote par Valeur",
            """
             L'électeur donne un score entre -2 et +2 à chacun des candidats, celui dont la <b>somme</b> des scores est la plus élevée gagne.<br>
             Ce système de vote est hautement <b>expressif</b>.
-            """),         
-         Intro("Jugement Majoritaire","Le Jugement Majoritaire",
-           """
-            L'électeur donne un score entre -2 et +2 à chacun des candidats, celui dont la <b>médiane</b> des scores est la plus élevée gagne.
-            Comme le vote par valeur, ce système de vote est hautement <b>expressif</b>.
-            """),
-         "Voir <a target='_blank' href='http://www.votedevaleur.org/'>http://www.votedevaleur.org/</a>, et <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a> pour plus d'info sur le vote par valeur."
+            """,
+            "Voir <a target='_blank' href='http://www.votedevaleur.org'>http://www.votedevaleur.org/</a>, et <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a> pour plus d'info sur le vote par valeur."),         
+         Intro("Proportionnel par Valeur","Proportionnel par Valeur",
+           """Le nom technique est : <b>Vote par valeur repondéré</b><br>
+            Le bulletin est identique au vote par valeur, les votes sont cependant comptabilisé <a target='_blank' href='http://rangevoting.org/RRV.html'>d'une manière différente</a> qui assure la proportionnalité.
+            """, 
+            """La formule de comptabilisation des votes est <a target='_blank' href='http://rangevoting.org/RRV.html'>expliquée ici</a>
+     <br><br>
+     <b>Comparaison du scrutin proportionnel compensatoire mixte et du vote évaluatif</b>
+     <br>
+
+     Si l'on est d'avis que la proportionalité est une propriété souhaitable, la question suivante 
+     se pose : parmi tous les modes de scrutin proportionnels existants, lequel devrait-on choisir ?
+     <br><br>
+
+     Le principal avantage du vote évaluatif par rapport au scrutin proportionnel mixte, est le fait qu'il 
+     permette à l'électeur d'exprimer son évaluation de chacune des alternative qui lui sont proposés,
+     alors que le scrutin proportionnel mixte ne lui permet que de choisir une seule option, sans lui 
+     permettre de s'exprimer sur les autres.
+     <br><br>
+     Le mode de scrutin proportionnel mixte, corrige le problème de la perte de votes, en garantissant
+     une proportionnalité aux partis, mais il ne corrige pas le problème de la perte d'information
+     commun à tout mode de scrutin uninominal.
+         """)
      )) ~
      en.custom(ThreeVariations(
          "Three kinds of Evaluation Voting",
@@ -89,18 +113,17 @@ object Main {
            """
             The elector votes for as many candidates as he likes. The ability to vote for <b>more than one</b> has the
             consequence that one can always vote for a candidate that he approve of.
-            """),
+            """, ""),
          Intro("Score Voting","Score Voting",
            """
             The elector gives a score ranging from -2 to +2 to each candidates, the one with the highest <b>sum</b> wins.
             It is a highly <b>expressive</b> voting method.
-            """),         
-         Intro("Majority Judgment","Majority Judgement",
+            """, ""),
+         Intro("Proportionnal Score","Proportionnal Score Voting",
            """
             The elector gives a score ranging from -2 to +2 to each candidates, the one with the highest <b>median</b> wins.
             Like score voting, it is a highly <b>expressive</b> voting method.
-            """),
-         "See <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a> for more info on score voting"
+            ""","See <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a> for more info on score voting")
      ))
      
   def exampleRVBallot =
