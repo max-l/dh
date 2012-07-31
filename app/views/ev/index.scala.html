@@ -50,30 +50,27 @@
   @tabs(tv: ThreeVariations) = {
    
      <div class="tabbable">
-      <ul class="nav nav-tabs">
-        <li class="active"><a href="#tab1" data-toggle="tab">
-          <i class='icon-play'></i>&nbsp;@tv.approval.short</a>
-        </li>
-        <li><a href="#tab2" data-toggle="tab"><i class='icon-play'></i>&nbsp;@tv.range.short</a></li>
+      <ul class="nav nav-tabs">        
+        <li class="active"><a href="#tab2" data-toggle="tab"><i class='icon-play'></i>&nbsp;@tv.range.short</a></li>
+        <li><a href="#tab1" data-toggle="tab"><i class='icon-play'></i>&nbsp;@tv.approval.short</a></li>
         <li><a href="#tab3" data-toggle="tab"><i class='icon-play'></i>&nbsp;@tv.majorityJudgement.short</a></li>
       </ul>
       <div class="tab-content">
-        <div class="tab-pane active" id="tab1">
-  
-           <h2>@tv.approval.longer</h2>
-           @Html(tv.approval.completeDesc)
-           @avBallot(l)
-           <br/>
-           @Html(tv.approval.moreDesc)
-        </div>
-        <div class="tab-pane" id="tab2">
-        
+        <div class="tab-pane active" id="tab2">
            <h2>@tv.range.longer</h2>
            @Html(tv.range.completeDesc)
            @rvBallot(l)
            <br/>
            @Html(tv.range.moreDesc)
         </div>
+        <div class="tab-pane" id="tab1">
+  
+           <h2>@tv.approval.longer</h2>
+           @Html(tv.approval.completeDesc)
+           @avBallot(l)
+           <br/>
+           @Html(tv.approval.moreDesc)
+        </div>        
         <div class="tab-pane" id="tab3">
         
            <h2>@tv.majorityJudgement.longer</h2>
