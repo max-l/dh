@@ -1,0 +1,33 @@
+@(implicit l: models.ev.I18nLanguage)
+
+@import models.ev._
+
+
+@Main.exampleRVBallot.map { b =>
+         <div class="avballot rv">
+            <div>
+              <span>@b.title</span><br>
+              <span>@Html(b.instructions)</span>
+            </div>
+            <div>
+              <ul>
+                @for(c <- b.candidates) {
+                   @rvRow(c._1, c._2)
+                }
+              </ul>
+            </div>
+          </div>   
+}
+
+
+  @rvRow(name: String, score: Int) = {
+      <li>
+        <span>@name</span>
+        <div class="btn-group" data-toggle="buttons-radio">
+           @for(i <- Seq(-2,-1,0,1,2)) {
+             <a class='btn @(if(i == score) "active" else "")'>@i</a>
+           }
+        </div>
+      </li>
+  }
+  

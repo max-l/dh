@@ -1,0 +1,27 @@
+@(implicit l: models.ev.I18nLanguage)
+
+@import models.ev._
+
+@avRow(candidateName: String, score: Int) = {
+    <li>
+      <span>@candidateName</span>
+      <a avscore='@score' class='btn'>X</a>
+    </li>
+}
+
+
+@Main.exampleAVBallot.map { b =>
+       <div class='avballot av'>
+         <div>
+           <span>@b.title</span><br>
+           <span>@Html(b.instructions)</span>
+         </div>
+         <div class="btn-group" data-toggle="buttons-checkbox">
+           <ul>
+             @for(c <- b.candidates) {
+               @avRow(c._1, c._2)
+             }
+           </ul>
+         </div>
+       </div>
+}

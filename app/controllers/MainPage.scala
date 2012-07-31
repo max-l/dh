@@ -31,9 +31,7 @@ import models.ev._
 
 object MainPage extends BaseDecisionHubController {
 
-  def equivotez = Action { req =>
-
-    val langCode = 
+  private def lang(req: Request[_]) =
       req.cookies.get("CHOSEN_LANGUAGE").map(_.value).getOrElse {
       
         req.headers.get("ACCEPT-LANGUAGE") match {
@@ -47,16 +45,52 @@ object MainPage extends BaseDecisionHubController {
         }
       }
 
-    Ok(html.ev.index(Languages(langCode))).withCookies(choosenLangCookie(langCode))
+  def equivoteRoot = Action { req =>
+    Redirect("/" + lang(req))
   }
+
+  def equivoteHome(langCode: String) = 
+    equivotePage(langCode, "/")
   
+  
+  def equivotePage(langCode: String, page: String) = Action { req =>
+    
+    val l = Languages(langCode match {
+      case "" => lang(req)
+      case _ => langCode
+    })
+    
+    val pageLink = 
+      if(page == "/") "" else ("/" + page)
+
+    Ok( page match {
+      case "/" => html.ev.index(pageLink)(l)
+      case "proportionalScoreVoting" => html.ev.proportionalScoreVoting(pageLink)(l)
+    }).withCookies(choosenLangCookie(l.code))
+  }
+
   def choosenLangCookie(code: String) =
     Cookie("CHOSEN_LANGUAGE",code, maxAge = 60 * 60 * 24 * 265)
-  
-  def equivote(languageCode: String) = Action {
-    Ok(html.ev.index(Languages(languageCode))).withCookies(choosenLangCookie(languageCode))
+/*  
+  def equivoteFR = Action {
+    Ok(html.ev.index(Languages("fr"))).withCookies(choosenLangCookie("fr"))
+  }
+
+  def equivoteEN = Action {
+    Ok(html.ev.index(Languages("en"))).withCookies(choosenLangCookie("en"))
   }
   
+  def proportionalScoreVoting = Action { req =>
+    val langCode = lang(req)
+    println("===========>" + langCode)
+    Ok(html.ev.proportionalScoreVoting(Languages(langCode))).withCookies(choosenLangCookie(langCode))
+  }
+
+  def proportionalScoreVotingz(langCode: String) = Action { req =>
+    println("zzzzzzzzzzzzzzz>" + langCode)
+    Ok(html.ev.proportionalScoreVoting(Languages(langCode))).withCookies(choosenLangCookie(langCode))
+  }
+*/  
   def cssExp = Action {
     Ok(html.ev.cssExp())
   }

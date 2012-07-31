@@ -85,26 +85,9 @@ object Main {
             """,
             "Voir <a target='_blank' href='http://www.votedevaleur.org'>http://www.votedevaleur.org/</a>, et <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a> pour plus d'info sur le vote par valeur."),         
          Intro("Proportionnel par Valeur","Proportionnel par Valeur",
-           """Le nom technique est : <b>Vote par valeur repondéré</b><br>
-            Le bulletin est identique au vote par valeur, les votes sont cependant comptabilisé <a target='_blank' href='http://rangevoting.org/RRV.html'>d'une manière différente</a> qui assure la proportionnalité.
+           """Le bulletin par valeur peut être utilisé dans un <a href='/fr/proportionalScoreVoting'>scrutin compensatoire mixte</a>
             """, 
-            """La formule de comptabilisation des votes est <a target='_blank' href='http://rangevoting.org/RRV.html'>expliquée ici</a>
-     <br><br>
-     <b>Comparaison du scrutin proportionnel compensatoire mixte et du vote évaluatif</b>
-     <br>
-
-     Si l'on est d'avis que la proportionalité est une propriété souhaitable, la question suivante 
-     se pose : parmi tous les modes de scrutin proportionnels existants, lequel devrait-on choisir ?
-     <br><br>
-
-     Le principal avantage du vote évaluatif par rapport au scrutin proportionnel mixte, est le fait qu'il 
-     permette à l'électeur d'exprimer son évaluation de chacune des alternative qui lui sont proposés,
-     alors que le scrutin proportionnel mixte ne lui permet que de choisir une seule option, sans lui 
-     permettre de s'exprimer sur les autres.
-     <br><br>
-     Le mode de scrutin proportionnel mixte, corrige le problème de la perte de votes, en garantissant
-     une proportionnalité aux partis, mais il ne corrige pas le problème de la perte d'information
-     commun à tout mode de scrutin uninominal.
+            """
          """)
      )) ~
      en.custom(ThreeVariations(

@@ -14,6 +14,7 @@ object Languages {
     code match {
       case "fr" => fr
       case "en" => en
+      case _ => sys.error("unsupported language '" + code + "'")
     }
 }
 import play.api.templates.Html

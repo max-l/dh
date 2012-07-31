@@ -1,6 +1,88 @@
-@(implicit l: models.ev.I18nLanguage)
+@(page: String)(implicit l: models.ev.I18nLanguage)
 
 @import models.ev._
 
-@main {
+@main(page) {
+        <div class="row">
+          <div class='span12'>
+            <div class="row lowerHomePage">
+              <div class='span6 lowerHomePageLeft'>
+  
+                   @Html(Main.definitionOfEV.!)
+     
+                   <h2>@(Main.threeVariations.!.preamble)</h2>
+  
+                   @tabs(Main.threeVariations.!)
+              </div>
+              <div class='span6'>
+              
+                <h1>@Html(Main.why.!)</h1>
+                
+                @art(Arguments.end2PartyDomination.!)
+                @art(Arguments.solveVoteDivision.!)
+                @art(Arguments.endSimpleMajorityDictatorsihp.!)
+                
+              </div>
+            </div>
+          </div>
+        </div>
 }
+
+
+  @readMore(more: Html) = {
+    <span class='readMore'></span>
+    <span>@more</span>
+  }
+
+  @art(a: Argument) = {
+     <div class="topArgument">
+         <div>
+           <div><i class='icon-play'></i>
+           <span class='titre'>@(Html(a.title))<span>
+         </div>
+         <div class='punch'>
+            @(Html(a.start))
+            @readMore(Html(a.rest))</div>
+        </div>
+     </div>
+  }
+  
+  @tabs(tv: ThreeVariations) = {
+   
+     <div class="tabbable">
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="#tab1" data-toggle="tab">
+          <i class='icon-play'></i>&nbsp;@tv.approval.short</a>
+        </li>
+        <li><a href="#tab2" data-toggle="tab"><i class='icon-play'></i>&nbsp;@tv.range.short</a></li>
+        <li><a href="#tab3" data-toggle="tab"><i class='icon-play'></i>&nbsp;@tv.majorityJudgement.short</a></li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane active" id="tab1">
+  
+           <h2>@tv.approval.longer</h2>
+           @Html(tv.approval.completeDesc)
+           @avBallot(l)
+           <br/>
+           @Html(tv.approval.moreDesc)
+        </div>
+        <div class="tab-pane" id="tab2">
+        
+           <h2>@tv.range.longer</h2>
+           @Html(tv.range.completeDesc)
+           @rvBallot(l)
+           <br/>
+           @Html(tv.range.moreDesc)
+        </div>
+        <div class="tab-pane" id="tab3">
+        
+           <h2>@tv.majorityJudgement.longer</h2>
+           @Html(tv.majorityJudgement.completeDesc)
+           @rvBallot(l)
+           <br/>
+           @Html(tv.majorityJudgement.moreDesc)
+  
+        </div>
+      </div>
+    </div>
+  }  

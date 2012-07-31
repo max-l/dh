@@ -1,24 +1,7 @@
-@(lowerBody: Html)(implicit l: models.ev.I18nLanguage)
+@(page: String)(lowerBody: Html)(implicit l: models.ev.I18nLanguage)
 
 @import models.ev._
 
-  @readMore(more: Html) = {
-    <span class='readMore'></span>
-    <span>@more</span>
-  }
-
-  @art(a: Argument) = {
-     <div class="topArgument">
-         <div>
-           <div><i class='icon-play'></i>
-           <span class='titre'>@(Html(a.title))<span>
-         </div>
-         <div class='punch'>
-            @(Html(a.start))
-            @readMore(Html(a.rest))</div>
-        </div>
-     </div>
-  }
 
 <!DOCTYPE html>
 <html>
@@ -158,28 +141,9 @@
             </div>
         </div>
 
+        @lowerBody
         <div class="row">
-          <div class='span12'>
-            <div class="row lowerHomePage">
-              <div class='span6 lowerHomePageLeft'>
-  
-                   @Html(Main.definitionOfEV.!)
-     
-                   <h2>@(Main.threeVariations.!.preamble)</h2>
-  
-                   @tabs(Main.threeVariations.!)
-              </div>
-              <div class='span6'>
-              
-                <h1>@Html(Main.why.!)</h1>
-                
-                @art(Arguments.end2PartyDomination.!)
-                @art(Arguments.solveVoteDivision.!)
-                @art(Arguments.endSimpleMajorityDictatorsihp.!)
-                
-              </div>
-            </div>
-          </div>
+          <br><br><br>
         </div>
       </div>
       
@@ -188,58 +152,6 @@
 
 </html>
 
-    @avBallot = { @Main.exampleAVBallot.map { b =>
-       <div class='avballot av'>
-         <div>
-           <span>@b.title</span><br>
-           <span>@Html(b.instructions)</span>
-         </div>
-         <div class="btn-group" data-toggle="buttons-checkbox">
-           <ul>
-             @for(c <- b.candidates) {
-               @avRow(c._1, c._2)
-             }
-           </ul>
-         </div>
-       </div>
-      }
-    }
-    
-    @avRow(candidateName: String, score: Int) = {
-      <li>
-        <span>@candidateName</span>
-        <a avscore='@score' class='btn'>X</a>
-      </li>
-    }
-
-
-   @rvRow(name: String, score: Int) = {
-       <li>
-         <span>@name</span>
-         <div class="btn-group" data-toggle="buttons-radio">
-            @for(i <- Seq(-2,-1,0,1,2)) {
-              <a class='btn @(if(i == score) "active" else "")'>@i</a>
-            }
-         </div>
-       </li>
-   }
-
-   @rvBallot() = { @Main.exampleRVBallot.map { b =>
-         <div class="avballot rv">
-            <div>
-              <span>@b.title</span><br>
-              <span>@Html(b.instructions)</span>
-            </div>
-            <div>
-              <ul>
-                @for(c <- b.candidates) {
-                   @rvRow(c._1, c._2)
-                }
-              </ul>
-            </div>
-          </div>   
-     }
-   }
     
   @topNav() = {
       <div class="navbar navbar-fixed-top">
@@ -259,8 +171,8 @@
   
               <ul class="nav pull-right">
   
-                <li><a href="/fr">Français</a></li>
-                <li><a href="/en">English</a></li>
+                <li><a href="/fr@page">Français</a></li>
+                <li><a href="/en@page">English</a></li>
                 <li class="divider-vertical"></li>
                 <li><a>Contact</a></li>
               </ul>
@@ -270,45 +182,6 @@
       </div>  
   }
 
- @tabs(tv: ThreeVariations) = {
- 
-   <div class="tabbable">
-    <ul class="nav nav-tabs">
-      <li class="active"><a href="#tab1" data-toggle="tab">
-        <i class='icon-play'></i>&nbsp;@tv.approval.short</a>
-      </li>
-      <li><a href="#tab2" data-toggle="tab"><i class='icon-play'></i>&nbsp;@tv.range.short</a></li>
-      <li><a href="#tab3" data-toggle="tab"><i class='icon-play'></i>&nbsp;@tv.majorityJudgement.short</a></li>
-    </ul>
-    <div class="tab-content">
-      <div class="tab-pane active" id="tab1">
-
-         <h2>@tv.approval.longer</h2>
-         @Html(tv.approval.completeDesc)
-         @avBallot
-         <br/>
-         @Html(tv.approval.moreDesc)
-      </div>
-      <div class="tab-pane" id="tab2">
-      
-         <h2>@tv.range.longer</h2>
-         @Html(tv.range.completeDesc)
-         @rvBallot
-         <br/>
-         @Html(tv.range.moreDesc)
-      </div>
-      <div class="tab-pane" id="tab3">
-      
-         <h2>@tv.majorityJudgement.longer</h2>
-         @Html(tv.majorityJudgement.completeDesc)
-         @rvBallot
-         <br/>
-         @Html(tv.majorityJudgement.moreDesc)
-
-      </div>
-    </div>
-  </div>
-}
 
 @socialBox = {
    <div class='socialBox'>

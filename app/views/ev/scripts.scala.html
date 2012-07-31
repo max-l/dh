@@ -10,6 +10,23 @@
 @js("bootstrap.js")
 
  <script>
+ 
+  $('#swFrz').click(function(ev) {
+    var u = window.location + ''
+    u = u.split('/')
+    
+    if(u.length == 0) return
+    
+    ev.preventDefault()
+    
+    var last = u[u.length -1]
+    debugger
+    if(last == 'en' || last == 'fr') {
+    
+      return
+    }
+    
+  })
 
   $('.readMore').each(function(i, e) {
     var z = $(e)

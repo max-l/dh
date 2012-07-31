@@ -1,7 +1,11 @@
 
-GET      /eq/                                   controllers.MainPage.equivotez
-GET      /eq/:l                                 controllers.MainPage.equivote(l: String)
+GET      /eq                                    controllers.MainPage.equivoteRoot
+GET      /eq/:langCode                          controllers.MainPage.equivoteHome(langCode: String)
+
+GET      /eq/:langCode/:page                    controllers.MainPage.equivotePage(langCode: String, page: String)
+
 GET      /cssExp                                controllers.MainPage.cssExp
+
 
 GET      /                                      controllers.MainPage.home
 #GET     /newDecision                           controllers.MainPage.newDecision
