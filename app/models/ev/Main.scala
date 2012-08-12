@@ -34,8 +34,12 @@ object Main {
      </p>""")
   def why = 
     fr("Pourquoi réformer le mode de scrutin ?") ~ 
-    en("Why ?")
+    en("Why electoral reform ?")
 
+  def getInvolved = 
+    fr("S'impliquer dans la réforme du mode de scrutin") ~ 
+    en("Get involved in electoral reform")
+    
   val ballotFr = Ballotz(
       "Bulletin de Vote",
       "Votez pour chaque candidat que vous appouvez, le gagnant sera celui qui obtiendra le plus de vote.",
@@ -101,12 +105,13 @@ object Main {
            """
             The elector gives a score ranging from -2 to +2 to each candidates, the one with the highest <b>sum</b> wins.
             It is a highly <b>expressive</b> voting method.
-            """, ""),
+            """, 
+            "See <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a> for more info on score voting"),
          Intro("Proportionnal Score","Proportionnal Score Voting",
            """
-            The elector gives a score ranging from -2 to +2 to each candidates, the one with the highest <b>median</b> wins.
-            Like score voting, it is a highly <b>expressive</b> voting method.
-            ""","See <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a> for more info on score voting")
+             Score voting can be used in a <b>mixed member proportionnal system</b>, yielding the expressivity of score voting while ensuring proportionnality, see : <a href='/en/proportionalScoreVoting'>proportionnal score voting</a>. 
+            """,
+            "See <a target='_blank' href='http://scorevoting.net'>http://scorevoting.net</a> for more info on score voting")
      ))
      
   def exampleRVBallot =

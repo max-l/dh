@@ -1,0 +1,79 @@
+@(page: String)(implicit l: models.ev.I18nLanguage)
+
+@import models.ev._
+
+@main(page) {
+   <div class="row">
+     <div class='span12'>
+       <div class="row lowerHomePage">
+       
+       <h2>Mixed Member Proportional with Score Voting</h2>
+       <br>
+       <b>Mixed Member Proportional with Score Voting</b> mostly has the same rules as <a target='_blank' href='http://en.wikipedia.org/wiki/Mixed-member_proportional_representation'>Mixed Member Proportionnal</a>
+       used in many countries (among them Germany and New Zealand).
+       <br>
+       <br>
+       
+       See This Wikipedia article explains the <a target='_blank' href='http://en.wikipedia.org/wiki/Mixed-member_proportional_representation'>standard mixed member proportional method</a>
+       like our current system (Plurality) it uses a uninominal (vote for only candidate) ballot.
+       
+       The basic steps in the standard mixed member system are :
+       <br><br>
+       <ul>
+        <li>1) Two thirds of the parliament's seats are assigned to a territorial unit (an electoral district), the remaining seats are called <i>compensatory seats</i>, the are redistributed in order to have a proportionnal result.</li> 
+       
+         <li>2) The elector has a double ballot, and casts two votes 
+          <ul>
+            <li>i) For a representant in his electoral district </li>
+            <li>ii) For his favotite party at the national (or provincial) level.</li>
+          </ul>
+         </li>
+         
+         <li>3) Territorial seats are assigned by counting the territorial ballots with the standard plurality (non proportionnal) method.</li> 
+          
+         <li>4) Party ballots are counted, and the percentage obtained by each party are used to determin how
+         the <b>compensatory seats</b> are distributed, the rule of distribution seeks to minimize the difference
+         in percentage between the percentage of seats (territorial plus compensatory) that each party obtains is
+         as close as possible to the percentages expressed in the party ballots. It is this step that ensures proportionality. 
+         </li>
+       </ul>
+              
+       
+      <br>
+       The procedure for proportionnal mixed member is mostly the same, the two ballots (territorial and compensatory)
+       are replaced with score ballors, and steps 3 and 4 become :
+       <br><br>
+
+        <ul>
+         <li>3)Territorial seats are assigned using the territorial ballots (with standard score voting)</li>
+
+         <li>4) Party ballots are used to determin the "proportional number of seats" that each party should get in order to have a proportional result
+            The proportional number of seats is obtained with the following procedure :
+            <ul>
+              <li>a) each ballot has an initial weight of 1</li>
+              <li>b) the sum of scores for each party are computed using each ballot's weight</li>
+              <li>c) the party with the highest score obtains a seat</li>
+              <li>d) The score of each ballot is recomputed using this formula : 
+                      <img src='/assets/images/generalized-rrv-weight-equation.png'> <br>
+                      where : <br>
+                      <ul>
+                        <li>N is the number of parties</li>
+                        <li>score(i) is the score of the ith party on the ballot</li>
+                        <li>p(i) is the number of seats already given to the ith party</li>
+                      </ul>
+              </li>
+              <li>e) steps b to d are repeated the number of times needed to distribute all compensatory seats.</li>
+            </ul>
+            
+            This procedure ensures proportionalilty because of this property : A voter faction representing X% of the electorate 
+            can, if the choose so, obtain X% of the seats for representatives of their choice, by them the maximum score, while giving
+            all other candidats the minimum score.  
+         </li>
+        </ul>
+        
+        See also <a target='_blank' href='http://rangevoting.org/RRV.html'>http://rangevoting.org/RRV.html</a>
+
+       </div>
+     </div>
+   </div>
+}
