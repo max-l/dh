@@ -33,7 +33,7 @@ object Main {
         grade, the one with the best cumulative grade wins.
      </p>""")
   def why = 
-    fr("Pourquoi ?") ~ 
+    fr("Pourquoi réformer le mode de scrutin ?") ~ 
     en("Why ?")
 
   val ballotFr = Ballotz(

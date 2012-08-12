@@ -1,0 +1,39 @@
+@(page: String)(implicit l: models.ev.I18nLanguage)
+
+@import models.ev._
+
+@main(page) {
+   <div class="row">
+     <div class='span12'>
+       <div class="row lowerHomePage">
+       
+       
+         <div>
+         
+           @boardMember("Maxime Lévesque", "Président Fondateur", "/assets/img/maxime-levesque.jpg") {
+              Titulaire d'un baccalauréa en informatique de l'Université de Montréal, 
+              Maxime Lévesque a oeuvré en tant que dévelopeur logiciel, et architecte depuis 1994.
+              Il est bien connu dans la comunauté Open Source, notament pour le projet http://squeryl.org
+              qui est le premier outil du genre dans l'univers Java.
+           }
+         
+         <div>
+
+       </div>
+     </div>
+   </div>
+}
+
+@boardMember(name: String, title: String, imgSrc: String)(bio: Html) = {
+            <div class='row boardMember'>
+               <img src="@imgSrc" alt="" class='span3'>
+               <div class='span9'>
+                 <b>@title</b>&nbsp;@name
+                 <br><br>
+                 <p>
+                 @bio
+                 </p>
+               </div>
+            </div>
+
+}

@@ -66,6 +66,8 @@ object MainPage extends BaseDecisionHubController {
     Ok( page match {
       case "/" => html.ev.index(pageLink)(l)
       case "proportionalScoreVoting" => html.ev.proportionalScoreVoting(pageLink)(l)
+      case "apropos" => html.ev.apropos(pageLink)(l)
+      case "simpliquer" => html.ev.simpliquer(pageLink)(l)
     }).withCookies(choosenLangCookie(l.code))
   }
 
